@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# PyInstaller
+build/
+dist/
+*.spec
+version_info.txt
+
+# Inno Setup
+Inno_Output/
+*.iss
+
+# IDEs
+.vscode/
+.idea/
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Project specific
+notas/
+plantillas_clickedu_aulas/*.xlsx
+!plantillas_clickedu_aulas/README_PLANTILLAS.txt
