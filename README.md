@@ -69,4 +69,4 @@ Consulta el archivo [README_USO.txt](GradingApp/README_USO.txt) para una guía d
 
 ## ⚖️ Licencia
 
-Este proyecto está bajo la Licencia MIT. Consulta el archivo `LICENSE` (próximamente) para más detalles.
+Este proyecto está bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.
