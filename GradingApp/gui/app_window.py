@@ -4,6 +4,7 @@ import os
 import re
 import pandas as pd
 import threading
+import time
 import winsound
 from core.excel_manager import ExcelManager
 from core.voice_processor import VoiceProcessor
@@ -18,6 +19,15 @@ class AppWindow(ctk.CTk):
         
         self.excel_manager = ExcelManager()
         self.voice_processor = VoiceProcessor()
+        
+        self.stats = {
+            'grading_timestamps': [],
+            'voice_attempts': 0,
+            'voice_successes': 0,
+            'lowest_match': {'name': None, 'score': 100}
+        }
+        self.is_stats_view_open = False
+        self.stats_main_frame = None
         
         try:
             import ctypes
@@ -94,6 +104,11 @@ class AppWindow(ctk.CTk):
         
         self.btn_export_excel = ctk.CTkButton(self.sidebar_frame, text="Exportar Notas", command=self.export_excel_event, state="disabled", fg_color="#2ECC71", hover_color="#27AE60", text_color="white")
         self.btn_export_excel.grid(row=3, column=0, padx=20, pady=20)
+        
+        # Botón de Estadísticas
+        self.btn_stats = ctk.CTkButton(self.sidebar_frame, text="📊 Estadísticas", height=40, font=ctk.CTkFont(weight="bold"), 
+                                       command=self.toggle_stats_view, fg_color="#3498DB", hover_color="#2980B9", state="disabled")
+        self.btn_stats.grid(row=4, column=0, padx=20, pady=5)
         
         # Controles inferiores (Tema y Sonido)
         self.bottom_controls_frame = ctk.CTkFrame(self.sidebar_frame, fg_color="transparent")
@@ -194,7 +209,11 @@ class AppWindow(ctk.CTk):
             if students_data is not None:
                 self.title_label.configure(text=f"Clase: {selected_name}")
                 self.btn_export_excel.configure(state="normal")
+                self.btn_stats.configure(state="normal")
                 self.btn_voice.configure(state="normal")
+                self.stats = {'grading_timestamps': [], 'voice_attempts': 0, 'voice_successes': 0, 'lowest_match': {'name': None, 'score': 100}}
+                if self.is_stats_view_open:
+                    self.toggle_stats_view()
                 if hasattr(self, 'placeholder_label') and self.placeholder_label.winfo_exists():
                     self.placeholder_label.pack_forget()
                 self._populate_studentsList(students_data)
@@ -254,6 +273,7 @@ class AppWindow(ctk.CTk):
                 val_float = float(val.replace(',', '.'))
                 self.excel_manager.update_grade(student_id, val_float)
                 entry_widget.configure(text_color=["black", "white"])
+            self.stats['grading_timestamps'].append(time.time())
         except ValueError:
             entry_widget.configure(text_color="red")
             
@@ -358,13 +378,19 @@ class AppWindow(ctk.CTk):
 
     def _process_ptt(self):
         students_list = self.excel_manager.df.to_dict('records')
-        student_id, grade = self.voice_processor.stop_recording_and_process(students_list)
-        self.after(0, self._on_voice_result, student_id, grade)
+        student_id, grade, score, best_match = self.voice_processor.stop_recording_and_process(students_list)
+        self.after(0, self._on_voice_result, student_id, grade, score, best_match)
         
-    def _on_voice_result(self, student_id, grade):
+    def _on_voice_result(self, student_id, grade, score, best_match):
+        self.stats['voice_attempts'] += 1
         self.voice_hint_label.configure(text="Mantén ESPACIO para dictar", text_color="gray")
         if student_id is not None and grade is not None:
+            self.stats['voice_successes'] += 1
+            if score < self.stats['lowest_match']['score']:
+                self.stats['lowest_match'] = {'name': best_match, 'score': score}
+                
             self.excel_manager.update_grade(student_id, grade)
+            self.stats['grading_timestamps'].append(time.time())
             if student_id in self.grade_entries:
                 entry = self.grade_entries[student_id]
                 entry.delete(0, 'end')
@@ -408,3 +434,155 @@ class AppWindow(ctk.CTk):
             self.sound_button.configure(text="Sonido: ON", fg_color="#3498DB", hover_color="#2980B9")
         else:
             self.sound_button.configure(text="Sonido: OFF", fg_color="#95A5A6", hover_color="#7F8C8D")
+
+    def toggle_stats_view(self):
+        if not self.is_stats_view_open:
+            # Ocultar vistas principales
+            self.header_frame.grid_forget()
+            self.students_frame.grid_forget()
+            
+            # Crear y mostrar vista de estadísticas
+            self.stats_main_frame = ctk.CTkScrollableFrame(self, fg_color="transparent")
+            self.stats_main_frame.grid(row=0, column=1, rowspan=2, sticky="nsew", padx=20, pady=20)
+            self.stats_main_frame.grid_columnconfigure((0, 1), weight=1)
+            
+            header = ctk.CTkLabel(self.stats_main_frame, text="Resumen de Rendimiento de la Clase", font=ctk.CTkFont(size=24, weight="bold"))
+            header.grid(row=0, column=0, columnspan=2, pady=(0, 20), sticky="w")
+            
+            # --- CÁLCULO DE MÉTRICAS ---
+            # Eficiencia
+            ts = self.stats['grading_timestamps']
+            total_time_str = "0s"
+            speed_str = "0s"
+            mins_saved = "0"
+            burst_mode = 0
+            
+            if len(ts) >= 2:
+                total_sec = ts[-1] - ts[0]
+                m, s = divmod(int(total_sec), 60)
+                total_time_str = f"{m}m {s}s"
+                
+                avg_sec = total_sec / (len(ts) - 1)
+                speed_str = f"{avg_sec:.1f}s"
+                
+                clickedu_estimated_sec = len(ts) * 15
+                saved_sec = max(0, clickedu_estimated_sec - total_sec)
+                mins_saved = f"{int(saved_sec // 60)}"
+                
+                current_burst = 1
+                for i in range(1, len(ts)):
+                    if ts[i] - ts[i-1] <= 10:
+                        current_burst += 1
+                        burst_mode = max(burst_mode, current_burst)
+                    else:
+                        current_burst = 1
+            
+            # Rendimiento Escolar
+            raw_grades = []
+            if self.excel_manager.df is not None:
+                for val in self.excel_manager.df.iloc[:, -1].dropna():
+                    try:
+                        raw_grades.append(float(val))
+                    except ValueError:
+                        pass
+            
+            mean_grade = sum(raw_grades)/len(raw_grades) if raw_grades else 0
+            sorted_grades = sorted(raw_grades)
+            median_grade = sorted_grades[len(sorted_grades)//2] if raw_grades else 0
+            
+            aprobados = sum(1 for g in raw_grades if g >= 5.0)
+            success_rate = (aprobados / len(raw_grades) * 100) if raw_grades else 0
+            
+            # Curiosidades
+            mic_total = self.stats['voice_attempts']
+            mic_success = self.stats['voice_successes']
+            mic_accuracy = (mic_success / mic_total * 100) if mic_total > 0 else 0
+            
+            # Distribución para Campana
+            dist = {"Insuficiente (<5)": 0, "Suficiente (5-6)": 0, "Bien (6-7)": 0, "Notable (7-9)": 0, "Sobresaliente (9-10)": 0}
+            for g in raw_grades:
+                if g < 5: dist["Insuficiente (<5)"] += 1
+                elif g < 6: dist["Suficiente (5-6)"] += 1
+                elif g < 7: dist["Bien (6-7)"] += 1
+                elif g < 9: dist["Notable (7-9)"] += 1
+                else: dist["Sobresaliente (9-10)"] += 1
+            max_dist = max(dist.values()) if raw_grades else 1
+
+            from collections import Counter
+            repeated_grade = Counter(raw_grades).most_common(1)[0][0] if raw_grades else "N/A"
+            unpronounceable = self.stats['lowest_match']
+            
+            # --- CONSTRUCCIÓN DE UI VISUAL ---
+            card_metrics = ctk.CTkFrame(self.stats_main_frame, fg_color=("gray85", "gray16"), corner_radius=15)
+            card_metrics.grid(row=1, column=0, padx=15, pady=15, sticky="nsew")
+            ctk.CTkLabel(card_metrics, text="⚡ Eficiencia", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=(15, 10))
+            
+            ctk.CTkLabel(card_metrics, text=speed_str, font=ctk.CTkFont(size=44, weight="bold"), text_color="#3498DB").pack(pady=(10,0))
+            ctk.CTkLabel(card_metrics, text="Segundos por nota", font=ctk.CTkFont(size=12, slant="italic")).pack()
+            
+            ctk.CTkLabel(card_metrics, text=f"{burst_mode} 🚀", font=ctk.CTkFont(size=32, weight="bold"), text_color="#E67E22").pack(pady=(15,0))
+            ctk.CTkLabel(card_metrics, text="Modo Ráfaga máxima", font=ctk.CTkFont(size=12, slant="italic")).pack()
+            
+            ctk.CTkLabel(card_metrics, text=f"{mins_saved} min", font=ctk.CTkFont(size=32, weight="bold"), text_color="#2ECC71").pack(pady=(15,0))
+            ctk.CTkLabel(card_metrics, text="Ahorro estimado total", font=ctk.CTkFont(size=12, slant="italic")).pack(pady=(0, 20))
+
+            card_school = ctk.CTkFrame(self.stats_main_frame, fg_color=("gray85", "gray16"), corner_radius=15)
+            card_school.grid(row=1, column=1, padx=15, pady=15, sticky="nsew")
+            ctk.CTkLabel(card_school, text="🎓 Examen", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=(15, 10))
+            
+            means_frame = ctk.CTkFrame(card_school, fg_color="transparent")
+            means_frame.pack(fill="x", pady=10)
+            means_frame.grid_columnconfigure((0,1), weight=1)
+            
+            ctk.CTkLabel(means_frame, text=f"{mean_grade:.2f}", font=ctk.CTkFont(size=38, weight="bold"), text_color="#F1C40F").grid(row=0, column=0)
+            ctk.CTkLabel(means_frame, text="Media", font=ctk.CTkFont(size=12)).grid(row=1, column=0)
+            
+            ctk.CTkLabel(means_frame, text=f"{median_grade:.2f}", font=ctk.CTkFont(size=38, weight="bold"), text_color="#9B59B6").grid(row=0, column=1)
+            ctk.CTkLabel(means_frame, text="Mediana", font=ctk.CTkFont(size=12)).grid(row=1, column=1)
+            
+            ctk.CTkLabel(card_school, text=f"Éxito: {success_rate:.1f}% Aprobados", font=ctk.CTkFont(weight="bold")).pack(pady=(10, 5))
+            pass_bar = ctk.CTkProgressBar(card_school, height=12, progress_color="#2ECC71", fg_color="#E74C3C")
+            pass_bar.pack(fill="x", padx=30, pady=(0, 15))
+            pass_bar.set(success_rate / 100)
+            
+            dist_frame = ctk.CTkFrame(card_school, fg_color="transparent")
+            dist_frame.pack(fill="x", padx=20, pady=(0,20))
+            colors = {"Insuficiente (<5)": "#E74C3C", "Suficiente (5-6)": "#E67E22", "Bien (6-7)": "#F1C40F", "Notable (7-9)": "#3498DB", "Sobresaliente (9-10)": "#2ECC71"}
+            for i, (k, v) in enumerate(dist.items()):
+                ctk.CTkLabel(dist_frame, text=k, font=ctk.CTkFont(size=11), width=110, anchor="w").grid(row=i, column=0, padx=(0,10))
+                bar = ctk.CTkProgressBar(dist_frame, height=8, progress_color=colors[k], fg_color="gray30")
+                bar.grid(row=i, column=1, sticky="ew")
+                bar.set(v / max_dist if max_dist > 0 else 0)
+                ctk.CTkLabel(dist_frame, text=str(v), font=ctk.CTkFont(size=11, weight="bold")).grid(row=i, column=2, padx=(10,0))
+            dist_frame.grid_columnconfigure(1, weight=1)
+
+            card_fun = ctk.CTkFrame(self.stats_main_frame, fg_color=("gray85", "gray16"), corner_radius=15)
+            card_fun.grid(row=2, column=0, columnspan=2, padx=15, pady=15, sticky="nsew")
+            ctk.CTkLabel(card_fun, text="🎙️ Voz", font=ctk.CTkFont(size=20, weight="bold")).pack(pady=(15, 10))
+            
+            mic_frame = ctk.CTkFrame(card_fun, fg_color="transparent")
+            mic_frame.pack(fill="x", pady=10)
+            mic_frame.grid_columnconfigure((0,1), weight=1)
+            
+            ctk.CTkLabel(mic_frame, text=f"{mic_accuracy:.1f}%", font=ctk.CTkFont(size=38, weight="bold"), text_color="#1ABC9C").grid(row=0, column=0)
+            ctk.CTkLabel(mic_frame, text=f"Tasa Aciertos ({mic_success}/{mic_total})", font=ctk.CTkFont(size=12)).grid(row=1, column=0)
+            
+            unpron_name = unpronounceable['name'] if unpronounceable['name'] else "Ninguno"
+            unpron_score = unpronounceable['score']
+            ctk.CTkLabel(mic_frame, text=f"🗣️ {unpron_name}", font=ctk.CTkFont(size=24, weight="bold", slant="italic"), text_color="#e74c3c").grid(row=0, column=1)
+            ctk.CTkLabel(mic_frame, text=f"Alumno Difícil ({unpron_score:.1f}% match)", font=ctk.CTkFont(size=12)).grid(row=1, column=1)
+            
+            ctk.CTkLabel(card_fun, text=f"Moda (Nota + repetida): {repeated_grade}", font=ctk.CTkFont(weight="bold", size=14)).pack(pady=(10, 20))
+
+            self.btn_stats.configure(text="📋 Volver a Notas", fg_color="#E67E22", hover_color="#D35400")
+            self.is_stats_view_open = True
+        else:
+            # Restaurar vista principal
+            if self.stats_main_frame:
+                self.stats_main_frame.grid_forget()
+                
+            self.header_frame.grid(row=0, column=1, sticky="ew", padx=20, pady=10)
+            self.students_frame.grid(row=1, column=1, sticky="nsew", padx=20, pady=10)
+            
+            self.btn_stats.configure(text="📊 Estadísticas", fg_color="#3498DB", hover_color="#2980B9")
+            self.is_stats_view_open = False
