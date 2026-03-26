@@ -1,6 +1,6 @@
 # 🎙️ Gestor de Notas para Clickedu (Dictado por Voz)
 
-[![Release](https://img.shields.io/badge/Release-v1.0.0-green.svg)](https://github.com/MiguelFerrerF/Clickedu_voice_note_picker/releases)
+[![Release](https://img.shields.io/badge/Release-v1.2.0-blue.svg)](https://github.com/MiguelFerrerF/Clickedu_voice_note_picker/releases)
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -14,8 +14,18 @@ Una aplicación de escritorio diseñada para profesores que permite calificar al
 *   **🧠 Mapeo Inteligente (Fuzzy Matching)**: El programa reconoce al alumno por su nombre aunque no lo pronuncies exactamente igual.
 *   **🔢 Procesamiento de Notas**: Reconoce formatos como "siete con cinco", "ocho con dos" o "nueve y medio".
 *   **⚡ Navegación Ultrarrápida**: Usa las flechas y el Enter para moverte entre celdas sin tocar el ratón.
-*   **🌑 Modo Oscuro/Claro**: Interfaz premium adaptable a tus preferencias.
+*   **📊 Panel de Estadísticas (Gamificación)**: Cuadro de mandos analítico que mide en vivo cuánto tiempo ahorras usando la aplicación, el modo ráfaga y visualiza la curva de distribución de aprobados.
+*   **🗣️ Filtro Fonético Avanzado**: Corrige errores del micrófono al natural (ej. iguala "c" y "z" o "v" y "b" para encontrar a tu alumno siempre).
+*   **⚡ Zero-Latency Splash Screen**: Pantalla de arranque instantáneo sin esperas al abrir el ejecutable.
 *   **📂 Exportación Automática**: Genera copias del Excel original de Clickedu con las notas inyectadas y abre la carpeta automáticamente.
+
+---
+
+## 🚀 Novedades en v1.2.0
+
+*   **Motor Ultrarrápido**: Sustituido el motor original por RapidFuzz (backend en C++) multiplicando exponencialmente la velocidad de búsqueda de alumnos.
+*   **Descarte Magnético de la Voz**: Se puede dictar la nota a placer ("ponle a este alumno un siete con cinco") y la Inteligencia Artificial filtrará el nombre y la nota ignorando de lleno el resto de la frase gracias a los parches de intercepción lexical.
+*   **Dashboards de Rendimiento**: Gamificación e interfaz ampliada al modo Premium.
 
 ---
 
