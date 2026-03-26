@@ -3,7 +3,7 @@ import pyaudio
 import speech_recognition as sr
 import json
 import re
-from rapidfuzz import process
+from rapidfuzz import process, fuzz, utils
 import webrtcvad
 
 class VoiceProcessor:
@@ -14,10 +14,6 @@ class VoiceProcessor:
         self.stream = None
         self.frames = []
         self.is_recording = False
-        
-        # WebRTC VAD en nivel 3 (Agresivo: Escarta automáticamente silencios y ruido de fondo)
-        self.vad = webrtcvad.Vad(3)
-
     def start_recording(self):
         if self.is_recording:
             return
@@ -29,18 +25,32 @@ class VoiceProcessor:
             channels=1,
             rate=16000,
             input=True,
-            frames_per_buffer=480 # 30ms a 16000Hz (requerido por webrtcvad)
+            frames_per_buffer=480 # 30ms a 16000Hz
         )
         self.record_thread = threading.Thread(target=self._record_loop)
         self.record_thread.start()
 
+    def _normalize_phonetics(self, text):
+        if not text: return ""
+        text = text.lower()
+        replacements = {
+            'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
+            'v': 'b', 'h': '', 'y': 'i', 'll': 'i',
+            'k': 'c', 'z': 's'
+        }
+        for k, v in replacements.items():
+            text = text.replace(k, v)
+        text = re.sub(r'c([ei])', r's\1', text)
+        text = re.sub(r'qu([ei])', r'c\1', text)
+        text = re.sub(r'g([ei])', r'j\1', text)
+        return text.strip()
+
     def _record_loop(self):
         while self.is_recording:
             try:
-                # Extraer bloques exactos de 30ms para WebRTC VAD
+                # Bloques para PyAudio
                 data = self.stream.read(480, exception_on_overflow=False)
-                if self.vad.is_speech(data, 16000):
-                    self.frames.append(data)
+                self.frames.append(data)
             except Exception:
                 pass
 
@@ -116,21 +126,26 @@ class VoiceProcessor:
         filtered_words = [w for w in words if w not in stop_words]
         clean_text = " ".join(filtered_words)
         
+        clean_text = clean_text.replace('.', '').replace(',', '').strip()
+        
         if not clean_text:
             return None, None, 0, None
 
-        # 3. Matching ultrarrápido con rapidfuzz
-        student_names = [s['Nombre'] for s in students_list]
-        result = process.extractOne(clean_text, student_names)
+        # 3. Matching ultrarrápido fonético con rapidfuzz
+        phonetic_students = {s['ID']: self._normalize_phonetics(s['Nombre']) for s in students_list}
+        clean_phonetic = self._normalize_phonetics(clean_text)
+        
+        result = process.extractOne(clean_phonetic, phonetic_students, scorer=fuzz.token_set_ratio, processor=utils.default_process)
         
         if not result: return None, None, 0, None
         
-        best_match, score, _ = result
-        print(f"Texto limpio VAD: '{clean_text}' | Match: '{best_match}' con certidumbre {score}")
+        best_phonetic_match, score, student_id = result
+        best_match_original = next(s['Nombre'] for s in students_list if s['ID'] == student_id)
         
-        if score > 60:
-            for s in students_list:
-                if s['Nombre'] == best_match:
-                    return s['ID'], grade, score, best_match
+        print(f"Texto fonético VAD: '{clean_phonetic}' | Match fonético: '{best_phonetic_match}' ({best_match_original}) con certidumbre {score}")
+        
+        # Umbral bajado al 45% porque la limpieza exhaustiva fonética evita falsos positivos
+        if score >= 45:
+            return student_id, grade, score, best_match_original
                     
-        return None, None, score, best_match
+        return None, None, score, best_match_original
