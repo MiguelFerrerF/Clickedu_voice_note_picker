@@ -4,6 +4,7 @@ import os
 import re
 import pandas as pd
 import threading
+import json
 import time
 import winsound
 from core.excel_manager import ExcelManager
@@ -110,25 +111,65 @@ class AppWindow(ctk.CTk):
                                        command=self.toggle_stats_view, fg_color="#3498DB", hover_color="#2980B9", state="disabled")
         self.btn_stats.grid(row=4, column=0, padx=20, pady=5)
         
-        # Controles inferiores (Tema y Sonido)
+        # Controles inferiores (Ajustes integrados)
         self.bottom_controls_frame = ctk.CTkFrame(self.sidebar_frame, fg_color="transparent")
         self.bottom_controls_frame.grid(row=6, column=0, padx=20, pady=(10, 20), sticky="ew")
         self.bottom_controls_frame.grid_columnconfigure(0, weight=1)
         
-        self.sound_enabled = False
-        self.sound_button = ctk.CTkButton(self.bottom_controls_frame, text="Sonido: OFF", font=ctk.CTkFont(size=12, weight="bold"), command=self.toggle_sound_event, fg_color="#95A5A6", hover_color="#7F8C8D", text_color="white", height=32)
-        self.sound_button.grid(row=0, column=0, pady=5, sticky="ew")
+        self.config_path = os.path.join(clickedu_dir, "config.json")
+        self._load_settings()
         
-        self.current_theme = ctk.get_appearance_mode()
-        if self.current_theme == "Light":
-            theme_text = "Modo: Claro"
-            theme_color, theme_hover = "#F39C12", "#D68910"
-        else:
-            theme_text = "Modo: Oscuro"
-            theme_color, theme_hover = "#8E44AD", "#7D3C98"
+        theme_str = "Claro" if self.current_theme == "Light" else "Oscuro"
+        sound_str = "ON" if self.sound_enabled else "OFF"
+        
+        self.settings_menu = ctk.CTkOptionMenu(
+            self.bottom_controls_frame, 
+            values=[f"Tema: {theme_str} (Cambiar)", f"Sonido: {sound_str} (Cambiar)"],
+            command=self.handle_settings_menu,
+            fg_color="#34495E", button_color="#2C3E50", button_hover_color="#1A252F",
+            dropdown_hover_color="#2980B9"
+        )
+        self.settings_menu.set("⚙️ Ajustes")
+        self.settings_menu.grid(row=0, column=0, sticky="ew")
+        
+    def _load_settings(self):
+        self.current_theme = "System"
+        self.sound_enabled = True
+        try:
+            if os.path.exists(self.config_path):
+                with open(self.config_path, "r", encoding="utf-8") as f:
+                    config = json.load(f)
+                    self.current_theme = config.get("theme", "System")
+                    self.sound_enabled = config.get("sound_enabled", True)
+        except Exception:
+            pass
+        
+        if self.current_theme not in ["Light", "Dark", "System"]:
+            self.current_theme = "System"
+        ctk.set_appearance_mode(self.current_theme)
+        
+    def _save_settings(self):
+        try:
+            config = {
+                "theme": self.current_theme,
+                "sound_enabled": self.sound_enabled
+            }
+            with open(self.config_path, "w", encoding="utf-8") as f:
+                json.dump(config, f)
+        except Exception as e:
+            print("Error guardando ajustes:", e)
             
-        self.theme_button = ctk.CTkButton(self.bottom_controls_frame, text=theme_text, font=ctk.CTkFont(size=12, weight="bold"), command=self.toggle_theme_event, fg_color=theme_color, hover_color=theme_hover, text_color="white", height=32)
-        self.theme_button.grid(row=1, column=0, sticky="ew")
+    def handle_settings_menu(self, selected):
+        if "Tema" in selected:
+            self.toggle_theme_event()
+        elif "Sonido" in selected:
+            self.toggle_sound_event()
+            
+        theme_str = "Claro" if self.current_theme == "Light" else "Oscuro"
+        sound_str = "ON" if self.sound_enabled else "OFF"
+        self.settings_menu.configure(values=[f"Tema: {theme_str} (Cambiar)", f"Sonido: {sound_str} (Cambiar)"])
+        self.settings_menu.set("⚙️ Ajustes")
+        self._save_settings()
         
     def _format_filename(self, filename):
         name_without_ext = os.path.splitext(filename)[0]
@@ -467,21 +508,15 @@ class AppWindow(ctk.CTk):
         self.after(3000, toast.destroy)
 
     def toggle_theme_event(self):
-        if self.current_theme == "Dark":
+        if self.current_theme == "Dark" or self.current_theme == "System": # Si es system lo forzamos a light
             ctk.set_appearance_mode("Light")
             self.current_theme = "Light"
-            self.theme_button.configure(text="Modo: Claro", fg_color="#F39C12", hover_color="#D68910")
         else:
             ctk.set_appearance_mode("Dark")
             self.current_theme = "Dark"
-            self.theme_button.configure(text="Modo: Oscuro", fg_color="#8E44AD", hover_color="#7D3C98")
 
     def toggle_sound_event(self):
         self.sound_enabled = not getattr(self, 'sound_enabled', True)
-        if self.sound_enabled:
-            self.sound_button.configure(text="Sonido: ON", fg_color="#3498DB", hover_color="#2980B9")
-        else:
-            self.sound_button.configure(text="Sonido: OFF", fg_color="#95A5A6", hover_color="#7F8C8D")
 
     def toggle_stats_view(self):
         if not self.is_stats_view_open:
