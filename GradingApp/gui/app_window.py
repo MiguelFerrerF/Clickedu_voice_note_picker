@@ -280,27 +280,51 @@ class AppWindow(ctk.CTk):
         else:
             self.show_toast("Error al intentar exportar.", is_error=True)
 
+    def _cleanup_stats_wrapper(self):
+        if hasattr(self, 'stats_wrapper_frame') and self.stats_wrapper_frame:
+            self.stats_wrapper_frame.destroy()
+            self.stats_wrapper_frame = None
+            self.stats_main_frame = None
+
     def toggle_stats_view(self):
         if not self.is_stats_view_open:
-            self.header_frame.grid_forget()
-            self.student_grid.grid_forget()
-            
             df_last_column = None
             if self.excel_manager.df is not None:
                 df_last_column = self.excel_manager.df.iloc[:, -1]
                 
-            self.stats_main_frame = StatsView(self, self.stats, df_last_column)
-            self.stats_main_frame.grid(row=0, column=1, rowspan=2, sticky="nsew", padx=20, pady=20)
+            # Preconstruir la vista de forma invisible para que no de tirones
+            new_wrapper = ctk.CTkFrame(self, fg_color="transparent")
+            new_stats = StatsView(new_wrapper, self.stats, df_last_column)
+            new_stats.pack(expand=True, fill="both")
+            
+            # Ocultar las otras
+            self.header_frame.grid_forget()
+            self.student_grid.grid_forget()
+            
+            # Limpiar si hubiera anterior
+            if getattr(self, 'stats_wrapper_frame', None):
+                self.stats_wrapper_frame.destroy()
+                
+            self.stats_wrapper_frame = new_wrapper
+            self.stats_main_frame = new_stats
+            
+            # Mostrar la nueva de forma fluida
+            self.stats_wrapper_frame.grid(row=0, column=1, rowspan=2, sticky="nsew", padx=20, pady=20)
             
             self.sidebar.btn_stats.configure(text="Volver a Notas", fg_color="#E67E22", hover_color="#D35400")
             self.is_stats_view_open = True
         else:
-            if self.stats_main_frame:
-                self.stats_main_frame.destroy()
-                self.stats_main_frame = None
-                
+            # Restaurar la vista primero para que no haya salto en blanco
             self.header_frame.grid(row=0, column=1, sticky="ew", padx=20, pady=10)
             self.student_grid.grid(row=1, column=1, sticky="nsew", padx=20, pady=10)
+            self.student_grid.tkraise()
+            
+            # Ocultar la de stats y luego destruirla perezosamente en el fondo
+            if getattr(self, 'stats_wrapper_frame', None):
+                self.stats_wrapper_frame.grid_forget()
+                self.after(50, self._cleanup_stats_wrapper)
+
+
             
             self.sidebar.btn_stats.configure(text="Estadísticas", fg_color="#3498DB", hover_color="#2980B9")
             self.is_stats_view_open = False

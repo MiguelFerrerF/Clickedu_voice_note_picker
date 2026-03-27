@@ -23,13 +23,13 @@ def extract_version():
     return "1.0.0"
 
 def extract_release_notes(version):
-    readme_path = os.path.join(os.path.dirname(os.getcwd()), "README.md")
-    if not os.path.exists(readme_path):
+    changelog_path = os.path.join(os.path.dirname(os.getcwd()), "CHANGELOG.md")
+    if not os.path.exists(changelog_path):
         return f"Release v{version}"
         
     notes = []
     capture = False
-    with open(readme_path, "r", encoding="utf-8") as f:
+    with open(changelog_path, "r", encoding="utf-8") as f:
         for line in f:
             if line.startswith(f"## 🚀 Novedades en v{version}"):
                 capture = True

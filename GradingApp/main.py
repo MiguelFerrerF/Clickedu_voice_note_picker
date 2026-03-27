@@ -14,7 +14,7 @@ def main():
         pass
         
     # Comprobador de actualizaciones en segundo plano (no congela la interfaz)
-    updater = Updater("v1.3.0")
+    updater = Updater("v1.3.1")
     updater.check_for_updates(app)
     
     app.mainloop()
