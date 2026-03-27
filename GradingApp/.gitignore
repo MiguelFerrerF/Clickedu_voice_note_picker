@@ -28,3 +28,4 @@ desktop.ini
 notas/
 plantillas_clickedu_aulas/*.xlsx
 !plantillas_clickedu_aulas/README_PLANTILLAS.txt
+.github_token
