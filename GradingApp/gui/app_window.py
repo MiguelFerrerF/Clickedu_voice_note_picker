@@ -46,6 +46,7 @@ class AppWindow(ctk.CTk):
         if os.path.exists(icon_path):
             self.iconbitmap(icon_path)
         
+        self.grid_columnconfigure(0, minsize=240, weight=0)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(1, weight=1)
         
@@ -56,16 +57,15 @@ class AppWindow(ctk.CTk):
         display_names = list(self.file_mapping.keys())
         if display_names:
             first_class = display_names[0]
-            self.class_optionmenu.set(first_class)
+            self.class_combobox.set(first_class)
             self.select_class_event(first_class)
         else:
-            self.class_optionmenu.set("Sin clases")
+            self.class_combobox.set("Sin clases")
         
     def _setup_sidebar(self):
-        # Sidebar for controls
-        self.sidebar_frame = ctk.CTkFrame(self, width=200, corner_radius=0)
+        # Sidebar for controls (fija la anchura inicial)
+        self.sidebar_frame = ctk.CTkFrame(self, corner_radius=0)
         self.sidebar_frame.grid(row=0, column=0, rowspan=3, sticky="nsew")
-        self.sidebar_frame.grid_rowconfigure(5, weight=1)
         
         self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="Gestor de Notas", font=ctk.CTkFont(size=20, weight="bold"))
         self.logo_label.grid(row=0, column=0, padx=20, pady=(20, 10))
@@ -92,28 +92,35 @@ class AppWindow(ctk.CTk):
             
         self.file_mapping = {self._format_filename(f): f for f in self.all_files}
         
-        # Filtro
-        self.filter_entry = ctk.CTkEntry(self.sidebar_frame, placeholder_text="🔍 Filtrar clase...")
-        self.filter_entry.grid(row=1, column=0, padx=20, pady=(10, 5), sticky="ew")
-        self.filter_entry.bind("<KeyRelease>", self.filter_classes_event)
-        
-        # Opciones
+        # Opciones y Filtrado Integrado
         display_names = list(self.file_mapping.keys())
         
-        self.class_optionmenu = ctk.CTkOptionMenu(self.sidebar_frame, values=display_names if display_names else ["Sin clases"], command=self.select_class_event)
-        self.class_optionmenu.grid(row=2, column=0, padx=20, pady=(5, 10), sticky="ew")
+        self.class_combobox = ctk.CTkComboBox(
+            self.sidebar_frame, 
+            values=display_names if display_names else ["Sin clases"], 
+            command=self.select_class_event,
+            dropdown_hover_color="#2980B9"
+        )
+        self.class_combobox.grid(row=1, column=0, padx=20, pady=(20, 10), sticky="ew")
         
-        self.btn_export_excel = ctk.CTkButton(self.sidebar_frame, text="Exportar Notas", command=self.export_excel_event, state="disabled", fg_color="#2ECC71", hover_color="#27AE60", text_color="white")
-        self.btn_export_excel.grid(row=3, column=0, padx=20, pady=20)
+        # Filtro en vivo al teclear en el Combobox
+        self.class_combobox.bind("<KeyRelease>", self.filter_classes_event)
+        
+        self.btn_export_excel = ctk.CTkButton(self.sidebar_frame, text="Exportar Notas", command=self.export_excel_event, state="disabled", fg_color="#2ECC71", hover_color="#27AE60", text_color="white", height=40)
+        self.btn_export_excel.grid(row=2, column=0, padx=20, pady=(0, 10), sticky="ew")
+        
+        # Spacer
+        self.sidebar_frame.grid_rowconfigure(3, weight=1)
+        
+        # Controles inferiores (Estadísticas y Ajustes integrados)
+        self.bottom_controls_frame = ctk.CTkFrame(self.sidebar_frame, fg_color="transparent")
+        self.bottom_controls_frame.grid(row=4, column=0, padx=20, pady=(10, 20), sticky="ew")
+        self.bottom_controls_frame.grid_columnconfigure(0, weight=1)
         
         # Botón de Estadísticas
-        self.btn_stats = ctk.CTkButton(self.sidebar_frame, text="📊 Estadísticas", height=40, font=ctk.CTkFont(weight="bold"), 
+        self.btn_stats = ctk.CTkButton(self.bottom_controls_frame, text="Estadísticas", height=40, font=ctk.CTkFont(weight="bold"), 
                                        command=self.toggle_stats_view, fg_color="#3498DB", hover_color="#2980B9", state="disabled")
-        self.btn_stats.grid(row=4, column=0, padx=20, pady=5)
-        
-        # Controles inferiores (Ajustes integrados)
-        self.bottom_controls_frame = ctk.CTkFrame(self.sidebar_frame, fg_color="transparent")
-        self.bottom_controls_frame.grid(row=6, column=0, padx=20, pady=(10, 20), sticky="ew")
+        self.btn_stats.grid(row=0, column=0, pady=(0, 10), sticky="ew")
         self.bottom_controls_frame.grid_columnconfigure(0, weight=1)
         
         self.config_path = os.path.join(clickedu_dir, "config.json")
@@ -130,7 +137,7 @@ class AppWindow(ctk.CTk):
             dropdown_hover_color="#2980B9"
         )
         self.settings_menu.set("⚙️ Ajustes")
-        self.settings_menu.grid(row=0, column=0, sticky="ew")
+        self.settings_menu.grid(row=1, column=0, sticky="ew")
         
     def _load_settings(self):
         self.current_theme = "System"
@@ -193,18 +200,21 @@ class AppWindow(ctk.CTk):
         return name_without_ext.replace("_", " ").title()
         
     def filter_classes_event(self, event):
-        search_term = self.filter_entry.get().lower()
+        # Evitar interferir con flechas de navegación o Enter
+        if event.keysym in ['Up', 'Down', 'Return', 'Left', 'Right']:
+            return
+            
+        search_term = self.class_combobox.get().lower()
         filtered_names = [name for name in self.file_mapping.keys() if search_term in name.lower()]
         
         if not filtered_names:
             filtered_names = ["Sin resultados"]
-            self.class_optionmenu.configure(values=filtered_names)
-            self.class_optionmenu.set(filtered_names[0])
+            self.class_combobox.configure(values=filtered_names)
         else:
-            self.class_optionmenu.configure(values=filtered_names)
-            # Only change selection if searching narrows it down to 1
-            if len(filtered_names) == 1:
-                self.class_optionmenu.set(filtered_names[0])
+            self.class_combobox.configure(values=filtered_names)
+            # Solo cambiar selección forzada si la escritura ha filtrado hasta un resultado idéntico
+            if len(filtered_names) == 1 and search_term == filtered_names[0].lower():
+                self.class_combobox.set(filtered_names[0])
                 self.select_class_event(filtered_names[0])
         
     def _setup_main_area(self):
@@ -237,6 +247,8 @@ class AppWindow(ctk.CTk):
         self.students_frame = ctk.CTkScrollableFrame(self)
         self.students_frame.grid(row=1, column=1, sticky="nsew", padx=20, pady=10)
         self.students_frame.grid_columnconfigure(1, weight=1)
+        self.bind("<Configure>", self._on_window_resize)
+        self.current_cols = 1
         
         # Placeholder text
         self.placeholder_label = ctk.CTkLabel(self.students_frame, text="Selecciona un archivo de Excel para comenzar.", text_color="gray")
@@ -312,30 +324,37 @@ class AppWindow(ctk.CTk):
                     self.placeholder_label.pack(pady=10)
             
     def _populate_studentsList(self, data):
-        for widget in self.students_frame.winfo_children():
-            widget.destroy()
+        self.students_data_current = data
+        
+        # Destruir solo nuestros widgets para no romper el scrollbar interno de CTkScrollableFrame
+        if hasattr(self, 'student_widgets'):
+            for lbl, entry in self.student_widgets:
+                lbl.destroy()
+                entry.destroy()
+            self.header_name_1.destroy()
+            self.header_grade_1.destroy()
+            self.header_name_2.destroy()
+            self.header_grade_2.destroy()
             
         self.grade_entries = {}
         self.entry_list = []
+        self.student_widgets = []
         
         vcmd = (self.register(self.validate_grade), '%P')
         
-        header_name = ctk.CTkLabel(self.students_frame, text="Nombre del Alumno", font=ctk.CTkFont(weight="bold"))
-        header_name.grid(row=0, column=0, padx=10, pady=10, sticky="w")
-        header_grade = ctk.CTkLabel(self.students_frame, text="Nota", font=ctk.CTkFont(weight="bold"))
-        header_grade.grid(row=0, column=1, padx=10, pady=10, sticky="e")
+        self.header_name_1 = ctk.CTkLabel(self.students_frame, text="Nombre del Alumno", font=ctk.CTkFont(weight="bold"))
+        self.header_grade_1 = ctk.CTkLabel(self.students_frame, text="Nota", font=ctk.CTkFont(weight="bold"))
+        self.header_name_2 = ctk.CTkLabel(self.students_frame, text="Nombre del Alumno", font=ctk.CTkFont(weight="bold"))
+        self.header_grade_2 = ctk.CTkLabel(self.students_frame, text="Nota", font=ctk.CTkFont(weight="bold"))
         
         for i, student in enumerate(data):
-            row = i + 1
             lbl = ctk.CTkLabel(self.students_frame, text=student['Nombre'])
-            lbl.grid(row=row, column=0, padx=10, pady=5, sticky="w")
-            
             entry = ctk.CTkEntry(self.students_frame, width=80, justify="center", validate="key", validatecommand=vcmd)
+            
             nota = student.get('Nota')
             if pd.notna(nota):
                 entry.insert(0, str(nota))
-            entry.grid(row=row, column=1, padx=10, pady=5, sticky="e")
-            
+                
             entry.bind("<KeyRelease>", lambda event, s_id=student['ID'], ent=entry: self._on_grade_change(event, s_id, ent))
             entry.bind("<Return>", lambda event, idx=i: self._focus_next_entry(event, idx))
             entry.bind("<Down>", lambda event, idx=i: self._focus_next_entry(event, idx))
@@ -343,6 +362,59 @@ class AppWindow(ctk.CTk):
             
             self.grade_entries[student['ID']] = entry
             self.entry_list.append(entry)
+            self.student_widgets.append((lbl, entry))
+            
+        self._draw_students_grid(self.current_cols)
+        
+    def _on_window_resize(self, event):
+        if hasattr(event, 'widget') and event.widget != self:
+            return
+            
+        width = event.width
+        target_cols = 2 if width >= 1000 else 1
+        
+        if getattr(self, 'current_cols', 1) != target_cols:
+            self.current_cols = target_cols
+            if hasattr(self, 'student_widgets') and self.student_widgets:
+                self._draw_students_grid(target_cols)
+                
+    def _draw_students_grid(self, cols):
+        # Desmontar de la cuadrícula sin dañar componentes internos
+        if hasattr(self, 'student_widgets'):
+            for lbl, entry in self.student_widgets:
+                lbl.grid_forget()
+                entry.grid_forget()
+            self.header_name_1.grid_forget()
+            self.header_grade_1.grid_forget()
+            self.header_name_2.grid_forget()
+            self.header_grade_2.grid_forget()
+            
+        if cols == 1:
+            self.header_name_1.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+            self.header_grade_1.grid(row=0, column=1, padx=10, pady=10, sticky="e")
+            self.students_frame.grid_columnconfigure(1, weight=1)
+            self.students_frame.grid_columnconfigure((2,3), weight=0)
+            
+            for i, (lbl, entry) in enumerate(self.student_widgets):
+                lbl.grid(row=i+1, column=0, padx=10, pady=5, sticky="w")
+                entry.grid(row=i+1, column=1, padx=10, pady=5, sticky="e")
+        else:
+            self.header_name_1.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+            self.header_grade_1.grid(row=0, column=1, padx=(10, 40), pady=10, sticky="e")
+            self.header_name_2.grid(row=0, column=2, padx=10, pady=10, sticky="w")
+            self.header_grade_2.grid(row=0, column=3, padx=10, pady=10, sticky="e")
+            
+            self.students_frame.grid_columnconfigure(1, weight=1)
+            self.students_frame.grid_columnconfigure(3, weight=1)
+            
+            mid = (len(self.student_widgets) + 1) // 2
+            for i, (lbl, entry) in enumerate(self.student_widgets):
+                if i < mid:
+                    lbl.grid(row=i+1, column=0, padx=10, pady=5, sticky="w")
+                    entry.grid(row=i+1, column=1, padx=(10, 40), pady=5, sticky="e")
+                else:
+                    lbl.grid(row=(i-mid)+1, column=2, padx=10, pady=5, sticky="w")
+                    entry.grid(row=(i-mid)+1, column=3, padx=10, pady=5, sticky="e")
             
     def validate_grade(self, new_value):
         if new_value == "":
@@ -657,7 +729,7 @@ class AppWindow(ctk.CTk):
             
             ctk.CTkLabel(card_fun, text=f"Moda (Nota + repetida): {repeated_grade}", font=ctk.CTkFont(weight="bold", size=14)).pack(pady=(10, 20))
 
-            self.btn_stats.configure(text="📋 Volver a Notas", fg_color="#E67E22", hover_color="#D35400")
+            self.btn_stats.configure(text="Volver a Notas", fg_color="#E67E22", hover_color="#D35400")
             self.is_stats_view_open = True
         else:
             # Restaurar vista principal
@@ -667,5 +739,5 @@ class AppWindow(ctk.CTk):
             self.header_frame.grid(row=0, column=1, sticky="ew", padx=20, pady=10)
             self.students_frame.grid(row=1, column=1, sticky="nsew", padx=20, pady=10)
             
-            self.btn_stats.configure(text="📊 Estadísticas", fg_color="#3498DB", hover_color="#2980B9")
+            self.btn_stats.configure(text="Estadísticas", fg_color="#3498DB", hover_color="#2980B9")
             self.is_stats_view_open = False

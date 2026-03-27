@@ -1,6 +1,6 @@
 # 🎙️ Gestor de Notas para Clickedu (Dictado por Voz)
 
-[![Release](https://img.shields.io/badge/Release-v1.2.1-blue.svg)](https://github.com/MiguelFerrerF/Clickedu_voice_note_picker/releases)
+[![Release](https://img.shields.io/badge/Release-v1.3.0-blue.svg)](https://github.com/MiguelFerrerF/Clickedu_voice_note_picker/releases)
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -21,12 +21,13 @@ Una aplicación de escritorio diseñada para profesores que permite calificar al
 
 ---
 
-## 🚀 Novedades en v1.2.1
+## 🚀 Novedades en v1.3.0
 
-*   **Motor Ultrarrápido**: Sustituido el motor original por RapidFuzz (backend en C++) multiplicando exponencialmente la velocidad de búsqueda de alumnos.
-*   **Descarte Magnético de la Voz**: Se puede dictar la nota a placer ("ponle a este alumno un siete con cinco") y la Inteligencia Artificial filtrará el nombre y la nota ignorando de lleno el resto de la frase gracias a los parches de intercepción lexical.
-*   **Dashboards de Rendimiento**: Gamificación e interfaz ampliada al modo Premium.
-*   **Cambio de Logo**: Cambio de logo para unificar el concepto general de la aplicación.
+*   **Integración de Actualizador Automático (OTA)**: Comunicación dinámica e invisible en segundo plano con GitHub. Al encontrar nueva versión se notifica discretamente en el propio banner del programa sin pop-ups intrusivos e instala el archivo de fondo de modo fluido.
+*   **UI Dinámica Responsiva (Columnas gemelas)**: Renderizado "Smart". Si expandes tu app más allá de 1000 píxeles, tu lista infinita de alumnos se parte estéticamente en *modo de 2 columnas de ancho central*, optimizando el espacio al máximo y reduciendo el tamaño del pergamino de la clase por la mitad.
+*   **Ajustes Persistentes Minimalistas**: Se ha introducido una Rueda de Ajustes global (`config.json`) que almacena de por vida el estado del 'Modo Noche / Día' y los tonos de sonido elegidos, recordando cada acción que hiciste para tu próxima apertura.
+*   **Filtrado Activo en Cajón Híbrido**: Barras y listas redundantes comprimidas. Ahora un combobox asume el rol de buscador filtrando resultados en directo ante cada pulsación.
+*   **Estandarización Dimensional de Barras**: Alineadas todas las anchuras y componentes primarios de la barra lateral mediante inyección en grillas simétricas para evitar asimetría visual en los comandos.
 
 ---
 
