@@ -5,3 +5,4 @@ SpeechRecognition
 pyaudio
 rapidfuzz
 webrtcvad
+requests

@@ -14,8 +14,8 @@ class AppWindow(ctk.CTk):
         super().__init__()
         
         self.title("Gestor de Notas - Clickedu")
-        self.geometry("900x600")
-        self.minsize(600, 400)
+        self.geometry("1000x700")
+        self.minsize(900, 600)
         
         self.excel_manager = ExcelManager()
         self.voice_processor = VoiceProcessor()
@@ -200,6 +200,54 @@ class AppWindow(ctk.CTk):
         # Placeholder text
         self.placeholder_label = ctk.CTkLabel(self.students_frame, text="Selecciona un archivo de Excel para comenzar.", text_color="gray")
         self.placeholder_label.pack(pady=50)
+
+    def show_update_banner(self, latest_version, download_url, file_size, updater_instance):
+        # Desplazar el título y los controles de voz a la fila 1 para dejar espacio a la fila 0
+        self.title_label.grid(row=1, column=0, sticky="w", pady=(10, 0))
+        self.voice_controls_frame.grid(row=1, column=2, sticky="e", pady=(10, 0))
+        
+        self.update_banner = ctk.CTkFrame(self.header_frame, fg_color="#2980B9", corner_radius=8)
+        self.update_banner.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(0, 5))
+        self.update_banner.grid_columnconfigure(0, weight=1)
+        
+        lbl = ctk.CTkLabel(self.update_banner, text=f"¡Nueva versión disponible! ({latest_version})", text_color="white", font=ctk.CTkFont(weight="bold"))
+        lbl.grid(row=0, column=0, padx=15, pady=8, sticky="w")
+        
+        btn_frame = ctk.CTkFrame(self.update_banner, fg_color="transparent")
+        btn_frame.grid(row=0, column=1, padx=10, pady=8, sticky="e")
+        
+        btn_ignore = ctk.CTkButton(btn_frame, text="Rechazar", width=80, fg_color="#E74C3C", hover_color="#C0392B", command=self.hide_update_banner)
+        btn_ignore.pack(side="left", padx=5)
+        
+        btn_accept = ctk.CTkButton(btn_frame, text="Actualizar", width=80, fg_color="#27AE60", hover_color="#2ECC71", command=lambda: self.start_inline_update(download_url, file_size, updater_instance))
+        btn_accept.pack(side="left", padx=5)
+
+    def hide_update_banner(self):
+        if hasattr(self, 'update_banner') and self.update_banner and self.update_banner.winfo_exists():
+            self.update_banner.destroy()
+            self.title_label.grid(row=0, column=0, sticky="w", pady=0)
+            self.voice_controls_frame.grid(row=0, column=2, sticky="e", pady=0)
+
+    def start_inline_update(self, download_url, file_size, updater_instance):
+        for widget in self.update_banner.winfo_children():
+            widget.destroy()
+            
+        self.update_banner.configure(fg_color="#34495E")
+            
+        lbl = ctk.CTkLabel(self.update_banner, text="Descargando actualización, espere...", text_color="white", font=ctk.CTkFont(weight="bold"))
+        lbl.grid(row=0, column=0, padx=15, pady=8, sticky="w")
+        
+        self.update_progress = ctk.CTkProgressBar(self.update_banner, width=300)
+        self.update_progress.grid(row=0, column=1, padx=15, pady=8, sticky="e")
+        self.update_progress.set(0)
+        
+        import threading
+        hilo = threading.Thread(
+            target=updater_instance.download_and_install_inline, 
+            args=(download_url, file_size, self.update_progress, self),
+            daemon=True
+        )
+        hilo.start()
         
     def select_class_event(self, selected_name):
         if selected_name in self.file_mapping:
