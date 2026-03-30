@@ -53,12 +53,29 @@ def run_step(step_name, cmd_args):
         print(f"❌ Error durante {step_name}. Deteniendo el script.")
         exit(1)
 
+def generate_splash_screen():
+    print(f"\n--- Preparando Splash Screen ---")
+    try:
+        from PIL import Image
+        icon = Image.open('icon.png').convert("RGBA")
+        bg_size = 400
+        # Fondo oscuro que encaja con el modo noche para evitar el borde morado (halo magenta) de PyInstaller
+        bg = Image.new("RGB", (bg_size, bg_size), "#2b2b2b")
+        icon.thumbnail((280, 280), Image.Resampling.LANCZOS)
+        offset = ((bg_size - icon.width) // 2, (bg_size - icon.height) // 2)
+        bg.paste(icon, offset, mask=icon)
+        bg.save('splash.png')
+        print("✅ Generado 'splash.png' con fondo sólido para evitar el halo morado en Windows.")
+    except Exception as e:
+        print(f"⚠️ Aviso: No se pudo generar splash.png (Pillow instalado?). Se usará el anterior si existe.\nError: {e}")
+
 def build_app():
     if os.path.exists("build"):
         shutil.rmtree("build")
     if os.path.exists("dist"):
         shutil.rmtree("dist")
     
+    generate_splash_screen()
     run_step("PyInstaller (Compilación del código fuente)", ["pyinstaller", SPEC_FILE, "--noconfirm"])
 
 def build_installer():
