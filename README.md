@@ -1,6 +1,6 @@
 # 🎙️ Gestor de Notas para Clickedu (Dictado por Voz)
 
-[![Release](https://img.shields.io/badge/Release-v1.3.1-blue.svg)](https://github.com/MiguelFerrerF/Clickedu_voice_note_picker/releases)
+[![Release](https://img.shields.io/badge/Release-v1.3.2-blue.svg)](https://github.com/MiguelFerrerF/Clickedu_voice_note_picker/releases)
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 

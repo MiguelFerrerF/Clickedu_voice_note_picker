@@ -60,6 +60,9 @@ class StudentGrid(ctk.CTkScrollableFrame):
             self.entry_list.append(entry)
             self.student_widgets.append((lbl, entry))
             
+            # Auto-reemplazar coma por punto mientras se escribe
+            entry.bind("<Key>", lambda event, ent=entry: self._auto_replace_comma(event, ent))
+            
         self.resize(self.current_cols, force=True) # fuerza redibujado de las columnas
         
     def _clear_grid(self):
@@ -132,9 +135,17 @@ class StudentGrid(ctk.CTkScrollableFrame):
     def validate_grade(self, new_value):
         if new_value == "":
             return True
-        if re.fullmatch(r'\d{0,3}([.,]\d{0,1})?', new_value):
+        # Admite 0-3 dígitos, un punto opcional y hasta 2 decimales
+        if re.fullmatch(r'\d{0,3}(\.\d{0,2})?', new_value):
             return True
         return False
+
+    def _auto_replace_comma(self, event, entry_widget):
+        if event.char == ",":
+            # Si se pulsa coma, insertamos un punto manualmente y cancelamos la coma
+            entry_widget.insert("insert", ".")
+            return "break"
+        return None
         
     def _on_grade_change(self, event, student_id, entry_widget):
         val = entry_widget.get().strip()
@@ -143,7 +154,8 @@ class StudentGrid(ctk.CTkScrollableFrame):
                 self.on_grade_update(student_id, None)
                 entry_widget.configure(text_color=["black", "white"])
             else:
-                val_float = float(val.replace(',', '.'))
+                # Ya debería ser un punto por la validación anterior, pero aseguramos
+                val_float = float(val)
                 self.on_grade_update(student_id, val_float)
                 entry_widget.configure(text_color=["black", "white"])
         except ValueError:

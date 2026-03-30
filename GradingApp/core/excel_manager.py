@@ -26,6 +26,13 @@ class ExcelManager:
                 # Renombrar internamente para facilitar el manejo
                 self.df.rename(columns={self.id_col: 'ID', self.name_col: 'Nombre', self.grade_col: 'Nota'}, inplace=True)
                 
+                # Limpiar columna de notas (asegurar que sea numérica con punto como separador interno)
+                if 'Nota' in self.df.columns:
+                    self.df['Nota'] = pd.to_numeric(
+                        self.df['Nota'].astype(str).str.replace(',', '.').str.strip(), 
+                        errors='coerce'
+                    )
+                
                 return self.df.to_dict('records')
             else:
                 raise ValueError("El Excel debe tener al menos 3 columnas: ID, Nombre, Nota")
@@ -44,6 +51,20 @@ class ExcelManager:
             try:
                 # Restaurar los nombres originales antes de exportar
                 export_df = self.df.rename(columns={'ID': self.id_col, 'Nombre': self.name_col, 'Nota': self.grade_col})
+                
+                # Forzar el formato de punto (.) en las notas al exportar
+                # Lo convertimos a string formateado para evitar que Excel cambie el separador según el idioma del sistema
+                def format_grade(val):
+                    if pd.isna(val) or val == "":
+                        return ""
+                    try:
+                        # %g elimina decimales innecesarios (7.0 -> 7) pero mantiene hasta 2 si existen (7.55 -> 7.55)
+                        return "{:g}".format(float(val)).replace(',', '.')
+                    except (ValueError, TypeError):
+                        return str(val).replace(',', '.')
+                
+                export_df[self.grade_col] = export_df[self.grade_col].apply(format_grade)
+                
                 export_df.to_excel(save_path, index=False)
                 return True
             except Exception as e:

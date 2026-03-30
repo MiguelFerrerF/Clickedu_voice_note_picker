@@ -4,6 +4,18 @@ Aquí se documentan todas las novedades, mejoras y correcciones implementadas en
 
 ---
 
+## 🚀 Novedades en v1.3.2
+
+*   **Soporte de Doble Decimal**: Se ha ampliado el rango de precisión permitiendo introducir hasta dos decimales en las notas (ej. `8.45`).
+*   **Estandarización de Separador (Punto)**: En cumplimiento con los estándares internacionales y de Clickedu, la aplicación ahora utiliza exclusivamente el punto (`.`) como separador decimal:
+    *   En la interfaz, si pulsas la coma (`,`), se convierte automáticamente en punto al instante.
+    *   En el Excel exportado, las notas se guardan con formato de punto decimal y se fuerzan como texto para evitar re-conversiones automáticas de Excel.
+*   **Nueva Identidad Visual**: Se ha actualizado el icono oficial de la aplicación para una estética más moderna y profesional.
+*   **Corrección Crítica de Navegación**: Solucionado el error que provocaba que la lista de alumnos apareciera vacía al cambiar entre diferentes archivos de clase en la misma sesión.
+*   **Limpieza de Datos al Cargar**: El cargador de archivos ahora limpia automáticamente cualquier residuo de formato (espacios, comas) en las notas existentes para asegurar la compatibilidad total.
+
+---
+
 ## 🚀 Novedades en v1.3.1
 
 *   **Optimización de Rendimiento UI y Transiciones FPS**: Se ha reestructurado profundamente el motor de dibujado del módulo de gráficos pasando a ejecutarse de forma pre-evaluada en *background* y usando caché persistente. El salto entre la pantalla de Notas y las Estadísticas ahora es inmediato (`O(1)` redraw time), eliminando por completo cualquier congelación ("flickering" y "trompicones") que sucedía al construir componentes pesados.
