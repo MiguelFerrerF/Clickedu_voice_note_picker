@@ -47,6 +47,8 @@ class StudentGrid(ctk.CTkScrollableFrame):
             
             nota = student.get('Nota')
             if pd.notna(nota):
+                # Usamos insert(0, ...) pero limpiamos primero por si acaso
+                entry.delete(0, 'end')
                 entry.insert(0, str(nota))
                 
             entry.bind("<KeyRelease>", lambda event, s_id=student['ID'], ent=entry: self._on_grade_change(event, s_id, ent))
@@ -58,7 +60,7 @@ class StudentGrid(ctk.CTkScrollableFrame):
             self.entry_list.append(entry)
             self.student_widgets.append((lbl, entry))
             
-        self.resize(self.current_cols) # fuerza redibujado de las columnas
+        self.resize(self.current_cols, force=True) # fuerza redibujado de las columnas
         
     def _clear_grid(self):
         # Desmontamos en lugar de destruir para CTkScrollableFrame
@@ -66,11 +68,12 @@ class StudentGrid(ctk.CTkScrollableFrame):
             for lbl, entry in self.student_widgets:
                 lbl.destroy()
                 entry.destroy()
-            self.header_name_1.destroy()
-            self.header_grade_1.destroy()
-            self.header_name_2.destroy()
-            self.header_grade_2.destroy()
             self.student_widgets = []
+            
+        # Limpieza segura de cabeceras
+        for attr in ['header_name_1', 'header_grade_1', 'header_name_2', 'header_grade_2']:
+            if hasattr(self, attr):
+                getattr(self, attr).destroy()
             
     def _draw_students_grid(self, cols):
         if not self.student_widgets:
@@ -79,10 +82,11 @@ class StudentGrid(ctk.CTkScrollableFrame):
         for lbl, entry in self.student_widgets:
             lbl.grid_forget()
             entry.grid_forget()
-        self.header_name_1.grid_forget()
-        self.header_grade_1.grid_forget()
-        self.header_name_2.grid_forget()
-        self.header_grade_2.grid_forget()
+            
+        # Ocultamos cabeceras antes de re-posicionar
+        for attr in ['header_name_1', 'header_grade_1', 'header_name_2', 'header_grade_2']:
+            if hasattr(self, attr):
+                getattr(self, attr).grid_forget()
         
         if cols == 1:
             self.header_name_1.grid(row=0, column=0, padx=10, pady=10, sticky="w")
@@ -111,8 +115,8 @@ class StudentGrid(ctk.CTkScrollableFrame):
                     lbl.grid(row=(i-mid)+1, column=2, padx=10, pady=5, sticky="w")
                     entry.grid(row=(i-mid)+1, column=3, padx=10, pady=5, sticky="e")
                     
-    def resize(self, cols):
-        if self.current_cols != cols or not self.winfo_ismapped():
+    def resize(self, cols, force=False):
+        if force or self.current_cols != cols or not self.winfo_ismapped():
             self.current_cols = cols
             self._draw_students_grid(cols)
 
