@@ -1,4 +1,4 @@
-customtkinter
+flet
 pandas
 openpyxl
 SpeechRecognition
