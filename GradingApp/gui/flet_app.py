@@ -40,7 +40,7 @@ def main(page: ft.Page):
     page.fonts = {
         "Inter": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
     }
-    page.theme = ft.Theme(font_family="Inter")
+    page.theme = ft.Theme(font_family="Inter", color_scheme_seed=Theme.brand.c500)
     
     # Estado Global Simulable
     state = AppState()
@@ -141,8 +141,14 @@ def main(page: ft.Page):
     # Layout de la estructura principal centrada `max-w-5xl px-4`
     main_column = ft.Column(
         controls=[
-            ft.Container(content=header, width=1024, padding=ft.padding.symmetric(horizontal=16), alignment=ft.alignment.top_center),
-            ft.Container(content=grid, width=1024, expand=True, alignment=ft.alignment.top_center)
+            ft.Container(
+                content=ft.Column(
+                    controls=[header, grid],
+                    spacing=0
+                ),
+                width=1024,
+                padding=ft.padding.symmetric(horizontal=16)
+            )
         ],
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         expand=True
@@ -152,13 +158,11 @@ def main(page: ft.Page):
     base_stack = ft.Stack(
         controls=[
             main_column,
-            # Floating Dock
-            ft.Container(
-                content=dock,
-                bottom=32,
-                left=0,
-                right=0,
-                alignment=ft.alignment.center
+            # Floating Dock centrado verdaderamente sin stretch
+            ft.Row(
+                controls=[dock],
+                alignment=ft.MainAxisAlignment.CENTER,
+                bottom=32, left=0, right=0
             ),
             # Capas Modales Top Level Z-index
             toast,

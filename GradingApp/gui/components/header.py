@@ -81,7 +81,7 @@ class Header(ft.Container):
                 ft.Text("Comandos", size=14, weight=ft.FontWeight.W_500, color=Theme.slate.c500),
                 cmd_kbd
             ], spacing=8),
-            bgcolor=Theme.slate.c200 + "80", # 50% opacity
+            bgcolor=ft.Colors.with_opacity(0.5, Theme.slate.c200) if not Theme.is_dark(self.page) else ft.Colors.with_opacity(0.5, Theme.slate.c800),
             padding=ft.padding.symmetric(horizontal=12, vertical=6),
             border_radius=Theme.border_radius_lg,
             on_click=self.on_cmd_click,
@@ -129,7 +129,7 @@ class Header(ft.Container):
     def cmd_hover(self, e):
         # En light mode pasa al slate.c200 100%, en dark mode a slate.c700
         hov_col = Theme.slate.c200 if not Theme.is_dark(self.page) else Theme.slate.c700
-        idl_col = Theme.slate.c200 + "80" if not Theme.is_dark(self.page) else Theme.slate.c800 + "80"
+        idl_col = ft.Colors.with_opacity(0.5, Theme.slate.c200) if not Theme.is_dark(self.page) else ft.Colors.with_opacity(0.5, Theme.slate.c800)
         e.control.bgcolor = hov_col if e.data == "true" else idl_col
         e.control.update()
 
@@ -144,5 +144,11 @@ class Header(ft.Container):
     def update_theme(self):
         self.logo_text.color = Theme.get_text_main(self.page)
         self.stats_btn.content.color = Theme.slate.c600 if not Theme.is_dark(self.page) else Theme.slate.c300
-        # TODO: Refrescar tabs si es necesario (el activo cambiará de fondo negro/blanco según el tema)
+        
+        # Reset cmd_btn colors correctly
+        self.cmd_btn.bgcolor = ft.Colors.with_opacity(0.5, Theme.slate.c200) if not Theme.is_dark(self.page) else ft.Colors.with_opacity(0.5, Theme.slate.c800)
+        cmd_kbd = self.cmd_btn.content.controls[2]
+        cmd_kbd.bgcolor = Theme.slate.c100 if not Theme.is_dark(self.page) else Theme.slate.c900
+        cmd_kbd.border = ft.border.all(1, Theme.slate.c300 if not Theme.is_dark(self.page) else Theme.slate.c600)
+        
         self.update()

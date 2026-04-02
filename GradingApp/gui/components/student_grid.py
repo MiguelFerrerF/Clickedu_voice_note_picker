@@ -23,7 +23,7 @@ class StudentGrid(ft.Container):
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             vertical_alignment=ft.CrossAxisAlignment.END
         )
-        self.header_container = ft.Container(content=self.header_row, padding=ft.padding.only(bottom=24, left=8, right=8))
+        self.header_container = ft.Container(content=self.header_row, padding=ft.padding.only(bottom=24))
 
         # Cuadrícula
         self.grid = ft.ResponsiveRow(

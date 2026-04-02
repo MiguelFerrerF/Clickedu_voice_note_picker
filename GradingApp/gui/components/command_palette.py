@@ -29,6 +29,8 @@ class CommandPalette(ft.Container):
             color=Theme.get_text_main(self.page),
             bgcolor=ft.Colors.TRANSPARENT,
             text_size=18,
+            cursor_color=Theme.brand.c500,
+            selection_color=ft.Colors.with_opacity(0.3, Theme.brand.c500),
             expand=True
         )
         

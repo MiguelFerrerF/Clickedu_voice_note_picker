@@ -35,7 +35,7 @@ class MicrophoneDock(ft.Container):
             border_radius=4
         )
         self.left_col = ft.Container(
-            content=ft.Row([ft.Text("Mantén", size=14, color=Theme.get_text_secondary(self.page)), kbd_pill], spacing=4, alignment=ft.MainAxisAlignment.CENTER),
+            content=ft.Row([ft.Text("Mantén", size=14, color=Theme.get_text_secondary(self.page)), kbd_pill], spacing=4, alignment=ft.MainAxisAlignment.CENTER, vertical_alignment=ft.CrossAxisAlignment.CENTER),
             width=128,
             alignment=ft.alignment.center
         )
@@ -90,7 +90,7 @@ class MicrophoneDock(ft.Container):
         )
 
         # Stack de textos
-        left_stack = ft.Stack([self.left_col, self.left_col_listening], width=128, height=24)
+        left_stack = ft.Stack([self.left_col, self.left_col_listening], width=128, height=48)
 
         self.content = ft.Row(
             controls=[
