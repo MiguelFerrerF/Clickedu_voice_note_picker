@@ -1,23 +1,21 @@
-import customtkinter as ctk
-from gui.app_window import AppWindow
+from gui.webview_app import WebViewApp
 from core.updater import Updater
 
 def main():
-    ctk.set_appearance_mode("System")  # Modes: system (default), light, dark
-    ctk.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
+    app = WebViewApp()
     
-    app = AppWindow()
     try:
         import pyi_splash
         pyi_splash.close()
     except Exception:
         pass
         
-    # Comprobador de actualizaciones en segundo plano (no congela la interfaz)
+    # Comprobador de actualizaciones en segundo plano
+    # Por ahora lo mantenemos igual, pero WebViewApp necesitará manejar show_update_banner
     updater = Updater("v1.3.3")
-    updater.check_for_updates(app)
+    # updater.check_for_updates(app) # Desactivado temporalmente hasta adaptar la UI de update
     
-    app.mainloop()
+    app.run()
 
 if __name__ == "__main__":
     main()

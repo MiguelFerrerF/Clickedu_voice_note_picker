@@ -6,3 +6,4 @@ pyaudio
 rapidfuzz
 webrtcvad
 requests
+pywebview
