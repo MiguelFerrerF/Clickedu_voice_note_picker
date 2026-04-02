@@ -46,11 +46,11 @@ class StudentCard(ft.Container):
         # En Tailwind usan classes tabulares, aquí forzamos mono si es número, pero en web Inter lo maneja bien.
         self.grade_box = ft.Container(
             width=64, height=40,
-            bgcolor=Theme.slate.c50 if not Theme.is_dark(self.page) else Theme.slate.c900,
+            bgcolor=Theme.slate.c50 if not Theme.is_dark(self.page) else ft.Colors.with_opacity(0.5, Theme.slate.c900),
             border_radius=Theme.border_radius_lg,
             border=ft.border.all(1, Theme.slate.c200 if not Theme.is_dark(self.page) else Theme.slate.c700),
             alignment=ft.alignment.center,
-            content=ft.Text(grade_text, size=18, weight=grade_weight, color=grade_color)
+            content=ft.Text(grade_text, size=18, weight=grade_weight, color=grade_color, font_family="Consolas" if has_grade else "Inter")
         )
 
         self.content = ft.Row(

@@ -1,5 +1,6 @@
 import flet as ft
 from gui.theme import Theme
+from gui.components.lucide import LucideIcon
 
 class CommandPalette(ft.Container):
     def __init__(self, page: ft.Page, state, on_action):
@@ -40,7 +41,7 @@ class CommandPalette(ft.Container):
 
         search_header = ft.Container(
             content=ft.Row([
-                ft.Icon(ft.Icons.SEARCH, size=20, color=Theme.slate.c400),
+                LucideIcon("search", size=20, color=Theme.slate.c400),
                 self.search_input,
                 esc_kb
             ], spacing=12),
@@ -77,7 +78,7 @@ class CommandPalette(ft.Container):
             width=672,
             border_radius=Theme.border_radius_2xl,
             border=ft.border.all(1, Theme.get_border_color(self.page)),
-            shadow=ft.BoxShadow(blur_radius=50, spread_radius=-12, color=ft.Colors.with_opacity(0.25, ft.Colors.BLACK)),
+            shadow=Theme.shadow_2xl,
             scale=0.95,
             animate_scale=ft.Animation(200, "easeOut"),
             offset=ft.Offset(0, -0.05),
@@ -97,7 +98,7 @@ class CommandPalette(ft.Container):
         ))
         
         # Crear item Theme
-        theme_icon = ft.Icons.SUN if Theme.is_dark(self.page) else ft.Icons.NIGHTLIGHT_ROUND
+        theme_icon = "sun" if Theme.is_dark(self.page) else "moon"
         self.actions_col.controls.append(self._create_action_item(
             "Alternar Modo Oscuro / Claro",
             "Activar",
@@ -106,7 +107,7 @@ class CommandPalette(ft.Container):
         ))
         
         # Crear item Sonido
-        sound_icon = ft.Icons.VOLUME_UP if self.state.is_sound_enabled else ft.Icons.VOLUME_OFF
+        sound_icon = "volume-2" if self.state.is_sound_enabled else "volume-x"
         sound_sub = "Actualmente activado" if self.state.is_sound_enabled else "Actualmente silenciado"
         self.actions_col.controls.append(self._create_action_item(
             "Feedback por Voz (Accesibilidad)",
@@ -124,7 +125,7 @@ class CommandPalette(ft.Container):
         self.actions_col.controls.append(self._create_action_item(
             "Subir notas a Clickedu",
             "Sincroniza la sesión actual con el servidor",
-            ft.Icons.CLOUD_UPLOAD,
+            "cloud-upload",
             "upload_cloud",
             is_cloud=True
         ))
@@ -139,7 +140,7 @@ class CommandPalette(ft.Container):
             icon_bg = Theme.brand.c100 if not Theme.is_dark(self.page) else ft.Colors.with_opacity(0.5, Theme.brand.c900)
 
         icon_ctl = ft.Container(
-            content=ft.Icon(icon, size=16, color=icon_color),
+            content=LucideIcon(icon, size=16, color=icon_color),
             padding=ft.padding.all(8),
             bgcolor=icon_bg,
             border_radius=Theme.border_radius_lg,

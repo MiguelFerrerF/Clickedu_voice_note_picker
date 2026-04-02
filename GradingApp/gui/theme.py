@@ -43,6 +43,12 @@ class Theme:
     border_radius_3xl = 24
     border_radius_full = 9999
 
+    # Sombras Tailwind Flet
+    shadow_sm = ft.BoxShadow(blur_radius=2, spread_radius=0, color="#0D000000", offset=ft.Offset(0, 1))
+    shadow_md = ft.BoxShadow(blur_radius=6, spread_radius=-1, color="#1A000000", offset=ft.Offset(0, 4))
+    shadow_lg = ft.BoxShadow(blur_radius=15, spread_radius=-3, color="#1A000000", offset=ft.Offset(0, 10))
+    shadow_2xl = ft.BoxShadow(blur_radius=50, spread_radius=-12, color="#40000000", offset=ft.Offset(0, 25))
+
     @staticmethod
     def is_dark(page: ft.Page) -> bool:
         return page.theme_mode == ft.ThemeMode.DARK

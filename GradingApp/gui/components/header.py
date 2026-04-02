@@ -1,5 +1,6 @@
 import flet as ft
 from gui.theme import Theme
+from gui.components.lucide import LucideIcon
 
 class Header(ft.Container):
     def __init__(self, page: ft.Page, state, on_cmd_click, on_stats_click):
@@ -19,8 +20,8 @@ class Header(ft.Container):
             bgcolor=Theme.brand.c500,
             border_radius=Theme.border_radius_xl,
             alignment=ft.alignment.center,
-            shadow=ft.BoxShadow(spread_radius=0, blur_radius=6, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK)), # shadow-md approx
-            content=ft.Icon(ft.Icons.SCHOOL, color=ft.Colors.WHITE, size=20)
+            shadow=Theme.shadow_md,
+            content=LucideIcon("graduation-cap", size=20, color=ft.Colors.WHITE)
         )
         # TODO: Responsive hide for text-xl on mobile
         self.logo_text = ft.Text("Clickedu", size=20, weight=ft.FontWeight.BOLD, color=Theme.get_text_main(self.page))
@@ -34,7 +35,7 @@ class Header(ft.Container):
                 text_col = Theme.get_text_main(self.page)
                 border = ft.border.all(1, Theme.get_border_color(self.page))
                 weight = ft.FontWeight.W_600
-                shadow = ft.BoxShadow(blur_radius=2, color=ft.Colors.with_opacity(0.05, ft.Colors.BLACK))
+                shadow = Theme.shadow_sm
             else:
                 bg = ft.Colors.TRANSPARENT
                 text_col = Theme.get_text_secondary(self.page)
@@ -76,7 +77,7 @@ class Header(ft.Container):
         
         self.cmd_btn = ft.Container(
             content=ft.Row([
-                ft.Icon(ft.Icons.SEARCH, size=16, color=Theme.slate.c500),
+                LucideIcon("search", size=16, color=Theme.slate.c500),
                 ft.Text("Comandos", size=14, weight=ft.FontWeight.W_500, color=Theme.slate.c500),
                 cmd_kbd
             ], spacing=8),
@@ -89,19 +90,22 @@ class Header(ft.Container):
         )
 
         # Botones Cíclicos
-        self.stats_btn = ft.IconButton(
-            icon=ft.Icons.BAR_CHART,
-            icon_color=Theme.slate.c500,
-            on_click=self.on_stats_click
+        self.stats_btn = ft.Container(
+            content=LucideIcon("bar-chart-2", size=20, color=Theme.slate.c600 if not Theme.is_dark(self.page) else Theme.slate.c300),
+            padding=ft.padding.all(8),
+            border_radius=Theme.border_radius_full,
+            on_click=self.on_stats_click,
+            on_hover=lambda e: self._icon_hover(e)
         )
         
         self.export_btn = ft.Container(
-            content=ft.Icon(ft.Icons.DOWNLOAD, color=ft.Colors.WHITE, size=20),
+            content=LucideIcon("download", size=20, color=ft.Colors.WHITE),
             bgcolor=Theme.brand.c500,
-            width=36, height=36,
+            padding=ft.padding.all(8),
             border_radius=Theme.border_radius_full,
             alignment=ft.alignment.center,
-            shadow=ft.BoxShadow(blur_radius=2, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK))
+            shadow=Theme.shadow_sm,
+            on_hover=lambda e: self._download_hover(e)
         )
 
         self.right_block = ft.Row([self.cmd_btn, self.stats_btn, self.export_btn], spacing=8)
@@ -129,7 +133,16 @@ class Header(ft.Container):
         e.control.bgcolor = hov_col if e.data == "true" else idl_col
         e.control.update()
 
+    def _icon_hover(self, e):
+        e.control.bgcolor = Theme.slate.c200 if e.data == "true" else ft.Colors.TRANSPARENT
+        e.control.update()
+
+    def _download_hover(self, e):
+        e.control.bgcolor = Theme.brand.c600 if e.data == "true" else Theme.brand.c500
+        e.control.update()
+
     def update_theme(self):
         self.logo_text.color = Theme.get_text_main(self.page)
+        self.stats_btn.content.color = Theme.slate.c600 if not Theme.is_dark(self.page) else Theme.slate.c300
         # TODO: Refrescar tabs si es necesario (el activo cambiará de fondo negro/blanco según el tema)
         self.update()

@@ -1,5 +1,6 @@
 import flet as ft
 from gui.theme import Theme
+from gui.components.lucide import LucideIcon
 import threading
 import time
 
@@ -21,7 +22,7 @@ class MicrophoneDock(ft.Container):
         self.bgcolor = bg_col
         self.border = ft.border.all(1, border_col)
         self.blur = ft.Blur(10, 10, ft.BlurTileMode.CLAMP)
-        self.shadow = ft.BoxShadow(blur_radius=25, spread_radius=-12, color=ft.Colors.with_opacity(0.25, ft.Colors.BLACK))
+        self.shadow = Theme.shadow_2xl
         
         self.animate = ft.Animation(300, "ease")
         self.animate_scale = ft.Animation(300, "bounceOut")
@@ -70,8 +71,8 @@ class MicrophoneDock(ft.Container):
             border_radius=Theme.border_radius_full,
             bgcolor=Theme.slate.c900 if not Theme.is_dark(self.page) else Theme.brand.c500,
             alignment=ft.alignment.center,
-            content=ft.Icon(ft.Icons.MIC, color=ft.Colors.WHITE, size=24),
-            shadow=ft.BoxShadow(blur_radius=15, spread_radius=-3, color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK)),
+            content=LucideIcon("mic", size=24, color=ft.Colors.WHITE),
+            shadow=Theme.shadow_lg,
             animate=ft.Animation(200, "ease"),
             animate_scale=ft.Animation(200, "ease")
         )

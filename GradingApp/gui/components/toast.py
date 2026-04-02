@@ -1,5 +1,6 @@
 import flet as ft
 from gui.theme import Theme
+from gui.components.lucide import LucideIcon
 import threading
 
 class NotificationToast(ft.Container):
@@ -16,7 +17,7 @@ class NotificationToast(ft.Container):
         self.animate_opacity = ft.Animation(300, "ease")
         self.visible = False
         
-        self.icon_ctl = ft.Icon(ft.Icons.INFO, size=16, color=ft.Colors.WHITE)
+        self.icon_ctl = LucideIcon("info", size=16, color=ft.Colors.WHITE)
         self.text_ctl = ft.Text("Notificación", size=14, weight=ft.FontWeight.W_500, color=ft.Colors.WHITE)
         
         self.content = ft.Row([self.icon_ctl, self.text_ctl], spacing=8, alignment=ft.MainAxisAlignment.CENTER)
@@ -30,13 +31,14 @@ class NotificationToast(ft.Container):
         
         if type in ["success", "cloud"]:
             self.bgcolor = Theme.brand.c500
-            self.icon_ctl.name = ft.Icons.CHECK_CIRCLE if type == "success" else ft.Icons.CLOUD_UPLOAD
+            name = "check-circle-2" if type == "success" else "cloud-upload"
+            self.icon_ctl.src = f"icons/{name}.svg"
             self.icon_ctl.color = ft.Colors.WHITE
             self.text_ctl.color = ft.Colors.WHITE
             self.padding = ft.padding.symmetric(horizontal=16, vertical=12) # py-3
         else:
             self.bgcolor = Theme.slate.c800 if not Theme.is_dark(self.page) else Theme.slate.c100
-            self.icon_ctl.name = ft.Icons.INFO
+            self.icon_ctl.src = "icons/info.svg"
             self.icon_ctl.color = ft.Colors.WHITE if not Theme.is_dark(self.page) else Theme.slate.c900
             self.text_ctl.color = ft.Colors.WHITE if not Theme.is_dark(self.page) else Theme.slate.c900
             self.padding = ft.padding.symmetric(horizontal=16, vertical=8)
