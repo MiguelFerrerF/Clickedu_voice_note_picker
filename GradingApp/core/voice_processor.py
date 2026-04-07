@@ -54,9 +54,9 @@ class VoiceProcessor:
             except Exception:
                 pass
 
-    def stop_recording_and_process(self, students_list):
+    def stop_recording(self):
         if not self.is_recording:
-            return None, None
+            return None
             
         self.is_recording = False
         if hasattr(self, 'record_thread'):
@@ -69,23 +69,23 @@ class VoiceProcessor:
             
         raw_data = b''.join(self.frames)
         if not raw_data:
-            return None, None, 0, None
+            return None
             
-        audio_data = sr.AudioData(raw_data, 16000, 2)
+        return sr.AudioData(raw_data, 16000, 2)
+
+    def process_audio(self, audio_data, students_list):
         try:
             texto = self.recognizer.recognize_google(audio_data, language="es-ES")
             print(f"Texto reconocido (Google PTT): {texto}")
             if not texto.strip():
-                return None, None, 0, None
+                return "ERROR"
             return self._extract_info(texto, students_list)
         except sr.UnknownValueError:
             print("Google no pudo entender el audio.")
-            return None, None, 0, None
+            return "ERROR"
         except sr.RequestError as e:
             print(f"Error de red con Google: {e}")
-            return None, None, 0, None
-            
-        return self._extract_info(texto, students_list)
+            return "ERROR"
             
     def _extract_info(self, text, students_list):
         text = text.lower()

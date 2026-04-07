@@ -2,6 +2,12 @@
 
 Aquí se documentan todas las novedades, mejoras y correcciones implementadas en cada versión del Gestor de Notas para Clickedu.
 
+## 🚀 Novedades en v1.3.4
+
+*   **Hotfix del Micrófono (Asincronía Real)**: Corregidos múltiples errores internos (`AttributeError`) causados por una desincronización en los eventos del micrófono. Se ha rediseñado por completo el flujo de grabación y procesamiento: la lectura de voz desde Google y el algoritmo de "matching" ultrarrápido ahora suceden exclusivamente en segundo plano, devolviendo instantáneamente el control al programa mientras terminan de calcularse. Se acabó la congelación visual mientras dictas notas.
+
+---
+
 ## 🚀 Novedades en v1.3.3
 
 *   **Pantalla de Carga (Splash Screen) Mejorada**: Se ha parcheado la forma en que la aplicación arranca en Windows. Ahora el icono de inicio durante la fase de descompresión (Splash) se dibuja sobre un bloque de textura oscura y sólida, solventando un *bug nativo de PyInstaller* que generaba un contorno magenta o morado al chocar con transparencias (halo de colorkeying en fondos Alpha). Con esto, la aplicación luce mucho más natural y estéticamente superior mientras se abre.

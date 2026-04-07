@@ -153,6 +153,7 @@ class AppWindow(ctk.CTk):
             print(f"Excel seleccionado: {file_path}")
             students_data = self.excel_manager.load_excel(file_path)
             if students_data is not None:
+                self.current_students_data = students_data
                 self.title_label.configure(text=f"Clase: {selected_name}")
                 self.sidebar.btn_export_excel.configure(state="normal")
                 self.sidebar.btn_stats.configure(state="normal")
@@ -185,7 +186,7 @@ class AppWindow(ctk.CTk):
         self.btn_voice.configure(fg_color="#E74C3C")
         self.voice_hint_label.configure(text="Escuchando...", text_color="#E74C3C")
         
-        self.voice_processor.start_listening()
+        self.voice_processor.start_recording()
 
     def on_space_release(self, event):
         if not self.is_space_pressed:
@@ -194,25 +195,26 @@ class AppWindow(ctk.CTk):
         self.btn_voice.configure(fg_color="gray")
         self.voice_hint_label.configure(text="Procesando...", text_color="#F39C12")
         
-        audio = self.voice_processor.stop_listening()
-        
+        audio = self.voice_processor.stop_recording()
+        if not audio:
+            self.voice_hint_label.configure(text="Mantén ESPACIO para dictar", text_color="gray")
+            return
+            
         threading.Thread(target=self.process_voice_command, args=(audio,), daemon=True).start()
 
     def process_voice_command(self, audio):
-        text = self.voice_processor.recognize_audio(audio)
-        if not text:
-            self.voice_hint_label.configure(text="Mantén ESPACIO para dictar", text_color="gray")
+        result = self.voice_processor.process_audio(audio, getattr(self, 'current_students_data', []))
+        
+        self.voice_hint_label.configure(text="Mantén ESPACIO para dictar", text_color="gray")
+        
+        if result == "ERROR":
             self.show_toast("No se entendió el audio.", is_error=True)
             return
             
-        self.voice_hint_label.configure(text=f"Escuchado: '{text}'...", text_color="#3498DB")
         self.stats['voice_attempts'] += 1
         
-        result = self.voice_processor.extract_grade_info(text, self.excel_manager.names_list)
-        
-        self.voice_hint_label.configure(text="Mantén ESPACIO para dictar", text_color="gray")
-        if result:
-            student_id, best_match, grade, score = result
+        student_id, grade, score, best_match = result
+        if student_id is not None:
             self.stats['voice_successes'] += 1
             if score < self.stats['lowest_match']['score']:
                 self.stats['lowest_match'] = {'name': best_match, 'score': score}
