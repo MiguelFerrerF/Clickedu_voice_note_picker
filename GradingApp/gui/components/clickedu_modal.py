@@ -21,6 +21,19 @@ class ClickeduModal(ctk.CTkToplevel):
         except:
             pass
 
+        # Configurar icono
+        import sys
+        if getattr(sys, 'frozen', False):
+            icon_path = os.path.join(sys._MEIPASS, "icon.ico")
+        else:
+            # Subir 2 niveles desde gui/components/ para llegar a la raíz
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            icon_path = os.path.join(base_dir, "icon.ico")
+            
+        if os.path.exists(icon_path):
+            # Usar un pequeño retraso para asegurar que la ventana esté lista antes de poner el icono
+            self.after(200, lambda: self._safe_set_icon(icon_path))
+            
         self.config_path = config_path
         self.login_callback = login_callback
         self.security_file_path = None
@@ -57,19 +70,12 @@ class ClickeduModal(ctk.CTkToplevel):
         self.btn_browse = ctk.CTkButton(self.file_frame, text="Buscar...", width=80, command=self._browse_file)
         self.btn_browse.grid(row=0, column=1)
         
-        self.lbl_warning = ctk.CTkLabel(
-            self, 
-            text="* Nota: No modifique el nombre original del archivo .txt descargado,\nya que el sistema lo usa para identificar su ID de usuario.",
-            text_color="#E67E22", font=ctk.CTkFont(size=11, slant="italic"), justify="left"
-        )
-        self.lbl_warning.grid(row=7, column=0, padx=30, pady=(5, 10), sticky="w")
-        
         # Botón de Login e Info Error
         self.lbl_error = ctk.CTkLabel(self, text="", text_color="#E74C3C")
-        self.lbl_error.grid(row=8, column=0, padx=30, pady=5)
+        self.lbl_error.grid(row=7, column=0, padx=30, pady=5)
         
         self.btn_login = ctk.CTkButton(self, text="Conectar", font=ctk.CTkFont(weight="bold"), fg_color="#2ECC71", hover_color="#27AE60", text_color_disabled="white", command=self._on_login_click)
-        self.btn_login.grid(row=9, column=0, padx=30, pady=(5, 20), sticky="ew")
+        self.btn_login.grid(row=8, column=0, padx=30, pady=(5, 20), sticky="ew")
         
         # Load saved data
         self._load_saved_credentials()
@@ -173,3 +179,19 @@ class ClickeduModal(ctk.CTkToplevel):
             self.entry_user.configure(state="normal")
             self.entry_pwd.configure(state="normal")
             self.btn_browse.configure(state="normal")
+
+    def _safe_set_icon(self, icon_path):
+        try:
+            self.iconbitmap(icon_path)
+        except Exception:
+            try:
+                # Fallback para otros formatos o si falla iconbitmap
+                from PIL import Image, ImageTk
+                png_path = icon_path.replace(".ico", ".png")
+                if os.path.exists(png_path):
+                    img = Image.open(png_path)
+                    # Es fundamental guardar la referencia para que no se borre de memoria (Garbage Collection)
+                    self._icon_photo = ImageTk.PhotoImage(img)
+                    self.iconphoto(False, self._icon_photo)
+            except Exception:
+                pass
