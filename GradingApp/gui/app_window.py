@@ -12,6 +12,7 @@ from .components.sidebar import Sidebar
 from .components.student_grid import StudentGrid
 from .components.stats_view import StatsView
 from .components.clickedu_modal import ClickeduModal
+from .components.clickedu_upload_modal import ClickeduUploadModal
 
 class AppWindow(ctk.CTk):
     def __init__(self):
@@ -312,7 +313,24 @@ class AppWindow(ctk.CTk):
             self.sidebar.btn_upload.configure(state="normal", fg_color="#3498DB", hover_color="#2980B9", text_color="white")
 
     def upload_clickedu(self):
-        self.show_toast("Funcionalidad en desarrollo para futura carga de notas.", is_error=False)
+        if not self.clickedu_client.is_authenticated:
+            self.show_toast("Primero debe conectarse a Clickedu.", is_error=True)
+            return
+
+        if not self.excel_manager.current_file:
+            self.show_toast("No hay ninguna clase cargada para subir.", is_error=True)
+            return
+
+        if hasattr(self, "upload_modal") and self.upload_modal.winfo_exists():
+            self.upload_modal.focus()
+            return
+
+        self.upload_modal = ClickeduUploadModal(
+            self,
+            self.clickedu_client,
+            self.excel_manager.current_file,
+            on_success_callback=lambda: self.show_toast("Carga finalizada con éxito", is_error=False)
+        )
 
     def _cleanup_stats_wrapper(self):
         if hasattr(self, 'stats_wrapper_frame') and self.stats_wrapper_frame:
