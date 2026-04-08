@@ -6,7 +6,7 @@ import re
 class Sidebar(ctk.CTkFrame):
     def __init__(self, master, config_path, display_names, 
                  on_class_select, on_export_notes, on_toggle_stats, 
-                 on_connect_clickedu=None, on_upload_clickedu=None, **kwargs):
+                 on_connect_clickedu=None, on_upload_clickedu=None, on_sync_clickedu=None, **kwargs):
         super().__init__(master, corner_radius=0, **kwargs)
         
         self.config_path = config_path
@@ -18,6 +18,7 @@ class Sidebar(ctk.CTkFrame):
         self.on_toggle_stats = on_toggle_stats
         self.on_connect_clickedu = on_connect_clickedu
         self.on_upload_clickedu = on_upload_clickedu
+        self.on_sync_clickedu = on_sync_clickedu
 
         
         self._build_ui()
@@ -58,7 +59,10 @@ class Sidebar(ctk.CTkFrame):
         self.btn_connect.grid(row=0, column=0, pady=(0, 5), sticky="ew")
 
         self.btn_upload = ctk.CTkButton(self.clickedu_frame, text="Subir Notas a Clickedu", command=self.on_upload_clickedu, state="disabled", fg_color="#7F8C8D", hover_color="#95A5A6", text_color_disabled="white", height=32)
-        self.btn_upload.grid(row=1, column=0, sticky="ew")
+        self.btn_upload.grid(row=1, column=0, pady=(0, 5), sticky="ew")
+
+        self.btn_sync_templates = ctk.CTkButton(self.clickedu_frame, text="Sincronizar Plantillas", command=self.on_sync_clickedu, state="disabled", fg_color="#7F8C8D", hover_color="#95A5A6", text_color_disabled="white", height=32)
+        self.btn_sync_templates.grid(row=2, column=0, sticky="ew")
         
         # Controles inferiores
         self.bottom_controls_frame = ctk.CTkFrame(self, fg_color="transparent")

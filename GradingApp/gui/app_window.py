@@ -13,6 +13,7 @@ from .components.student_grid import StudentGrid
 from .components.stats_view import StatsView
 from .components.clickedu_modal import ClickeduModal
 from .components.clickedu_upload_modal import ClickeduUploadModal
+from .components.clickedu_sync_modal import ClickeduSyncModal
 
 class AppWindow(ctk.CTk):
     def __init__(self):
@@ -67,7 +68,8 @@ class AppWindow(ctk.CTk):
             on_export_notes=self.export_excel_event,
             on_toggle_stats=self.toggle_stats_view,
             on_connect_clickedu=self.open_clickedu_modal,
-            on_upload_clickedu=self.upload_clickedu
+            on_upload_clickedu=self.upload_clickedu,
+            on_sync_clickedu=self.sync_plantillas_clickedu
         )
         self.sidebar.grid(row=0, column=0, rowspan=3, sticky="nsew")
         
@@ -311,6 +313,46 @@ class AppWindow(ctk.CTk):
         
         if self.excel_manager.current_file:
             self.sidebar.btn_upload.configure(state="normal", fg_color="#3498DB", hover_color="#2980B9", text_color="white")
+        
+        self.sidebar.btn_sync_templates.configure(state="normal", fg_color="#8E44AD", hover_color="#9B59B6", text_color="white")
+
+    def sync_plantillas_clickedu(self):
+        if not self.clickedu_client.is_authenticated:
+            self.show_toast("Primero debe conectarse a Clickedu.", is_error=True)
+            return
+
+        if hasattr(self, "sync_modal") and self.sync_modal.winfo_exists():
+            self.sync_modal.focus()
+            return
+
+        self.sync_modal = ClickeduSyncModal(
+            self,
+            self.clickedu_client,
+            self.plantillas_dir,
+            on_success_callback=self._on_sync_success
+        )
+
+    def _on_sync_success(self):
+        self.show_toast("Plantillas sincronizadas.", is_error=False)
+        self.refresh_class_list()
+
+    def refresh_class_list(self):
+        """Vuelve a escanear la carpeta de plantillas y actualiza el menú lateral."""
+        self._init_data_paths()
+        display_names = list(self.file_mapping.keys())
+        self.sidebar.display_names = display_names
+        
+        if display_names:
+            self.sidebar.class_combobox.configure(values=display_names)
+            # Mantener la selección actual si sigue existiendo
+            current = self.sidebar.class_combobox.get()
+            if current not in display_names:
+                self.sidebar.class_combobox.set(display_names[0])
+                self.select_class_event(display_names[0])
+        else:
+            self.sidebar.class_combobox.configure(values=["Sin clases"])
+            self.sidebar.class_combobox.set("Sin clases")
+            self.student_grid.show_placeholder()
 
     def upload_clickedu(self):
         if not self.clickedu_client.is_authenticated:
