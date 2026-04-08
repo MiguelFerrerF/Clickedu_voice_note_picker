@@ -15,6 +15,10 @@ class ClickeduClient:
         self.session = requests.Session()
         self.is_authenticated = False
 
+    def limpiar_nombre_archivo(self, nombre):
+        """Elimina caracteres que no son válidos para nombres de archivo en Windows/Mac"""
+        return re.sub(r'[\\/*?:"<>|]', "", nombre).strip()
+
     def extract_hidden_fields(self, html):
         """Extrae campos hidden y botones de un HTML usando BeautifulSoup"""
         soup = BeautifulSoup(html, "html.parser")
@@ -226,3 +230,24 @@ class ClickeduClient:
         self.session.get(url_eliminar, allow_redirects=True, timeout=30)
             
         return True
+
+    def descargar_plantilla_excel(self, id_asignatura, id_evaluacion, ruta_guardado):
+        """Construye la URL de descarga y guarda el archivo Excel en la ruta especificada."""
+        url_descarga = urljoin(
+            self.BASE_URL, 
+            f"/assignatures/importar_notes_items.php?accio=descarregar_plantilla&assig={id_asignatura}&id_aval={id_evaluacion}"
+        )
+        
+        headers = {
+            "Referer": urljoin(self.BASE_URL, f"/assignatures/importar_notes_items.php?assig={id_asignatura}&id_aval={id_evaluacion}"),
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0"
+        }
+        
+        resp = self.session.get(url_descarga, headers=headers, timeout=30)
+        
+        # Comprobamos que el servidor nos devuelve el archivo correctamente (mínimo 1KB)
+        if resp.status_code == 200 and len(resp.content) > 1000:
+            with open(ruta_guardado, 'wb') as f:
+                f.write(resp.content)
+            return True
+        return False
