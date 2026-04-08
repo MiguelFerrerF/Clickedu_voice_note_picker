@@ -2,6 +2,15 @@
 
 Aquí se documentan todas las novedades, mejoras y correcciones implementadas en cada versión del Gestor de Notas para Clickedu.
 
+## 🚀 Novedades en v1.4.0
+
+*   **Integración Nativa con Clickedu (Login Seguro)**: Se ha implementado un sistema de autenticación robusto que permite conectar la aplicación directamente con tu cuenta de Clickedu mediante usuario, contraseña y archivo de seguridad.
+*   **Asistente de Subida Automatizada**: Nueva funcionalidad para enviar las notas dictadas directamente a la plataforma Clickedu. El programa permite seleccionar dinámicamente la asignatura, el periodo de evaluación y el ítem evaluativo de destino, realizando el volcado de datos automáticamente y evitando el proceso manual de importación en el navegador.
+*   **Identificación Dinámica de Usuario**: Mejorado el motor de conexión para extraer el ID de usuario directamente de Clickedu. Ya no es necesario que el archivo de seguridad mantenga un nombre específico; el sistema lo identifica por su contenido.
+*   **Refinado Estético de Ventanas**: Se han actualizado los iconos y el diseño de los mensajes de advertencia en las ventanas modales para una experiencia más limpia y profesional.
+
+---
+
 ## 🚀 Novedades en v1.3.4
 
 *   **Hotfix del Micrófono (Asincronía Real)**: Corregidos múltiples errores internos (`AttributeError`) causados por una desincronización en los eventos del micrófono. Se ha rediseñado por completo el flujo de grabación y procesamiento: la lectura de voz desde Google y el algoritmo de "matching" ultrarrápido ahora suceden exclusivamente en segundo plano, devolviendo instantáneamente el control al programa mientras terminan de calcularse. Se acabó la congelación visual mientras dictas notas.
