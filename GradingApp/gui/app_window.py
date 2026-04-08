@@ -7,9 +7,11 @@ import threading
 
 from core.excel_manager import ExcelManager
 from core.voice_processor import VoiceProcessor
+from core.clickedu_client import ClickeduClient
 from .components.sidebar import Sidebar
 from .components.student_grid import StudentGrid
 from .components.stats_view import StatsView
+from .components.clickedu_modal import ClickeduModal
 
 class AppWindow(ctk.CTk):
     def __init__(self):
@@ -21,6 +23,7 @@ class AppWindow(ctk.CTk):
         
         self.excel_manager = ExcelManager()
         self.voice_processor = VoiceProcessor()
+        self.clickedu_client = ClickeduClient()
         
         self.stats = {
             'grading_timestamps': [],
@@ -61,7 +64,9 @@ class AppWindow(ctk.CTk):
             display_names=display_names,
             on_class_select=self.select_class_event,
             on_export_notes=self.export_excel_event,
-            on_toggle_stats=self.toggle_stats_view
+            on_toggle_stats=self.toggle_stats_view,
+            on_connect_clickedu=self.open_clickedu_modal,
+            on_upload_clickedu=self.upload_clickedu
         )
         self.sidebar.grid(row=0, column=0, rowspan=3, sticky="nsew")
         
@@ -158,6 +163,8 @@ class AppWindow(ctk.CTk):
                 self.sidebar.btn_export_excel.configure(state="normal")
                 self.sidebar.btn_stats.configure(state="normal")
                 self.btn_voice.configure(state="normal")
+                if self.clickedu_client.is_authenticated:
+                    self.sidebar.btn_upload.configure(state="normal", fg_color="#3498DB", hover_color="#2980B9")
                 self.stats = {'grading_timestamps': [], 'voice_attempts': 0, 'voice_successes': 0, 'lowest_match': {'name': None, 'score': 100}}
                 
                 if self.is_stats_view_open:
@@ -281,6 +288,31 @@ class AppWindow(ctk.CTk):
             os.startfile(notas_dir)
         else:
             self.show_toast("Error al intentar exportar.", is_error=True)
+
+    def open_clickedu_modal(self):
+        if hasattr(self, "clickedu_modal") and self.clickedu_modal.winfo_exists():
+            self.clickedu_modal.focus()
+            return
+            
+        self.clickedu_modal = ClickeduModal(self, self.config_path, self._handle_clickedu_login)
+
+    def _handle_clickedu_login(self, username, password, sec_file):
+        try:
+            self.clickedu_client.login(username, password, sec_file)
+            self.after(0, self._on_login_success)
+            return True
+        except Exception as e:
+            raise e
+
+    def _on_login_success(self):
+        self.show_toast("Conectado a Clickedu correctamente.", is_error=False)
+        self.sidebar.btn_connect.configure(text="Conectado ✓", fg_color="#27AE60", hover_color="#2ECC71", state="disabled", text_color_disabled="white")
+        
+        if self.excel_manager.current_file:
+            self.sidebar.btn_upload.configure(state="normal", fg_color="#3498DB", hover_color="#2980B9", text_color="white")
+
+    def upload_clickedu(self):
+        self.show_toast("Funcionalidad en desarrollo para futura carga de notas.", is_error=False)
 
     def _cleanup_stats_wrapper(self):
         if hasattr(self, 'stats_wrapper_frame') and self.stats_wrapper_frame:
