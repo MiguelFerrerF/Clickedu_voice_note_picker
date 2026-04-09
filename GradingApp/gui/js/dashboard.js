@@ -210,6 +210,34 @@ window.addEventListener('keydown', (e) => {
 document.getElementById('openCmdBtn').addEventListener('click', () => openModal(cmdOverlay, cmdModal, cmdInput));
 cmdOverlay.addEventListener('click', (e) => { if (e.target === cmdOverlay) closeModal(cmdOverlay, cmdModal); });
 
+// LÓGICA DE BÚSQUEDA EN COMMAND PALETTE
+const emptySearchMsg = document.createElement('div');
+emptySearchMsg.className = "px-6 py-10 text-center hidden flex flex-col items-center justify-center text-zinc-400";
+emptySearchMsg.innerHTML = `<i data-lucide="search-x" class="w-8 h-8 mb-3 opacity-20"></i><p class="text-sm font-medium">Buscador sin resultados</p>`;
+document.getElementById('cmdList').appendChild(emptySearchMsg);
+
+cmdInput.addEventListener('input', (e) => {
+  const query = e.target.value.toLowerCase().trim();
+  const items = document.querySelectorAll('.cmd-item');
+  const separators = document.querySelectorAll('#cmdList > div.h-px');
+  let hasResults = false;
+
+  items.forEach(item => {
+    const text = item.innerText.toLowerCase();
+    const isVisible = text.includes(query);
+    item.classList.toggle('hidden', !isVisible);
+    if (isVisible) hasResults = true;
+  });
+
+  // Ocultar separadores si estamos buscando
+  separators.forEach(sep => {
+    sep.classList.toggle('hidden', query.length > 0);
+  });
+
+  emptySearchMsg.classList.toggle('hidden', hasResults || query.length === 0);
+  lucide.createIcons();
+});
+
 // Re-delegar eventos para nuevos items del Command Palette
 document.getElementById('cmdList').addEventListener('click', (e) => {
   const item = e.target.closest('.cmd-item');
