@@ -1,17 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./gui/UX.html"],
+  content: ["./gui/**/*.html", "./gui/**/*.js"],
   darkMode: 'class',
   theme: {
-    screens: {
-      'sm': '640px',
-      'md': '768px',
-      'lg': '1024px',
-      'wide': '1100px',
-      'xl': '1280px',
-      '2xl': '1536px',
-    },
     extend: {
+      screens: {
+        'wide': '1100px',
+      },
       fontFamily: { sans: ['Inter', 'sans-serif'] },
       transitionTimingFunction: {
         'ios': 'cubic-bezier(0.2, 0.8, 0.2, 1)',
@@ -31,6 +26,9 @@ module.exports = {
       animation: {
         'slide-up-fade': 'slide-up-fade 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
         'wave': 'wave 1.5s ease-in-out infinite',
+        'spin-slow': 'spin 3s linear infinite',
+        'pulse-ring': 'pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite',
+        'shimmer': 'shimmer 2s infinite linear',
       },
       keyframes: {
         'slide-up-fade': {
@@ -40,6 +38,13 @@ module.exports = {
         'wave': {
           '0%, 100%': { transform: 'scaleY(0.5)' },
           '50%': { transform: 'scaleY(1.2)' }
+        },
+        'pulse-ring': {
+          '0%': { transform: 'scale(0.33)' },
+          '80%, 100%': { opacity: '0' }
+        },
+        'shimmer': {
+          '100%': { transform: 'translateX(100%)' }
         }
       }
     }
