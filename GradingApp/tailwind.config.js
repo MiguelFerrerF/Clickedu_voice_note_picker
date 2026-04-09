@@ -26,9 +26,10 @@ module.exports = {
       animation: {
         'slide-up-fade': 'slide-up-fade 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
         'wave': 'wave 1.5s ease-in-out infinite',
-        'spin-slow': 'spin 3s linear infinite',
+        'spin-slow': 'spin 2s linear infinite',
         'pulse-ring': 'pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite',
         'shimmer': 'shimmer 2s infinite linear',
+        'float': 'float 6s ease-in-out infinite',
       },
       keyframes: {
         'slide-up-fade': {
@@ -45,6 +46,10 @@ module.exports = {
         },
         'shimmer': {
           '100%': { transform: 'translateX(100%)' }
+        },
+        'float': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
         }
       }
     }

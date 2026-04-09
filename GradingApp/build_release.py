@@ -12,7 +12,7 @@ REPO_OWNER = "MiguelFerrerF"
 REPO_NAME = "Clickedu_voice_note_picker"
 ISCC_PATH = r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 INNO_SCRIPT = "InnoSetup_Script.iss"
-SPEC_FILE = "GradingApp.spec"
+SPEC_FILE = "ClickeduPro.spec"
 OUTPUT_INSTALLER = r"Inno_Output\Instalador_GestorNotas.exe"
 
 def extract_version():
