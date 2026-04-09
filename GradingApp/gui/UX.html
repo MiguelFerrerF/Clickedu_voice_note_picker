@@ -2,273 +2,364 @@
 <html lang="es" class="light">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clickedu - Desktop Pro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    transitionTimingFunction: {
-                        'ios': 'cubic-bezier(0.2, 0.8, 0.2, 1)',
-                    },
-                    colors: {
-                        brand: {
-                            50: '#eef9f9', 100: '#d4eff0', 200: '#aee0e2', 300: '#7bcad0',
-                            400: '#4cb0b7', 500: '#1a939a', 600: '#16797f', 700: '#136167',
-                            800: '#114f54', 900: '#0e4247'
-                        },
-                        zinc: {
-                            50: '#fafafa', 100: '#f4f4f5', 200: '#e4e4e7', 300: '#d4d4d8',
-                            400: '#a1a1aa', 500: '#71717a', 600: '#52525b', 700: '#3f3f46',
-                            800: '#27272a', 900: '#18181b', 950: '#09090b',
-                        }
-                    },
-                    animation: {
-                        'slide-up-fade': 'slide-up-fade 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
-                        'wave': 'wave 1.5s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        'slide-up-fade': {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' }
-                        },
-                        'wave': {
-                            '0%, 100%': { transform: 'scaleY(0.5)' },
-                            '50%': { transform: 'scaleY(1.2)' }
-                        }
-                    }
-                }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <title>Clickedu - Desktop Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          transitionTimingFunction: {
+            'ios': 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+          },
+          colors: {
+            brand: {
+              50: '#eef9f9', 100: '#d4eff0', 200: '#aee0e2', 300: '#7bcad0',
+              400: '#4cb0b7', 500: '#1a939a', 600: '#16797f', 700: '#136167',
+              800: '#114f54', 900: '#0e4247'
+            },
+            zinc: {
+              50: '#fafafa', 100: '#f4f4f5', 200: '#e4e4e7', 300: '#d4d4d8',
+              400: '#a1a1aa', 500: '#71717a', 600: '#52525b', 700: '#3f3f46',
+              800: '#27272a', 900: '#18181b', 950: '#09090b',
             }
+          },
+          animation: {
+            'slide-up-fade': 'slide-up-fade 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
+            'wave': 'wave 1.5s ease-in-out infinite',
+          },
+          keyframes: {
+            'slide-up-fade': {
+              '0%': { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            },
+            'wave': {
+              '0%, 100%': { transform: 'scaleY(0.5)' },
+              '50%': { transform: 'scaleY(1.2)' }
+            }
+          }
         }
-    </script>
-    <style>
-        body {
-            background-color: transparent;
-            transition: background-color 0.3s ease;
-        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: transparent;
+      transition: background-color 0.3s ease;
+    }
 
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
 
-        /* Clases clave para ventanas Frameless (PyWebView / Electron) */
-        .drag-area {
-            -webkit-app-region: drag;
-        }
-        .no-drag {
-            -webkit-app-region: no-drag;
-        }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
 
-        /* Transiciones de la App */
-        .student-row { transition: all 0.2s ease-out; }
-        
-        .student-row.just-updated {
-            background-color: rgba(26, 147, 154, 0.1) !important;
-            transform: scale(1.01);
-            z-index: 10;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        }
+    /* Clases clave para ventanas Frameless (PyWebView / Electron) */
+    .drag-area {
+      -webkit-app-region: drag;
+    }
 
-        .modal-overlay-enter { opacity: 1 !important; }
-        .modal-content-enter { transform: scale(1) translateY(0) !important; opacity: 1 !important; }
+    .no-drag {
+      -webkit-app-region: no-drag;
+    }
 
-        .mask-bottom {
-            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
-        }
-    </style>
+    /* Transiciones de la App */
+    .student-row {
+      transition: all 0.2s ease-out;
+    }
+
+    .student-row.just-updated {
+      background-color: rgba(26, 147, 154, 0.1) !important;
+      transform: scale(1.01);
+      z-index: 10;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .modal-overlay-enter {
+      opacity: 1 !important;
+    }
+
+    .modal-content-enter {
+      transform: scale(1) translateY(0) !important;
+      opacity: 1 !important;
+    }
+
+    .mask-bottom {
+      mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+    }
+  </style>
 </head>
 
-<body class="text-zinc-900 dark:text-zinc-100 h-screen w-screen overflow-hidden selection:bg-brand-500/30 selection:text-brand-900 dark:selection:text-brand-100">
+<body
+  class="text-zinc-900 dark:text-zinc-100 h-screen w-screen overflow-hidden selection:bg-brand-500/30 selection:text-brand-900 dark:selection:text-brand-100">
 
-    <!-- CONTENEDOR PRINCIPAL DE LA APP -->
-    <!-- Ahora ocupa el 100% de la ventana nativa -->
-    <div id="appContainer" class="w-full h-full bg-zinc-50 dark:bg-zinc-950 flex overflow-hidden relative transition-all duration-500 ease-ios">
+  <!-- CONTENEDOR PRINCIPAL DE LA APP -->
+  <!-- Ahora ocupa el 100% de la ventana nativa -->
+  <div id="appContainer"
+    class="w-full h-full bg-zinc-50 dark:bg-zinc-950 flex overflow-hidden relative transition-all duration-500 ease-ios">
 
-        <!-- BARRA LATERAL (Sidebar) -->
-        <aside class="w-64 bg-zinc-100/50 dark:bg-zinc-900/50 backdrop-blur-xl border-r border-zinc-200 dark:border-zinc-800 flex flex-col hidden md:flex z-20 drag-area">
-            <!-- Logo -->
-            <div class="p-6 flex items-center gap-3 no-drag">
-                <!-- Interior vuelve a ser ultra redondo (rounded-xl) -->
-                <div class="w-9 h-9 rounded-xl bg-brand-500 text-white flex items-center justify-center shadow-lg shadow-brand-500/30">
-                    <i data-lucide="graduation-cap" class="w-5 h-5"></i>
-                </div>
-                <span class="font-bold text-lg tracking-tight">Clickedu Pro</span>
-            </div>
+    <!-- BARRA LATERAL (Sidebar) -->
+    <aside
+      class="w-64 bg-zinc-100/50 dark:bg-zinc-900/50 backdrop-blur-xl border-r border-zinc-200 dark:border-zinc-800 flex flex-col hidden md:flex z-20 drag-area">
+      <!-- Logo -->
+      <div class="p-6 flex items-center gap-3 no-drag">
+        <img src="icon.png" class="w-8 h-8 object-contain" alt="Clickedu Pro">
+        <span class="font-bold text-lg tracking-tight">Clickedu Pro</span>
+      </div>
 
-            <!-- Navegación de Clases -->
-            <div class="flex-1 overflow-y-auto hide-scrollbar px-4 pb-4 no-drag">
-                <p class="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 pl-2">Mis Clases</p>
-                <ul class="space-y-1">
-                    <li>
-                        <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800/50 transition-all">
-                            <span class="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700"></span> 1º ESO A
-                        </button>
-                    </li>
-                    <li>
-                        <!-- Elemento activo (rounded-xl) -->
-                        <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold bg-white dark:bg-zinc-800 text-brand-600 dark:text-brand-400 shadow-sm border border-zinc-200/50 dark:border-zinc-700/50 transition-all">
-                            <span class="w-2 h-2 rounded-full bg-brand-500 shadow-[0_0_8px_rgba(26,147,154,0.6)]"></span> 2º Bach Ciencias
-                        </button>
-                    </li>
-                    <li>
-                        <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800/50 transition-all">
-                            <span class="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700"></span> 3º ESO C
-                        </button>
-                    </li>
-                </ul>
-            </div>
+      <!-- Navegación de Clases -->
+      <div class="flex-1 overflow-y-auto hide-scrollbar px-4 pb-4 no-drag">
+        <p class="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 pl-2">Mis Clases</p>
+        <ul class="space-y-1">
+          <li>
+            <button
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800/50 transition-all">
+              <span class="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700"></span> 1º ESO A
+            </button>
+          </li>
+          <li>
+            <!-- Elemento activo (rounded-xl) -->
+            <button
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold bg-white dark:bg-zinc-800 text-brand-600 dark:text-brand-400 shadow-sm border border-zinc-200/50 dark:border-zinc-700/50 transition-all">
+              <span class="w-2 h-2 rounded-full bg-brand-500 shadow-[0_0_8px_rgba(26,147,154,0.6)]"></span> 2º Bach
+              Ciencias
+            </button>
+          </li>
+          <li>
+            <button
+              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800/50 transition-all">
+              <span class="w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-700"></span> 3º ESO C
+            </button>
+          </li>
+        </ul>
+      </div>
 
-            <!-- Acciones Inferiores (Sidebar) -->
-            <div class="p-4 border-t border-zinc-200 dark:border-zinc-800 space-y-2 no-drag">
-                <button id="statsBtn" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-all group">
-                    <i data-lucide="bar-chart-2" class="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors"></i> Resumen
-                </button>
-                <button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-all group" onclick="document.getElementById('openCmdBtn').click()">
-                    <i data-lucide="command" class="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors"></i> Ajustes
-                    <kbd class="ml-auto font-sans px-1.5 py-0.5 bg-zinc-200/50 dark:bg-zinc-950 rounded text-[10px] text-zinc-400 font-bold uppercase tracking-wider">⌘K</kbd>
-                </button>
-            </div>
-        </aside>
+      <!-- Acciones Inferiores (Sidebar) -->
+      <div class="p-4 border-t border-zinc-200 dark:border-zinc-800 space-y-2 no-drag">
+        <button id="statsBtn"
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-all group">
+          <i data-lucide="bar-chart-2"
+            class="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors"></i>
+          Resumen
+        </button>
+        <button
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-all group"
+          onclick="document.getElementById('openCmdBtn').click()">
+          <i data-lucide="command"
+            class="w-4 h-4 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors"></i>
+          Ajustes
+          <kbd
+            class="ml-auto font-sans px-1.5 py-0.5 bg-zinc-200/50 dark:bg-zinc-950 rounded text-[10px] text-zinc-400 font-bold uppercase tracking-wider">⌘K</kbd>
+        </button>
+      </div>
+    </aside>
 
-        <!-- ÁREA PRINCIPAL -->
-        <main class="flex-1 flex flex-col h-full relative bg-white dark:bg-zinc-950/50">
-            
-            <!-- Cabecera Superior -->
-            <header class="h-20 flex items-center justify-between px-8 shrink-0 z-10 drag-area">
-                <div class="no-drag">
-                    <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white flex items-center gap-3">
-                        2º Bachillerato Ciencias
-                        <span class="text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 px-2.5 py-1 rounded-full">24 Alumnos</span>
-                    </h1>
-                </div>
-                
-                <div class="flex items-center">
-                    <!-- Botones de Acción -->
-                    <div class="flex items-center gap-3 pr-6 border-r border-zinc-200 dark:border-zinc-800 no-drag">
-                        <button id="openCmdBtn" class="hidden"></button>
-                        <button class="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-brand-500/20 hover:shadow-lg hover:shadow-brand-500/30 hover:-translate-y-0.5">
-                            <i data-lucide="download" class="w-4 h-4"></i> Exportar
-                        </button>
-                    </div>
+    <!-- ÁREA PRINCIPAL -->
+    <main class="flex-1 flex flex-col h-full relative bg-white dark:bg-zinc-950/50">
 
-                    <!-- WINDOW CONTROLS (Vuelven a ser circulares, rounded-full) -->
-                    <div class="flex items-center gap-2 pl-6 no-drag">
-                        
-                        <!-- Minimizar -->
-                        <button onclick="windowControls('minimize')" class="w-8 h-8 rounded-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-800/80 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white transition-colors group" title="Minimizar">
-                            <i data-lucide="minus" class="w-4 h-4"></i>
-                        </button>
-                        
-                        <!-- Maximizar / Restaurar (Morphing) -->
-                        <button onclick="windowControls('maximize')" class="relative w-8 h-8 rounded-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-800/80 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white transition-colors group overflow-hidden" title="Maximizar/Restaurar">
-                            <!-- Icono Maximizar (Cuadrado) -->
-                            <i data-lucide="square" id="iconMaximize" class="absolute w-3.5 h-3.5 transition-all duration-300 transform scale-100 opacity-100"></i>
-                            <!-- Icono Restaurar (Capas / Copy) -->
-                            <i data-lucide="copy" id="iconRestore" class="absolute w-3.5 h-3.5 transition-all duration-300 transform scale-50 opacity-0"></i>
-                        </button>
-
-                        <!-- Cerrar -->
-                        <button onclick="windowControls('close')" class="w-8 h-8 rounded-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-800/80 text-zinc-500 dark:text-zinc-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 transition-colors group" title="Cerrar">
-                            <i data-lucide="x" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Lista de Alumnos -->
-            <div class="flex-1 overflow-y-auto hide-scrollbar px-8 pb-32 mask-bottom">
-                <div class="flex items-center justify-between px-4 py-2 mb-2 text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800/50">
-                    <span>Alumno</span>
-                    <span class="pr-6">Evaluación</span>
-                </div>
-                <ul id="studentList" class="flex flex-col gap-1"></ul>
-            </div>
-
-            <!-- BARRA DE DICTADO INFERIOR -->
-            <div class="absolute bottom-8 left-0 right-0 flex justify-center pointer-events-none z-30">
-                <div id="dictationBar" class="pointer-events-auto flex items-center gap-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-6 py-3.5 rounded-full shadow-2xl shadow-zinc-900/20 dark:shadow-white/10 transition-all duration-300 ease-ios transform">
-                    <div class="relative flex items-center justify-center w-6 h-6">
-                        <i data-lucide="mic" class="w-5 h-5 transition-opacity duration-200" id="micIconBar"></i>
-                        <div id="listeningWaves" class="absolute inset-0 flex items-center justify-center gap-1 opacity-0 hidden">
-                            <div class="w-1 h-3 bg-white dark:bg-zinc-900 rounded-full animate-wave" style="animation-delay: 0.0s;"></div>
-                            <div class="w-1 h-5 bg-white dark:bg-zinc-900 rounded-full animate-wave" style="animation-delay: 0.1s;"></div>
-                            <div class="w-1 h-3 bg-white dark:bg-zinc-900 rounded-full animate-wave" style="animation-delay: 0.2s;"></div>
-                        </div>
-                    </div>
-                    <span id="dictationText" class="text-sm font-medium tracking-wide">
-                        Mantén <kbd class="mx-1 px-2 py-0.5 bg-zinc-800 dark:bg-zinc-100 rounded text-xs font-sans text-zinc-300 dark:text-zinc-600 font-bold uppercase">Espacio</kbd> para evaluar
-                    </span>
-                </div>
-            </div>
-
-        </main>
-    </div>
-
-    <!-- Toast de Notificaciones -->
-    <div id="toastContainer" class="fixed top-24 right-8 flex flex-col gap-2 z-50 pointer-events-none"></div>
-
-    <!-- CMD Palette Modal (Vuelve a ser rounded-3xl por dentro) -->
-    <div id="cmdOverlay" class="fixed inset-0 bg-zinc-900/20 dark:bg-zinc-900/80 backdrop-blur-sm z-[100] hidden opacity-0 transition-opacity duration-300 ease-ios flex items-start justify-center pt-[20vh] px-4 no-drag">
-        <div id="cmdModal" class="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl shadow-black/20 w-full max-w-xl transform scale-95 -translate-y-4 opacity-0 transition-all duration-300 ease-ios flex flex-col overflow-hidden border border-zinc-200 dark:border-zinc-800">
-            <div class="flex items-center px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
-                <i data-lucide="search" class="w-5 h-5 text-brand-500 mr-3"></i>
-                <input type="text" id="cmdInput" placeholder="¿Qué necesitas hacer?" class="flex-1 bg-transparent border-none outline-none text-zinc-900 dark:text-white text-lg placeholder-zinc-400 font-medium" autocomplete="off">
-            </div>
-            <div class="p-2" id="cmdList">
-                <button class="cmd-item w-full flex items-center px-4 py-3 rounded-xl hover:bg-brand-50 dark:hover:bg-brand-500/10 text-left group transition-colors" data-action="toggle-theme">
-                    <i data-lucide="moon" class="w-4 h-4 text-zinc-400 group-hover:text-brand-500 mr-4" id="cmdMoonIcon"></i>
-                    <span class="text-zinc-700 dark:text-zinc-200 font-medium group-hover:text-brand-600 dark:group-hover:text-brand-400">Alternar Tema Oscuro / Claro</span>
-                </button>
-            </div>
+      <!-- Cabecera Superior -->
+      <header class="h-20 flex items-center justify-between px-8 shrink-0 z-10 drag-area">
+        <div class="no-drag">
+          <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white flex items-center gap-3">
+            2º Bachillerato Ciencias
+            <span
+              class="text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 px-2.5 py-1 rounded-full">24
+              Alumnos</span>
+          </h1>
         </div>
+
+        <div class="flex items-center">
+          <!-- Botones de Acción -->
+          <div class="flex items-center gap-3 pr-6 border-r border-zinc-200 dark:border-zinc-800 no-drag">
+            <button id="openCmdBtn" class="hidden"></button>
+            <button
+              class="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-brand-500/20 hover:shadow-lg hover:shadow-brand-500/30 hover:-translate-y-0.5">
+              <i data-lucide="download" class="w-4 h-4"></i> Exportar
+            </button>
+          </div>
+
+          <!-- WINDOW CONTROLS (Vuelven a ser circulares, rounded-full) -->
+          <div class="flex items-center gap-2 pl-6 no-drag">
+
+            <!-- Minimizar -->
+            <button onclick="windowControls('minimize')"
+              class="w-8 h-8 rounded-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-800/80 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white transition-colors group"
+              title="Minimizar">
+              <i data-lucide="minus" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Maximizar / Restaurar (Morphing) -->
+            <button onclick="windowControls('maximize')"
+              class="relative w-8 h-8 rounded-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-800/80 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-white transition-colors group overflow-hidden"
+              title="Maximizar/Restaurar">
+              <!-- Icono Maximizar (Cuadrado) -->
+              <i data-lucide="square" id="iconMaximize"
+                class="absolute w-3.5 h-3.5 transition-all duration-300 transform scale-100 opacity-100"></i>
+              <!-- Icono Restaurar (Capas / Copy) -->
+              <i data-lucide="copy" id="iconRestore"
+                class="absolute w-3.5 h-3.5 transition-all duration-300 transform scale-50 opacity-0"></i>
+            </button>
+
+            <!-- Cerrar -->
+            <button onclick="windowControls('close')"
+              class="w-8 h-8 rounded-full flex items-center justify-center bg-zinc-100 dark:bg-zinc-800/80 text-zinc-500 dark:text-zinc-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 transition-colors group"
+              title="Cerrar">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Lista de Alumnos -->
+      <div class="flex-1 overflow-y-auto hide-scrollbar px-8 pb-32 mask-bottom">
+        <div
+          class="flex items-center justify-between px-4 py-2 mb-2 text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800/50">
+          <span>Alumno</span>
+          <span class="pr-6">Evaluación</span>
+        </div>
+        <ul id="studentList" class="flex flex-col gap-1"></ul>
+      </div>
+
+      <!-- BARRA DE DICTADO INFERIOR -->
+      <div class="absolute bottom-8 left-0 right-0 flex justify-center pointer-events-none z-30">
+        <div id="dictationBar"
+          class="pointer-events-auto flex items-center gap-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-6 py-3.5 rounded-full shadow-2xl shadow-zinc-900/20 dark:shadow-white/10 transition-all duration-300 ease-ios transform">
+          <div class="relative flex items-center justify-center w-6 h-6">
+            <i data-lucide="mic" class="w-5 h-5 transition-opacity duration-200" id="micIconBar"></i>
+            <div id="listeningWaves" class="absolute inset-0 flex items-center justify-center gap-1 opacity-0 hidden">
+              <div class="w-1 h-3 bg-white dark:bg-zinc-900 rounded-full animate-wave" style="animation-delay: 0.0s;">
+              </div>
+              <div class="w-1 h-5 bg-white dark:bg-zinc-900 rounded-full animate-wave" style="animation-delay: 0.1s;">
+              </div>
+              <div class="w-1 h-3 bg-white dark:bg-zinc-900 rounded-full animate-wave" style="animation-delay: 0.2s;">
+              </div>
+            </div>
+          </div>
+          <span id="dictationText" class="text-sm font-medium tracking-wide">
+            Mantén <kbd
+              class="mx-1 px-2 py-0.5 bg-zinc-800 dark:bg-zinc-100 rounded text-xs font-sans text-zinc-300 dark:text-zinc-600 font-bold uppercase">Espacio</kbd>
+            para evaluar
+          </span>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Toast de Notificaciones -->
+  <div id="toastContainer" class="fixed top-24 right-8 flex flex-col gap-2 z-50 pointer-events-none"></div>
+
+  <!-- CMD Palette Modal (Vuelve a ser rounded-3xl por dentro) -->
+  <div id="cmdOverlay"
+    class="fixed inset-0 bg-zinc-900/20 dark:bg-zinc-900/80 backdrop-blur-sm z-[100] hidden opacity-0 transition-opacity duration-300 ease-ios flex items-start justify-center pt-[20vh] px-4 no-drag">
+    <div id="cmdModal"
+      class="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl shadow-black/20 w-full max-w-xl transform scale-95 -translate-y-4 opacity-0 transition-all duration-300 ease-ios flex flex-col overflow-hidden border border-zinc-200 dark:border-zinc-800">
+      <div class="flex items-center px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
+        <i data-lucide="search" class="w-5 h-5 text-brand-500 mr-3"></i>
+        <input type="text" id="cmdInput" placeholder="¿Qué necesitas hacer?"
+          class="flex-1 bg-transparent border-none outline-none text-zinc-900 dark:text-white text-lg placeholder-zinc-400 font-medium"
+          autocomplete="off">
+      </div>
+      <div class="p-2 space-y-1" id="cmdList">
+        <button
+          class="cmd-item w-full flex items-center px-4 py-3 rounded-xl hover:bg-brand-50 dark:hover:bg-brand-500/10 text-left group transition-colors"
+          data-action="toggle-theme">
+          <i data-lucide="moon" class="w-4 h-4 text-zinc-400 group-hover:text-brand-500 mr-4" id="cmdMoonIcon"></i>
+          <span
+            class="text-zinc-700 dark:text-zinc-200 font-medium group-hover:text-brand-600 dark:group-hover:text-brand-400">Alternar
+            Tema Oscuro / Claro</span>
+        </button>
+        <div class="h-px bg-zinc-100 dark:bg-zinc-800 my-1 mx-4"></div>
+        <button
+          class="cmd-item w-full flex items-center px-4 py-3 rounded-xl hover:bg-brand-50 dark:hover:bg-brand-500/10 text-left group transition-colors"
+          data-action="snap-left">
+          <i data-lucide="columns-2" class="w-4 h-4 text-zinc-400 group-hover:text-brand-500 mr-4"></i>
+          <span
+            class="text-zinc-700 dark:text-zinc-200 font-medium group-hover:text-brand-600 dark:group-hover:text-brand-400">Ajustar
+            a la izquierda (50%)</span>
+          <kbd class="ml-auto text-[10px] text-zinc-400 font-bold opacity-50">ALT+←</kbd>
+        </button>
+        <button
+          class="cmd-item w-full flex items-center px-4 py-3 rounded-xl hover:bg-brand-50 dark:hover:bg-brand-500/10 text-left group transition-colors"
+          data-action="snap-right">
+          <i data-lucide="columns-2" class="w-4 h-4 text-zinc-400 group-hover:text-brand-500 mr-4 rotate-180"></i>
+          <span
+            class="text-zinc-700 dark:text-zinc-200 font-medium group-hover:text-brand-600 dark:group-hover:text-brand-400">Ajustar
+            a la derecha (50%)</span>
+          <kbd class="ml-auto text-[10px] text-zinc-400 font-bold opacity-50">ALT+→</kbd>
+        </button>
+        <button
+          class="cmd-item w-full flex items-center px-4 py-3 rounded-xl hover:bg-brand-50 dark:hover:bg-brand-500/10 text-left group transition-colors"
+          data-action="snap-top">
+          <i data-lucide="maximize" class="w-4 h-4 text-zinc-400 group-hover:text-brand-500 mr-4"></i>
+          <span
+            class="text-zinc-700 dark:text-zinc-200 font-medium group-hover:text-brand-600 dark:group-hover:text-brand-400">Maximizar
+            Ventana</span>
+          <kbd class="ml-auto text-[10px] text-zinc-400 font-bold opacity-50">ALT+↑</kbd>
+        </button>
+        <button
+          class="cmd-item w-full flex items-center px-4 py-3 rounded-xl hover:bg-brand-50 dark:hover:bg-brand-500/10 text-left group transition-colors"
+          data-action="snap-bottom">
+          <i data-lucide="minimize" class="w-4 h-4 text-zinc-400 group-hover:text-brand-500 mr-4"></i>
+          <span
+            class="text-zinc-700 dark:text-zinc-200 font-medium group-hover:text-brand-600 dark:group-hover:text-brand-400">Restaurar
+            / Minimizar</span>
+          <kbd class="ml-auto text-[10px] text-zinc-400 font-bold opacity-50">ALT+↓</kbd>
+        </button>
+      </div>
     </div>
+  </div>
 
-    <script>
-        lucide.createIcons();
-        let isListening = false, isDarkMode = false, isSoundEnabled = true;
+  <script>
+    lucide.createIcons();
+    let isListening = false, isDarkMode = false, isSoundEnabled = true;
 
-        const students = [
-            { id: 1, name: "Alonso Fernández, Javier", grade: "6.5" },
-            { id: 2, name: "Gómez Ruiz, Elena", grade: "" },
-            { id: 3, name: "Martínez López, Carlos", grade: "" },
-            { id: 4, name: "Zaragoza Vega, Lucía", grade: "9.0" },
-            { id: 5, name: "Díaz Carrillo, Mario", grade: "3.5" },
-            { id: 6, name: "López, Andrea", grade: "" },
-            { id: 7, name: "Sánchez, Marcos", grade: "7.0" },
-            { id: 8, name: "Vidal, Sofía", grade: "" }
-        ];
+    const students = [
+      { id: 1, name: "Alonso Fernández, Javier", grade: "6.5" },
+      { id: 2, name: "Gómez Ruiz, Elena", grade: "" },
+      { id: 3, name: "Martínez López, Carlos", grade: "" },
+      { id: 4, name: "Zaragoza Vega, Lucía", grade: "9.0" },
+      { id: 5, name: "Díaz Carrillo, Mario", grade: "3.5" },
+      { id: 6, name: "López, Andrea", grade: "" },
+      { id: 7, name: "Sánchez, Marcos", grade: "7.0" },
+      { id: 8, name: "Vidal, Sofía", grade: "" }
+    ];
 
-        const studentListEl = document.getElementById('studentList');
-        const dictationBar = document.getElementById('dictationBar');
-        const micIconBar = document.getElementById('micIconBar');
-        const listeningWaves = document.getElementById('listeningWaves');
-        const dictationText = document.getElementById('dictationText');
-        const toastContainer = document.getElementById('toastContainer');
+    const studentListEl = document.getElementById('studentList');
+    const dictationBar = document.getElementById('dictationBar');
+    const micIconBar = document.getElementById('micIconBar');
+    const listeningWaves = document.getElementById('listeningWaves');
+    const dictationText = document.getElementById('dictationText');
+    const toastContainer = document.getElementById('toastContainer');
 
-        function renderStudents() {
-            studentListEl.innerHTML = '';
-            students.forEach(student => {
-                const initials = student.name.split(',')[0].substring(0, 2).toUpperCase();
-                let gradeDisplay = '';
-                let gradeColorClass = '';
+    function renderStudents() {
+      studentListEl.innerHTML = '';
+      students.forEach(student => {
+        const initials = student.name.split(',')[0].substring(0, 2).toUpperCase();
+        let gradeDisplay = '';
+        let gradeColorClass = '';
 
-                if (student.grade === "") {
-                    gradeDisplay = `<span class="text-zinc-300 dark:text-zinc-700 font-normal">—</span>`;
-                } else {
-                    const gradeNum = parseFloat(student.grade);
-                    if (gradeNum >= 8.0) gradeColorClass = 'text-brand-600 dark:text-brand-400 font-black';
-                    else if (gradeNum < 5.0) gradeColorClass = 'text-red-500 dark:text-red-400 font-bold';
-                    else gradeColorClass = 'text-zinc-900 dark:text-white font-bold';
-                    gradeDisplay = `<span class="${gradeColorClass}">${student.grade}</span>`;
-                }
+        if (student.grade === "") {
+          gradeDisplay = `<span class="text-zinc-300 dark:text-zinc-700 font-normal">—</span>`;
+        } else {
+          const gradeNum = parseFloat(student.grade);
+          if (gradeNum >= 8.0) gradeColorClass = 'text-brand-600 dark:text-brand-400 font-black';
+          else if (gradeNum < 5.0) gradeColorClass = 'text-red-500 dark:text-red-400 font-bold';
+          else gradeColorClass = 'text-zinc-900 dark:text-white font-bold';
+          gradeDisplay = `<span class="${gradeColorClass}">${student.grade}</span>`;
+        }
 
-                studentListEl.innerHTML += `
+        studentListEl.innerHTML += `
                     <!-- Tarjeta interior vuelve a ser súper curva (rounded-2xl) -->
                     <li class="student-row flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-zinc-100/80 dark:hover:bg-zinc-900/80 cursor-pointer group border border-transparent dark:border-zinc-700/50 dark:hover:border-zinc-700" id="student-${student.id}">
                         <div class="flex items-center gap-4">
@@ -283,154 +374,179 @@
                             ${gradeDisplay}
                         </div>
                     </li>`;
-            });
+      });
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-medium shadow-xl opacity-0 transform translate-x-10 transition-all duration-400 ease-ios pointer-events-auto bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900`;
+      const icon = type === 'success' ? "check-circle-2" : (type === 'error' ? "alert-triangle" : "info");
+      const iconColor = type === 'success' ? "text-brand-400 dark:text-brand-600" : (type === 'error' ? "text-red-400 dark:text-red-600" : "text-zinc-400 dark:text-zinc-500");
+
+      toast.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4 ${iconColor}"></i><span>${message}</span>`;
+      toastContainer.appendChild(toast);
+      lucide.createIcons();
+
+      requestAnimationFrame(() => toast.classList.remove('opacity-0', 'translate-x-10'));
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'scale-90', '-translate-y-2');
+        setTimeout(() => toast.remove(), 400);
+      }, 2500);
+    }
+
+    // --- LÓGICA DEL BOTÓN MAXIMIZAR (MORPHING) Y SIMULACIÓN NATIVA ---
+    let isMaximized = false;
+
+    function windowControls(action) {
+      if (action === 'minimize') {
+        if (window.pywebview) window.pywebview.api.minimize_window();
+      }
+      else if (action === 'maximize') {
+        const iconMax = document.getElementById('iconMaximize');
+        const iconRestore = document.getElementById('iconRestore');
+
+        if (!isMaximized) {
+          isMaximized = true;
+          iconMax.classList.replace('scale-100', 'scale-50');
+          iconMax.classList.replace('opacity-100', 'opacity-0');
+          iconRestore.classList.replace('scale-50', 'scale-100');
+          iconRestore.classList.replace('opacity-0', 'opacity-100');
+          if (window.pywebview) window.pywebview.api.toggle_maximize();
+        } else {
+          isMaximized = false;
+          iconRestore.classList.replace('scale-100', 'scale-50');
+          iconRestore.classList.replace('opacity-100', 'opacity-0');
+          iconMax.classList.replace('scale-50', 'scale-100');
+          iconMax.classList.replace('opacity-0', 'opacity-100');
+          if (window.pywebview) window.pywebview.api.toggle_maximize();
         }
+      }
+      else if (action === 'close') {
+        if (window.pywebview) window.pywebview.api.close_window();
+      }
+    }
 
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-medium shadow-xl opacity-0 transform translate-x-10 transition-all duration-400 ease-ios pointer-events-auto bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900`;
-            const icon = type === 'success' ? "check-circle-2" : (type === 'error' ? "alert-triangle" : "info");
-            const iconColor = type === 'success' ? "text-brand-400 dark:text-brand-600" : (type === 'error' ? "text-red-400 dark:text-red-600" : "text-zinc-400 dark:text-zinc-500");
+    // --- LÓGICA DE DICTADO ---
+    function startListening() {
+      if (isListening || document.getElementById('cmdOverlay').classList.contains('modal-overlay-enter')) return;
+      isListening = true;
+      dictationBar.classList.replace('bg-zinc-900', 'bg-brand-500');
+      dictationBar.classList.replace('dark:bg-white', 'dark:bg-brand-500');
+      dictationBar.classList.replace('text-white', 'text-white');
+      dictationBar.classList.replace('dark:text-zinc-900', 'dark:text-white');
+      dictationBar.classList.add('scale-105');
+      micIconBar.classList.add('opacity-0', 'hidden');
+      listeningWaves.classList.remove('hidden', 'opacity-0');
+      dictationText.innerHTML = "Escuchando nota...";
+    }
 
-            toast.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4 ${iconColor}"></i><span>${message}</span>`;
-            toastContainer.appendChild(toast);
-            lucide.createIcons();
-            
-            requestAnimationFrame(() => toast.classList.remove('opacity-0', 'translate-x-10'));
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'scale-90', '-translate-y-2');
-                setTimeout(() => toast.remove(), 400);
-            }, 2500);
-        }
+    function stopListening() {
+      if (!isListening) return; isListening = false;
+      dictationBar.classList.replace('bg-brand-500', 'bg-zinc-900');
+      dictationBar.classList.replace('dark:bg-brand-500', 'dark:bg-white');
+      dictationBar.classList.replace('dark:text-white', 'dark:text-zinc-900');
+      dictationBar.classList.remove('scale-105');
+      micIconBar.classList.remove('opacity-0', 'hidden');
+      listeningWaves.classList.add('hidden', 'opacity-0');
+      dictationText.innerHTML = `Mantén <kbd class="mx-1 px-2 py-0.5 bg-zinc-800 dark:bg-zinc-100 rounded text-xs font-sans text-zinc-300 dark:text-zinc-600 font-bold uppercase">Espacio</kbd> para evaluar`;
 
-        // --- LÓGICA DEL BOTÓN MAXIMIZAR (MORPHING) Y SIMULACIÓN NATIVA ---
-        let isMaximized = false;
-
-        function windowControls(action) {
-            if (action === 'minimize') {
-                if (window.pywebview) window.pywebview.api.minimize_window();
-            } 
-            else if (action === 'maximize') {
-                const iconMax = document.getElementById('iconMaximize');
-                const iconRestore = document.getElementById('iconRestore');
-
-                if (!isMaximized) {
-                    isMaximized = true;
-                    iconMax.classList.replace('scale-100', 'scale-50');
-                    iconMax.classList.replace('opacity-100', 'opacity-0');
-                    iconRestore.classList.replace('scale-50', 'scale-100');
-                    iconRestore.classList.replace('opacity-0', 'opacity-100');
-                    if (window.pywebview) window.pywebview.api.toggle_maximize();
-                } else {
-                    isMaximized = false;
-                    iconRestore.classList.replace('scale-100', 'scale-50');
-                    iconRestore.classList.replace('opacity-100', 'opacity-0');
-                    iconMax.classList.replace('scale-50', 'scale-100');
-                    iconMax.classList.replace('opacity-0', 'opacity-100');
-                    if (window.pywebview) window.pywebview.api.toggle_maximize();
-                }
-            } 
-            else if (action === 'close') {
-                if (window.pywebview) window.pywebview.api.close_window();
-            }
-        }
-
-        // --- LÓGICA DE DICTADO ---
-        function startListening() {
-            if (isListening || document.getElementById('cmdOverlay').classList.contains('modal-overlay-enter')) return;
-            isListening = true;
-            dictationBar.classList.replace('bg-zinc-900', 'bg-brand-500');
-            dictationBar.classList.replace('dark:bg-white', 'dark:bg-brand-500');
-            dictationBar.classList.replace('text-white', 'text-white'); 
-            dictationBar.classList.replace('dark:text-zinc-900', 'dark:text-white');
-            dictationBar.classList.add('scale-105');
-            micIconBar.classList.add('opacity-0', 'hidden');
-            listeningWaves.classList.remove('hidden', 'opacity-0');
-            dictationText.innerHTML = "Escuchando nota...";
-        }
-
-        function stopListening() {
-            if (!isListening) return; isListening = false;
-            dictationBar.classList.replace('bg-brand-500', 'bg-zinc-900');
-            dictationBar.classList.replace('dark:bg-brand-500', 'dark:bg-white');
-            dictationBar.classList.replace('dark:text-white', 'dark:text-zinc-900');
-            dictationBar.classList.remove('scale-105');
-            micIconBar.classList.remove('opacity-0', 'hidden');
-            listeningWaves.classList.add('hidden', 'opacity-0');
-            dictationText.innerHTML = `Mantén <kbd class="mx-1 px-2 py-0.5 bg-zinc-800 dark:bg-zinc-100 rounded text-xs font-sans text-zinc-300 dark:text-zinc-600 font-bold uppercase">Espacio</kbd> para evaluar`;
-
-            const ungraded = students.filter(s => s.grade === "");
-            if (ungraded.length > 0) {
-                const targetStudent = ungraded[Math.floor(Math.random() * ungraded.length)];
-                targetStudent.grade = (Math.random() > 0.8) ? (Math.random() * 4).toFixed(1) : (Math.random() * 3 + 6.5).toFixed(1);
-                renderStudents();
-                const rowEl = document.getElementById(`student-${targetStudent.id}`);
-                const gradeContainer = document.getElementById(`grade-container-${targetStudent.id}`);
-                rowEl.classList.add('just-updated');
-                gradeContainer.firstElementChild.classList.add('animate-slide-up-fade');
-                setTimeout(() => rowEl.classList.remove('just-updated'), 600);
-                const firstName = targetStudent.name.split(',')[1].trim();
-                showToast(`Evaluado: ${firstName}`, 'success');
-            } else {
-                showToast("Todos evaluados", "info");
-            }
-        }
-
-        window.addEventListener('keydown', (e) => { if (e.code === 'Space' && !e.repeat && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); startListening(); } });
-        window.addEventListener('keyup', (e) => { if (e.code === 'Space') { e.preventDefault(); stopListening(); } });
-
-        // Command Palette
-        const cmdOverlay = document.getElementById('cmdOverlay');
-        const cmdModal = document.getElementById('cmdModal');
-        const cmdInput = document.getElementById('cmdInput');
-        const cmdItems = document.querySelectorAll('.cmd-item');
-
-        function toggleTheme() {
-            isDarkMode = !isDarkMode;
-            document.documentElement.classList.toggle('dark', isDarkMode);
-            document.getElementById('cmdMoonIcon').setAttribute('data-lucide', isDarkMode ? 'sun' : 'moon');
-            lucide.createIcons();
-            renderStudents(); 
-        }
-
-        function openModal(overlay, modal, inputToFocus = null) {
-            overlay.classList.remove('hidden');
-            requestAnimationFrame(() => {
-                overlay.classList.add('modal-overlay-enter');
-                modal.classList.add('modal-content-enter');
-                if (inputToFocus) { inputToFocus.value = ''; inputToFocus.focus(); }
-            });
-        }
-
-        function closeModal(overlay, modal) {
-            overlay.classList.remove('modal-overlay-enter');
-            modal.classList.remove('modal-content-enter');
-            setTimeout(() => overlay.classList.add('hidden'), 300);
-        }
-
-        window.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') { 
-                e.preventDefault(); 
-                cmdOverlay.classList.contains('hidden') ? openModal(cmdOverlay, cmdModal, cmdInput) : closeModal(cmdOverlay, cmdModal); 
-            }
-            if (e.key === 'Escape') {
-                if (!cmdOverlay.classList.contains('hidden')) closeModal(cmdOverlay, cmdModal);
-            }
-        });
-
-        document.getElementById('openCmdBtn').addEventListener('click', () => openModal(cmdOverlay, cmdModal, cmdInput));
-        cmdOverlay.addEventListener('click', (e) => { if (e.target === cmdOverlay) closeModal(cmdOverlay, cmdModal); });
-        
-        cmdItems.forEach(item => {
-            item.addEventListener('click', () => {
-                if (item.getAttribute('data-action') === 'toggle-theme') toggleTheme();
-                closeModal(cmdOverlay, cmdModal);
-            });
-        });
-
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) toggleTheme();
+      const ungraded = students.filter(s => s.grade === "");
+      if (ungraded.length > 0) {
+        const targetStudent = ungraded[Math.floor(Math.random() * ungraded.length)];
+        targetStudent.grade = (Math.random() > 0.8) ? (Math.random() * 4).toFixed(1) : (Math.random() * 3 + 6.5).toFixed(1);
         renderStudents();
-    </script>
+        const rowEl = document.getElementById(`student-${targetStudent.id}`);
+        const gradeContainer = document.getElementById(`grade-container-${targetStudent.id}`);
+        rowEl.classList.add('just-updated');
+        gradeContainer.firstElementChild.classList.add('animate-slide-up-fade');
+        setTimeout(() => rowEl.classList.remove('just-updated'), 600);
+        const firstName = targetStudent.name.split(',')[1].trim();
+        showToast(`Evaluado: ${firstName}`, 'success');
+      } else {
+        showToast("Todos evaluados", "info");
+      }
+    }
+
+    window.addEventListener('keydown', (e) => { if (e.code === 'Space' && !e.repeat && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); startListening(); } });
+    window.addEventListener('keyup', (e) => { if (e.code === 'Space') { e.preventDefault(); stopListening(); } });
+
+    // Command Palette
+    const cmdOverlay = document.getElementById('cmdOverlay');
+    const cmdModal = document.getElementById('cmdModal');
+    const cmdInput = document.getElementById('cmdInput');
+    const cmdItems = document.querySelectorAll('.cmd-item');
+
+    function toggleTheme() {
+      isDarkMode = !isDarkMode;
+      document.documentElement.classList.toggle('dark', isDarkMode);
+      document.getElementById('cmdMoonIcon').setAttribute('data-lucide', isDarkMode ? 'sun' : 'moon');
+      lucide.createIcons();
+      renderStudents();
+    }
+
+    function openModal(overlay, modal, inputToFocus = null) {
+      overlay.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        overlay.classList.add('modal-overlay-enter');
+        modal.classList.add('modal-content-enter');
+        if (inputToFocus) { inputToFocus.value = ''; inputToFocus.focus(); }
+      });
+    }
+
+    function closeModal(overlay, modal) {
+      overlay.classList.remove('modal-overlay-enter');
+      modal.classList.remove('modal-content-enter');
+      setTimeout(() => overlay.classList.add('hidden'), 300);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        cmdOverlay.classList.contains('hidden') ? openModal(cmdOverlay, cmdModal, cmdInput) : closeModal(cmdOverlay, cmdModal);
+      }
+      if (e.key === 'Escape') {
+        if (!cmdOverlay.classList.contains('hidden')) closeModal(cmdOverlay, cmdModal);
+      }
+      // Manual Snap shortcuts: Alt + ArrowLeft / Alt + ArrowRight / ArrowUp / ArrowDown
+      if (e.altKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (window.pywebview) window.pywebview.api.snap_left();
+      }
+      if (e.altKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (window.pywebview) window.pywebview.api.snap_right();
+      }
+      if (e.altKey && e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (window.pywebview) window.pywebview.api.snap_top();
+      }
+      if (e.altKey && e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (window.pywebview) window.pywebview.api.snap_bottom();
+      }
+    });
+
+    document.getElementById('openCmdBtn').addEventListener('click', () => openModal(cmdOverlay, cmdModal, cmdInput));
+    cmdOverlay.addEventListener('click', (e) => { if (e.target === cmdOverlay) closeModal(cmdOverlay, cmdModal); });
+
+    // Re-delegar eventos para nuevos items del Command Palette
+    document.getElementById('cmdList').addEventListener('click', (e) => {
+      const item = e.target.closest('.cmd-item');
+      if (!item) return;
+
+      const action = item.getAttribute('data-action');
+      if (action === 'toggle-theme') toggleTheme();
+      if (action === 'snap-left') window.pywebview.api.snap_left();
+      if (action === 'snap-right') window.pywebview.api.snap_right();
+      if (action === 'snap-top') window.pywebview.api.snap_top();
+      if (action === 'snap-bottom') window.pywebview.api.snap_bottom();
+
+      closeModal(cmdOverlay, cmdModal);
+    });
+
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) toggleTheme();
+    renderStudents();
+  </script>
 </body>
 
 </html>

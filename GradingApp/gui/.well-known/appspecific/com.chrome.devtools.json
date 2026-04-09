@@ -1,0 +1,10 @@
+{
+    "name": "Clickedu Pro",
+    "version": "2.0.0",
+    "description": "Aplicación de escritorio para Clickedu",
+    "icons": {
+        "16": "icon.png",
+        "48": "icon.png",
+        "128": "icon.png"
+    }
+}
