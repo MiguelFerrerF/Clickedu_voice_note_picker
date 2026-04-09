@@ -1,0 +1,57 @@
+body {
+  background-color: #f0f0f3;
+  transition: background-color 0.3s ease;
+}
+
+.dark body {
+  background-color: #000000;
+}
+
+/* Drag nativo de ventana */
+.drag-area {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Ocultar inputs nativos */
+input[type="file"] {
+  display: none;
+}
+
+/* Focus rings */
+.input-field {
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.input-field:focus-within {
+  box-shadow: 0 0 0 2px rgba(26, 147, 154, 0.2);
+  border-color: #1a939a;
+}
+
+/* Fondo abstracto sutil para el login */
+.bg-glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(
+    circle,
+    rgba(26, 147, 154, 0.15) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.dark .bg-glow {
+  background: radial-gradient(
+    circle,
+    rgba(26, 147, 154, 0.1) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
+}

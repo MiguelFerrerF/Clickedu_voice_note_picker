@@ -5,70 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico" />
     <title>Clickedu - Desktop Pro</title>
-    <link href="style.css" rel="stylesheet" />
+    <link href="css/style.css" rel="stylesheet" />
     <link href="assets/fonts/inter.css" rel="stylesheet" />
     <script src="assets/lib/lucide.min.js"></script>
-    <style>
-      body {
-        background-color: transparent;
-        transition: background-color 0.3s ease;
-      }
-
-      .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-
-      .hide-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-
-      /* Clases clave para ventanas Frameless (PyWebView / Electron) */
-      .drag-area {
-        -webkit-app-region: drag;
-      }
-
-      .no-drag {
-        -webkit-app-region: no-drag;
-      }
-
-      /* Transiciones de la App */
-      .student-row {
-        transition: all 0.2s ease-out;
-      }
-
-      .student-row.just-updated {
-        background-color: rgba(26, 147, 154, 0.1) !important;
-        transform: scale(1.01);
-        z-index: 10;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-      }
-
-      .modal-overlay-enter {
-        opacity: 1 !important;
-      }
-
-      .modal-content-enter {
-        transform: scale(1) translateY(0) !important;
-        opacity: 1 !important;
-      }
-
-      .mask-bottom {
-        mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
-        -webkit-mask-image: linear-gradient(
-          to bottom,
-          black 80%,
-          transparent 100%
-        );
-      }
-
-      /* Estilos Perfil de Usuario */
-      #logoutMenu.show {
-        display: block;
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-      }
-    </style>
+    <link rel="stylesheet" href="css/dashboard.css" />
   </head>
 
   <body
