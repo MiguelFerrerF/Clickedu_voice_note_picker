@@ -185,11 +185,11 @@
       <!-- Lista de Alumnos -->
       <div class="flex-1 overflow-y-auto hide-scrollbar px-8 pb-32 mask-bottom">
         <div
-          class="flex items-center justify-between px-4 py-2 mb-2 text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800/50">
+          class="flex items-center justify-between px-4 py-2 mb-2 text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800/50 wide:hidden">
           <span class="flex-1">Alumno</span>
           <span class="w-16 flex justify-center">Evaluación</span>
         </div>
-        <ul id="studentList" class="flex flex-col gap-1"></ul>
+        <ul id="studentList" class="grid grid-cols-1 wide:grid-cols-2 gap-1 wide:gap-x-8"></ul>
       </div>
 
       <!-- BARRA DE DICTADO INFERIOR -->
