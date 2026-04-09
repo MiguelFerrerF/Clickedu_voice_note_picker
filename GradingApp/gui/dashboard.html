@@ -61,9 +61,9 @@
 
     /* Estilos Perfil de Usuario */
     #logoutMenu.show {
-        display: block;
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
+      display: block;
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
   </style>
 </head>
@@ -81,8 +81,8 @@
       class="w-64 flex-shrink-0 bg-zinc-100/50 dark:bg-zinc-900/50 backdrop-blur-xl border-r border-zinc-200 dark:border-zinc-800 flex flex-col hidden md:flex z-20 drag-area">
       <div class="p-6 flex items-center gap-3 no-drag">
         <img src="assets/img/icon.png" class="w-8 h-8 object-contain" alt="Clickedu Pro">
-        <span class="font-bold uppercase tracking-[0.2em] text-lg text-zinc-800 dark:text-zinc-200 leading-none">
-            Clickedu <span class="text-brand-500">Pro</span>
+        <span class="font-bold uppercase tracking-[0.1em] text-lg text-zinc-800 dark:text-zinc-200 leading-none">
+          Clickedu <span class="text-brand-500">Pro</span>
         </span>
       </div>
 
@@ -139,7 +139,8 @@
       <!-- Cabecera Superior -->
       <header class="h-20 flex items-center justify-between px-8 shrink-0 z-10 drag-area">
         <div class="no-drag min-w-0 flex-1 mr-4">
-          <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white flex items-center gap-3 min-w-0" title="2º Bachillerato Ciencias">
+          <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white flex items-center gap-3 min-w-0"
+            title="2º Bachillerato Ciencias">
             <span class="truncate">2º Bachillerato Ciencias</span>
             <span
               class="text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 px-2.5 py-1 rounded-full shrink-0">24
@@ -203,10 +204,13 @@
       <!-- BARRA DE DICTADO INFERIOR -->
       <div class="absolute bottom-8 left-0 right-0 flex justify-center pointer-events-none z-30">
         <div id="dictationBar"
-          class="pointer-events-auto flex items-center gap-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-6 py-3.5 rounded-full shadow-2xl shadow-zinc-900/20 dark:shadow-white/10 transition-all duration-300 ease-ios transform">
+          class="pointer-events-auto flex items-center gap-4 bg-zinc-700 dark:bg-zinc-300 text-white dark:text-zinc-900 px-6 py-3.5 rounded-full shadow-2xl shadow-zinc-900/20 dark:shadow-white/10 transition-all duration-300 ease-ios transform">
           <div class="relative flex items-center justify-center w-6 h-6">
-            <i data-lucide="mic" class="w-5 h-5 transition-opacity duration-200" id="micIconBar"></i>
-            <div id="listeningWaves" class="absolute inset-0 flex items-center justify-center gap-1 opacity-0 hidden">
+            <i data-lucide="mic" class="absolute w-5 h-5 transition-all duration-300 transform scale-100 opacity-100"
+              id="micIconBar"></i>
+            <div id="listeningWaves"
+              class="absolute inset-0 flex items-center justify-center gap-1 transition-all duration-300 transform scale-50 opacity-0 hidden">
+              <!-- Las ondas en modo oscuro cambian a zinc-900 para destacar sobre el fondo claro -->
               <div class="w-1 h-3 bg-white dark:bg-zinc-900 rounded-full animate-wave" style="animation-delay: 0.0s;">
               </div>
               <div class="w-1 h-5 bg-white dark:bg-zinc-900 rounded-full animate-wave" style="animation-delay: 0.1s;">
@@ -215,11 +219,9 @@
               </div>
             </div>
           </div>
-          <span id="dictationText" class="text-sm font-medium tracking-wide">
-            Mantén <kbd
-              class="mx-1 px-2 py-0.5 bg-zinc-800 dark:bg-zinc-100 rounded text-xs font-sans text-zinc-300 dark:text-zinc-600 font-bold uppercase">Espacio</kbd>
-            para evaluar
-          </span>
+          <span id="dictationText" class="text-sm font-medium tracking-wide">Mantén <kbd
+              class="mx-1 px-2 py-0.5 bg-zinc-600 dark:bg-zinc-200 rounded text-xs font-sans text-zinc-200 dark:text-zinc-700 font-bold uppercase transition-colors">Espacio</kbd>
+            para evaluar</span>
         </div>
       </div>
 
@@ -288,21 +290,25 @@
         </button>
 
         <div class="h-px bg-zinc-100 dark:bg-zinc-800 my-1 mx-4"></div>
-        
+
         <!-- Acciones de Cuenta (Dinámicas) -->
         <div id="accountActions">
-             <button
-              class="cmd-item w-full flex items-center px-4 py-3 rounded-xl hover:bg-brand-50 dark:hover:bg-brand-500/10 text-left group transition-colors hidden"
-              id="cmdLoginBtn" data-action="login">
-              <i data-lucide="user-plus" class="w-4 h-4 text-zinc-400 group-hover:text-brand-500 mr-4"></i>
-              <span class="text-zinc-700 dark:text-zinc-200 font-medium group-hover:text-brand-600 dark:group-hover:text-brand-400">Iniciar Sesión</span>
-            </button>
-            <button
-              class="cmd-item w-full flex items-center px-4 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 text-left group transition-colors hidden"
-              id="cmdLogoutBtn" data-action="logout">
-              <i data-lucide="log-out" class="w-4 h-4 text-red-400 group-hover:text-red-500 mr-4"></i>
-              <span class="text-zinc-700 dark:text-zinc-200 font-medium group-hover:text-red-600 dark:group-hover:text-red-400">Cerrar Sesión</span>
-            </button>
+          <button
+            class="cmd-item w-full flex items-center px-4 py-3 rounded-xl hover:bg-brand-50 dark:hover:bg-brand-500/10 text-left group transition-colors hidden"
+            id="cmdLoginBtn" data-action="login">
+            <i data-lucide="user-plus" class="w-4 h-4 text-zinc-400 group-hover:text-brand-500 mr-4"></i>
+            <span
+              class="text-zinc-700 dark:text-zinc-200 font-medium group-hover:text-brand-600 dark:group-hover:text-brand-400">Iniciar
+              Sesión</span>
+          </button>
+          <button
+            class="cmd-item w-full flex items-center px-4 py-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-500/10 text-left group transition-colors hidden"
+            id="cmdLogoutBtn" data-action="logout">
+            <i data-lucide="log-out" class="w-4 h-4 text-red-400 group-hover:text-red-500 mr-4"></i>
+            <span
+              class="text-zinc-700 dark:text-zinc-200 font-medium group-hover:text-red-600 dark:group-hover:text-red-400">Cerrar
+              Sesión</span>
+          </button>
         </div>
       </div>
     </div>
@@ -418,25 +424,29 @@
     function startListening() {
       if (isListening || document.getElementById('cmdOverlay').classList.contains('modal-overlay-enter')) return;
       isListening = true;
-      dictationBar.classList.replace('bg-zinc-900', 'bg-brand-500');
-      dictationBar.classList.replace('dark:bg-white', 'dark:bg-brand-500');
+      dictationBar.classList.replace('bg-zinc-700', 'bg-brand-500');
+      dictationBar.classList.replace('dark:bg-zinc-300', 'dark:bg-brand-500');
       dictationBar.classList.replace('text-white', 'text-white');
       dictationBar.classList.replace('dark:text-zinc-900', 'dark:text-white');
       dictationBar.classList.add('scale-105');
-      micIconBar.classList.add('opacity-0', 'hidden');
-      listeningWaves.classList.remove('hidden', 'opacity-0');
+      micIconBar.classList.add('opacity-0');
+      listeningWaves.classList.remove('hidden');
+      setTimeout(() => listeningWaves.classList.replace('scale-50', 'scale-100'), 10);
+      setTimeout(() => listeningWaves.classList.replace('opacity-0', 'opacity-100'), 10);
       dictationText.innerHTML = "Escuchando nota...";
     }
 
     function stopListening() {
       if (!isListening) return; isListening = false;
-      dictationBar.classList.replace('bg-brand-500', 'bg-zinc-900');
-      dictationBar.classList.replace('dark:bg-brand-500', 'dark:bg-white');
+      dictationBar.classList.replace('bg-brand-500', 'bg-zinc-700');
+      dictationBar.classList.replace('dark:bg-brand-500', 'dark:bg-zinc-300');
       dictationBar.classList.replace('dark:text-white', 'dark:text-zinc-900');
       dictationBar.classList.remove('scale-105');
-      micIconBar.classList.remove('opacity-0', 'hidden');
-      listeningWaves.classList.add('hidden', 'opacity-0');
-      dictationText.innerHTML = `Mantén <kbd class="mx-1 px-2 py-0.5 bg-zinc-800 dark:bg-zinc-100 rounded text-xs font-sans text-zinc-300 dark:text-zinc-600 font-bold uppercase">Espacio</kbd> para evaluar`;
+      micIconBar.classList.remove('opacity-0');
+      listeningWaves.classList.replace('scale-100', 'scale-50');
+      listeningWaves.classList.replace('opacity-100', 'opacity-0');
+      setTimeout(() => listeningWaves.classList.add('hidden'), 300);
+      dictationText.innerHTML = `Mantén <kbd class="mx-1 px-2 py-0.5 bg-zinc-600 dark:bg-zinc-200 rounded text-xs font-sans text-zinc-200 dark:text-zinc-700 font-bold uppercase transition-colors">Espacio</kbd> para evaluar`;
 
       const ungraded = students.filter(s => s.grade === "");
       if (ungraded.length > 0) {
