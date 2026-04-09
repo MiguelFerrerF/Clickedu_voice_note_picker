@@ -57,10 +57,21 @@ class Api:
             self._is_maximized = True
 
     def snap_bottom(self):
-        """Restaura al tamaño por defecto o minimiza si ya está restaurada."""
+        """Restaura al tamaño por defecto (1100x750) u oculta si ya está restaurada."""
         if self._window:
             if self._is_maximized:
+                # Restaurar al tamaño exacto solicitado 1100x750
+                left, top, right, bottom = self._get_work_area()
+                work_width = right - left
+                work_height = bottom - top
+                
+                new_width, new_height = 1116, 789 
+                new_x = left + (work_width - new_width) // 2
+                new_y = top + (work_height - new_height) // 2
+                
                 self._window.restore()
+                self._window.move(new_x, new_y)
+                self._window.resize(new_width, new_height)
                 self._is_maximized = False
             else:
                 self._window.minimize()
@@ -71,9 +82,19 @@ class Api:
 
     def toggle_maximize(self):
         if self._window:
-            # Simple toggle state
             if self._is_maximized:
+                # Restaurar al tamaño por defecto centrado
+                left, top, right, bottom = self._get_work_area()
+                work_width = right - left
+                work_height = bottom - top
+                
+                new_width, new_height = 1116, 789
+                new_x = left + (work_width - new_width) // 2
+                new_y = top + (work_height - new_height) // 2
+                
                 self._window.restore()
+                self._window.move(new_x, new_y)
+                self._window.resize(new_width, new_height)
                 self._is_maximized = False
             else:
                 self._window.maximize()
@@ -98,12 +119,13 @@ class WebViewApp:
             print(f"Error: No se encontró el archivo HTML en {html_path}")
             return
 
-        # Create the window and pass the API instance
+        # Compensamos la diferencia detectada en Windows (aprox 16px ancho, 39px alto)
+        # para que el área de dibujo útil sea exactamente 1100x750
         self.window = webview.create_window(
             'Clickedu Pro',
             url=html_path,
-            width=1100,
-            height=750,
+            width=1116,
+            height=789,
             min_size=(800, 600),
             frameless=True,
             easy_drag=True,

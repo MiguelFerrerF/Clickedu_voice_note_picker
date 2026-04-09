@@ -6,48 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <title>Clickedu - Desktop Pro</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Inter', 'sans-serif'] },
-          transitionTimingFunction: {
-            'ios': 'cubic-bezier(0.2, 0.8, 0.2, 1)',
-          },
-          colors: {
-            brand: {
-              50: '#eef9f9', 100: '#d4eff0', 200: '#aee0e2', 300: '#7bcad0',
-              400: '#4cb0b7', 500: '#1a939a', 600: '#16797f', 700: '#136167',
-              800: '#114f54', 900: '#0e4247'
-            },
-            zinc: {
-              50: '#fafafa', 100: '#f4f4f5', 200: '#e4e4e7', 300: '#d4d4d8',
-              400: '#a1a1aa', 500: '#71717a', 600: '#52525b', 700: '#3f3f46',
-              800: '#27272a', 900: '#18181b', 950: '#09090b',
-            }
-          },
-          animation: {
-            'slide-up-fade': 'slide-up-fade 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
-            'wave': 'wave 1.5s ease-in-out infinite',
-          },
-          keyframes: {
-            'slide-up-fade': {
-              '0%': { opacity: '0', transform: 'translateY(10px)' },
-              '100%': { opacity: '1', transform: 'translateY(0)' }
-            },
-            'wave': {
-              '0%, 100%': { transform: 'scaleY(0.5)' },
-              '50%': { transform: 'scaleY(1.2)' }
-            }
-          }
-        }
-      }
-    }
-  </script>
+  <link href="lib/style.css" rel="stylesheet">
+  <link href="lib/inter.css" rel="stylesheet">
+  <script src="lib/lucide.min.js"></script>
   <style>
     body {
       background-color: transparent;
@@ -110,7 +71,7 @@
 
     <!-- BARRA LATERAL (Sidebar) -->
     <aside
-      class="w-64 bg-zinc-100/50 dark:bg-zinc-900/50 backdrop-blur-xl border-r border-zinc-200 dark:border-zinc-800 flex flex-col hidden md:flex z-20 drag-area">
+      class="w-64 flex-shrink-0 bg-zinc-100/50 dark:bg-zinc-900/50 backdrop-blur-xl border-r border-zinc-200 dark:border-zinc-800 flex flex-col hidden md:flex z-20 drag-area">
       <!-- Logo -->
       <div class="p-6 flex items-center gap-3 no-drag">
         <img src="icon.png" class="w-8 h-8 object-contain" alt="Clickedu Pro">
@@ -165,15 +126,15 @@
     </aside>
 
     <!-- ÁREA PRINCIPAL -->
-    <main class="flex-1 flex flex-col h-full relative bg-white dark:bg-zinc-950/50">
+    <main class="flex-1 min-w-0 flex flex-col h-full relative bg-white dark:bg-zinc-950/50">
 
       <!-- Cabecera Superior -->
       <header class="h-20 flex items-center justify-between px-8 shrink-0 z-10 drag-area">
-        <div class="no-drag">
-          <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white flex items-center gap-3">
-            2º Bachillerato Ciencias
+        <div class="no-drag min-w-0 flex-1 mr-4">
+          <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white flex items-center gap-3 min-w-0" title="2º Bachillerato Ciencias">
+            <span class="truncate">2º Bachillerato Ciencias</span>
             <span
-              class="text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 px-2.5 py-1 rounded-full">24
+              class="text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 px-2.5 py-1 rounded-full shrink-0">24
               Alumnos</span>
           </h1>
         </div>
@@ -184,7 +145,8 @@
             <button id="openCmdBtn" class="hidden"></button>
             <button
               class="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-brand-500/20 hover:shadow-lg hover:shadow-brand-500/30 hover:-translate-y-0.5">
-              <i data-lucide="download" class="w-4 h-4"></i> Exportar
+              <i data-lucide="download" class="w-4 h-4"></i>
+              <span class="hidden wide:inline">Exportar</span>
             </button>
           </div>
 
@@ -224,8 +186,8 @@
       <div class="flex-1 overflow-y-auto hide-scrollbar px-8 pb-32 mask-bottom">
         <div
           class="flex items-center justify-between px-4 py-2 mb-2 text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800/50">
-          <span>Alumno</span>
-          <span class="pr-6">Evaluación</span>
+          <span class="flex-1">Alumno</span>
+          <span class="w-16 flex justify-center">Evaluación</span>
         </div>
         <ul id="studentList" class="flex flex-col gap-1"></ul>
       </div>
@@ -362,15 +324,15 @@
         studentListEl.innerHTML += `
                     <!-- Tarjeta interior vuelve a ser súper curva (rounded-2xl) -->
                     <li class="student-row flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-zinc-100/80 dark:hover:bg-zinc-900/80 cursor-pointer group border border-transparent dark:border-zinc-700/50 dark:hover:border-zinc-700" id="student-${student.id}">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-full bg-zinc-200/50 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 flex items-center justify-center text-xs font-bold group-hover:bg-white dark:group-hover:bg-zinc-700 transition-colors shadow-sm">
+                        <div class="flex items-center gap-4 min-w-0 flex-1 mr-4">
+                            <div class="w-10 h-10 rounded-full flex-shrink-0 bg-zinc-200/50 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 flex items-center justify-center text-xs font-bold group-hover:bg-white dark:group-hover:bg-zinc-700 transition-colors shadow-sm">
                                 ${initials}
                             </div>
-                            <span class="font-medium text-zinc-700 dark:text-zinc-200 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
+                            <span class="font-medium text-zinc-700 dark:text-zinc-200 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors truncate" title="${student.name}">
                                 ${student.name}
                             </span>
                         </div>
-                        <div class="w-16 flex justify-center text-xl tabular-nums tracking-tight" id="grade-container-${student.id}">
+                        <div class="w-16 flex-shrink-0 flex justify-center text-xl tabular-nums tracking-tight" id="grade-container-${student.id}">
                             ${gradeDisplay}
                         </div>
                     </li>`;
