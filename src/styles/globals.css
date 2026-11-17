@@ -1,0 +1,174 @@
+/*
+ * Estilos base globales — reset, body, barras de scroll, animaciones y las
+ * clases sueltas de botón.
+ *
+ * COPIADO LITERAL de library-app (que lo copió de la Quality Test App). No se
+ * retoca sin motivo: es el sistema de diseño existente.
+ */
+
+@import './tokens.css';
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes progressIndeterminate {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(280%); }
+}
+
+select option {
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent) !important;
+}
+
+/* ----------------------------------------------------------------------
+   Clases de botón globales — portadas LITERALES del prototipo de diseño.
+   Las pantallas las usan como `className="btn-..."` suelto, así que tienen
+   que vivir en el ámbito global y no en un módulo CSS.
+   ---------------------------------------------------------------------- */
+
+.btn-primary,
+.btn-stop,
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: background 150ms, color 150ms, border-color 150ms;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--primary-text-on-accent);
+  border-color: color-mix(in oklch, var(--accent) 78%, black);
+  font-weight: 600;
+}
+.btn-primary:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--accent) 88%, black);
+}
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-stop {
+  background: var(--danger);
+  color: var(--primary-text-on-accent);
+  border-color: color-mix(in oklch, var(--danger) 78%, black);
+  font-weight: 600;
+}
+.btn-stop:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--danger) 88%, black);
+}
+.btn-stop:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-ghost {
+  background: var(--bg-sunk);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+.btn-ghost:hover:not(:disabled) { background: var(--bg-active); }
+.btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }

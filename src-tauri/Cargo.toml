@@ -1,0 +1,25 @@
+[package]
+name = "gestor-de-notas"
+version = "2.0.0"
+description = "Gestor de Notas — dictado de notas por voz para Clickedu"
+authors = ["Miguel Ferrer"]
+edition = "2021"
+rust-version = "1.88"
+
+# El sufijo `_lib` hace falta para que el nombre de la biblioteca no choque con
+# el del binario en Windows. Ver https://github.com/rust-lang/cargo/issues/8519
+[lib]
+name = "gestor_de_notas_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# H0 no hace nada todavía: las dependencias llegan con el hito que las use
+# (`calamine` en H1, `rust_xlsxwriter` en H2, `reqwest`/`scraper`/`keyring`
+# en H4…), cada una con su motivo escrito aquí, como en library-app.

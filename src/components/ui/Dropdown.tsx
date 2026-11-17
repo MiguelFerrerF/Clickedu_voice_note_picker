@@ -1,0 +1,269 @@
+/**
+ * Desplegable propio, con el tema de la app.
+ *
+ * COPIADO de library-app (y esta, de la Quality Test App). La lista se pinta por **portal** a
+ * `document.body` para que escape de cualquier antepasado con
+ * `overflow: hidden` —la cuadrícula de notas lo tiene— y se estiliza con los
+ * tokens en vez de con el `<option>` nativo del sistema. Al hacer scroll o
+ * redimensionar, el menú sigue al disparador, lo que además permite hacer
+ * scroll *dentro* de una lista larga sin que se cierre.
+ *
+ * Es el que hay que usar para elegir clase, asignatura o ítem: el desplegable
+ * del sistema no admite ni recuento por valor ni marca de selección, y en
+ * Windows sale en tema del sistema, no en el de la app.
+ */
+
+import {useEffect, useRef, useState, type CSSProperties} from 'react';
+import {createPortal} from 'react-dom';
+import {Icon, ICONOS} from './Icon';
+
+export type DropdownOption =
+  | string
+  | number
+  | {value: string | number; label: string; disabled?: boolean};
+
+export interface DropdownProps {
+  value: string | number;
+  options: readonly DropdownOption[];
+  onChange: (value: string) => void;
+  /** 'md' (por defecto) casa con los campos; 'sm' es para filas densas. */
+  size?: 'sm' | 'md';
+  mono?: boolean;
+  disabled?: boolean;
+  title?: string;
+  placeholder?: string;
+}
+
+/** El alto máximo de la lista, lo que mide una opción y el aire con el borde. */
+const ALTO_MAX = 260;
+const ALTO_OPCION = 27;
+const MARGEN = 8;
+
+function norm(o: DropdownOption): {
+  value: string;
+  label: string;
+  disabled?: boolean;
+} {
+  if (typeof o === 'object')
+    return {value: String(o.value), label: o.label, disabled: o.disabled};
+  return {value: String(o), label: String(o)};
+}
+
+export function Dropdown({
+  value,
+  options,
+  onChange,
+  size = 'md',
+  mono,
+  disabled,
+  title,
+  placeholder,
+}: DropdownProps) {
+  const [abierto, setAbierto] = useState(false);
+  const [pos, setPos] = useState<{
+    left: number;
+    top?: number;
+    bottom?: number;
+    width: number;
+    alto: number;
+  } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const opts = options.map(norm);
+  const actual = opts.find((o) => o.value === String(value));
+  const sm = size === 'sm';
+  const fontFamily = mono ? 'var(--font-mono)' : 'var(--font-body)';
+
+  /**
+   * Debajo del disparador si cabe; si no, hacia donde haya más sitio (en una
+   * ventana baja, se salía por abajo). Y nunca más alto
+   * que ese sitio: lo que no quepa se desplaza dentro.
+   */
+  const colocar = () => {
+    const r = btnRef.current?.getBoundingClientRect();
+    if (!r) return;
+    const left = Math.min(r.left, window.innerWidth - Math.max(r.width, 220) - 8);
+    const necesita = Math.min(ALTO_MAX, opts.length * ALTO_OPCION + 10);
+    const abajo = window.innerHeight - r.bottom - 4 - MARGEN;
+    const arriba = r.top - 4 - MARGEN;
+    if (abajo >= necesita || abajo >= arriba)
+      setPos({left, top: r.bottom + 4, width: r.width, alto: Math.min(ALTO_MAX, abajo)});
+    else
+      setPos({left, bottom: window.innerHeight - r.top + 4, width: r.width, alto: Math.min(ALTO_MAX, arriba)});
+  };
+
+  // Al abrir, la opción elegida a la vista: en una lista larga (los temas)
+  // puede quedar por debajo del borde.
+  useEffect(() => {
+    if (!abierto) return;
+    menuRef.current
+      ?.querySelector<HTMLElement>('[data-elegida]')
+      ?.scrollIntoView({block: 'nearest'});
+  }, [abierto]);
+
+  useEffect(() => {
+    if (!abierto) return;
+    // Esc cierra la lista y nada más: se oye en captura y no sigue, para que
+    // no llegue a la pantalla de debajo, que podría usarla para otra cosa.
+    const alPulsarTecla = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      setAbierto(false);
+      e.stopPropagation();
+      e.preventDefault();
+    };
+    const alPulsarFuera = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (!btnRef.current?.contains(t) && !menuRef.current?.contains(t))
+        setAbierto(false);
+    };
+    window.addEventListener('scroll', colocar, true);
+    window.addEventListener('resize', colocar);
+    window.addEventListener('keydown', alPulsarTecla, true);
+    document.addEventListener('mousedown', alPulsarFuera);
+    return () => {
+      window.removeEventListener('scroll', colocar, true);
+      window.removeEventListener('resize', colocar);
+      window.removeEventListener('keydown', alPulsarTecla, true);
+      document.removeEventListener('mousedown', alPulsarFuera);
+    };
+  }, [abierto]);
+
+  const alternar = () => {
+    if (disabled) return;
+    if (abierto) {
+      setAbierto(false);
+      return;
+    }
+    colocar();
+    setAbierto(true);
+  };
+
+  const estiloDisparador: CSSProperties = {
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 6,
+    padding: sm ? '3px 8px' : '8px 12px',
+    fontSize: sm ? 11 : 13,
+    fontFamily,
+    // El campo «papel» de `inputs.module.css`: en un formulario va
+    // al lado de los de texto y tiene que parecer de la misma familia.
+    background: 'var(--bg-card)',
+    color: 'var(--text-primary)',
+    border: `1px solid ${abierto ? 'var(--accent)' : 'var(--border-strong)'}`,
+    borderRadius: sm ? 6 : 7,
+    cursor: disabled ? 'default' : 'pointer',
+    outline: 'none',
+    opacity: disabled ? 0.6 : 1,
+  };
+
+  return (
+    <div style={{position: 'relative', width: '100%', minWidth: 0}}>
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={alternar}
+        title={title}
+        disabled={disabled}
+        style={estiloDisparador}>
+        <span
+          style={{
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            color: actual ? undefined : 'var(--text-tertiary)',
+          }}>
+          {actual?.label ?? placeholder ?? String(value)}
+        </span>
+        <span
+          style={{
+            flexShrink: 0,
+            color: 'var(--text-tertiary)',
+            display: 'flex',
+            transform: abierto ? 'rotate(180deg)' : 'none',
+            transition: 'transform .15s',
+          }}>
+          <Icon d={ICONOS.galonAbajo} size={sm ? 10 : 12} />
+        </span>
+      </button>
+      {abierto &&
+        pos &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              position: 'fixed',
+              left: pos.left,
+              top: pos.top,
+              bottom: pos.bottom,
+              minWidth: pos.width,
+              width: 'max-content',
+              maxWidth: 320,
+              maxHeight: pos.alto,
+              overflowY: 'auto',
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              borderRadius: 8,
+              boxShadow: '0 6px 20px oklch(0 0 0 / 0.18)',
+              padding: 4,
+              zIndex: 1000,
+            }}>
+            {opts.map((o) => {
+              const sel = o.value === String(value);
+              return (
+                <button
+                  key={o.value}
+                  type="button"
+                  data-elegida={sel || undefined}
+                  disabled={o.disabled}
+                  onClick={() => {
+                    if (!o.disabled) {
+                      onChange(o.value);
+                      setAbierto(false);
+                    }
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!sel && !o.disabled)
+                      e.currentTarget.style.background = 'var(--bg-hover)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!sel) e.currentTarget.style.background = 'transparent';
+                  }}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 8,
+                    padding: '5px 8px',
+                    fontSize: sm ? 11.5 : 12.5,
+                    fontFamily,
+                    border: 'none',
+                    borderRadius: 5,
+                    cursor: o.disabled ? 'default' : 'pointer',
+                    opacity: o.disabled ? 0.45 : 1,
+                    // El acento al 16 % es exactamente `--accent-wash` en
+                    // oscuro; se usa el token en vez de repetir el color.
+                    background: sel ? 'var(--accent-wash)' : 'transparent',
+                    color: sel ? 'var(--accent-ink)' : 'var(--text-primary)',
+                  }}>
+                  <span
+                    style={{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}>
+                    {o.label}
+                  </span>
+                  {sel && <Icon d={ICONOS.comprobado} size={11} />}
+                </button>
+              );
+            })}
+          </div>,
+          document.body,
+        )}
+    </div>
+  );
+}

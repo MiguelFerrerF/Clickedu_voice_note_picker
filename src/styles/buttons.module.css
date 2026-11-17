@@ -1,0 +1,86 @@
+/*
+ * Estilos de botón — primary / stop / ghost.
+ *
+ * La estructura viene de la Quality Test App; el tratamiento es el «plano» de
+ * library-app (2026-09-17, su decisión 12). Cuatro cosas cambian respecto a la
+ * referencia, y ninguna es «el color»:
+ *
+ *   · fuera el halo `box-shadow` de color, que es de panel de instrumentación;
+ *   · el borde deja de ser `acento 50 % + negro` —un filo duro que sobre fondo
+ *     cálido se ve sucio— y pasa a 78 %, que es el mismo acento oscurecido;
+ *   · el `ghost` deja de usar `--bg-card`, que dentro de una tarjeta es el
+ *     MISMO color que el fondo y le quita el cuerpo, y se apoya en `--bg-sunk`
+ *     con `--border-strong`;
+ *   · el hover OSCURECE en vez de aclarar: sobre un acento oscuro, aclarar lo
+ *     deslíe en vez de marcarlo.
+ *
+ * ⚠️ Las mismas reglas están duplicadas en `globals.css` como clases sueltas
+ * (`.btn-primary`…), que es como las usan las pantallas de la referencia.
+ * **Si tocas una, toca la otra.**
+ */
+
+.base {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: background 150ms, color 150ms, border-color 150ms;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.primary {
+  composes: base;
+  background: var(--accent);
+  color: var(--primary-text-on-accent);
+  border-color: color-mix(in oklch, var(--accent) 78%, black);
+  font-weight: 600;
+}
+
+.primary:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--accent) 88%, black);
+}
+
+.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.stop {
+  composes: base;
+  background: var(--danger);
+  color: var(--primary-text-on-accent);
+  border-color: color-mix(in oklch, var(--danger) 78%, black);
+  font-weight: 600;
+}
+
+.stop:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--danger) 88%, black);
+}
+
+.stop:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ghost {
+  composes: base;
+  background: var(--bg-sunk);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--bg-active);
+}
+
+.ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

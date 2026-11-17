@@ -1,0 +1,105 @@
+/*
+ * Campos de texto, numéricos, área y `<select>` nativo.
+ *
+ * La estructura viene de la Quality Test App; el tratamiento es el «papel» de
+ * library-app (2026-09-18, su decisión 12). Cuatro cosas cambian respecto
+ * a la referencia:
+ *
+ *   · el campo era `--bg-input`, que vale LO MISMO que `--bg`: fuera de una
+ *     tarjeta solo se distinguía por su filo de 1 px y no parecía rellenable.
+ *     Ahora es `--bg-card`, más claro que la página — una hoja encima del papel;
+ *   · el foco solo cambiaba el color del borde, que a 1 px casi no se ve. Ahora
+ *     añade un anillo de `--accent-wash`;
+ *   · no había hover, así que nada invitaba a pulsar;
+ *   · el `<select>` pintaba la flecha del sistema, que con esta paleta
+ *     desentona. Ahora lleva la nuestra.
+ */
+
+.text,
+.num,
+.select,
+.textarea {
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  width: 100%;
+  min-width: 0; /* deja encoger dentro de una celda flex o grid */
+  transition: border-color 120ms, box-shadow 120ms;
+}
+
+.text:hover:not(:disabled),
+.num:hover:not(:disabled),
+.select:hover:not(:disabled),
+.textarea:hover:not(:disabled) {
+  border-color: color-mix(in oklch, var(--border-strong) 55%, var(--accent));
+}
+
+.text:focus,
+.num:focus,
+.select:focus,
+.textarea:focus {
+  box-shadow: 0 0 0 3px var(--accent-wash);
+  outline: none;
+}
+
+.text:disabled,
+.num:disabled,
+.select:disabled,
+.textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── El `<select>` nativo, con nuestra flecha ──
+   El SVG va en un `data:` URI, que no puede heredar `currentColor`, así que el
+   trazo se pinta en negro con opacidad. Al no haber tema oscuro (decisión 14)
+   basta una regla. */
+
+.select {
+  appearance: none;
+  padding-right: 30px;
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-opacity='.45' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+
+/* ── El campo numérico ──
+   Sin la ruleta del sistema: son dos flechitas diminutas que solo salen al
+   pasar por encima y que no casan con nada. No se pierde nada, porque
+   `<input type=number>` sube y baja con ↑ y ↓ del teclado de serie, que es lo
+   único que hacía la ruleta.
+   Alineado a la derecha y en mono porque son datos: años (1513), páginas (380)
+   y precios. */
+
+.num {
+  appearance: textfield;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+
+.num::-webkit-outer-spin-button,
+.num::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+/* ── La unidad al lado: `cm`, `€`, `págs` ── */
+
+.unitWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.unit {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}

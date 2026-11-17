@@ -1,0 +1,104 @@
+/*
+ * Tokens de diseño del Gestor de Notas.
+ *
+ * La mecánica viene de library-app, que la sacó de la Quality Test App:
+ * `oklch` para todo y **los mismos nombres de token, uno a uno**, para que los
+ * componentes se copien de allí sin tocarlos. Lo propio son los valores:
+ *
+ *   1. **El acento es el turquesa del logo** (`#0F9096` = oklch 0.592 0.100
+ *      195), oscurecido lo justo para que un botón con texto blanco pase el
+ *      4,5:1. El del logo tal cual da 3,9:1. Ver `docs/02-sistema-visual.md`.
+ *   2. **Solo hay tema claro**: todo vive en `:root`, sin `data-theme`.
+ *   3. Los semánticos tienen el significado de la regla de color: verde es un
+ *      evento, rojo un error de verdad, y nada se pinta por ser lo normal.
+ *
+ * ⚠️ **Provisional (H0)**: hay tres familias de neutros para elegir sobre
+ * pantalla en el Muestrario. `:root` es «agua»; `[data-paleta]` cambia solo
+ * los neutros. En cuanto se elija una, las otras dos se borran de aquí y el
+ * Muestrario pierde el selector.
+ */
+
+:root {
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-display: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* ── Superficies: «agua» ──
+     Neutros teñidos del mismo turquesa, muy poco croma. La tarjeta es un pelo
+     más clara que la página **a propósito**: los campos usan `--bg-card`, y si
+     se igualan el campo desaparece (lección de library-app). */
+  --bg: oklch(0.985 0.006 195);
+  --bg-sidebar: oklch(0.998 0.003 195);
+  --bg-card: oklch(0.998 0.003 195);
+  --bg-input: oklch(0.985 0.006 195);
+  --bg-active: oklch(0.945 0.016 195);
+  --bg-hover: oklch(0.972 0.010 195);
+  --border: oklch(0.905 0.014 200);
+  --scroll-thumb: oklch(0.860 0.016 200);
+  --shadow-card: none;
+
+  /* ── Texto ── */
+  --text-primary: oklch(0.255 0.020 215);
+  --text-secondary: oklch(0.470 0.020 215);
+  --text-tertiary: oklch(0.620 0.016 215);
+
+  /* ── Acento y semánticos ──
+     `--accent` es el fondo de los botones: blanco encima a 4,8:1.
+     `--accent-ink` es el turquesa para escribir sobre el fondo: 6,6:1. */
+  --accent: oklch(0.540 0.095 197);
+  --accent-soft: oklch(0.760 0.075 195);
+  --primary-text-on-accent: oklch(0.995 0.004 195);
+  --success: oklch(0.540 0.130 150);
+  --danger: oklch(0.520 0.180 28);
+  /* «Aquí hay algo que mirar»: el punto de la barra lateral. Ámbar, lejos del
+     turquesa en matiz para que no se lean igual. */
+  --warn: oklch(0.700 0.150 75);
+
+  /* ── Los seis propios, los mismos que library-app ── */
+  --accent-ink: oklch(0.455 0.085 200);   /* acento legible SOBRE fondo */
+  --accent-wash: color-mix(in oklch, var(--accent) 14%, transparent);
+  --bg-sunk: oklch(0.965 0.012 195);      /* cabeceras, cajas hundidas */
+  --border-strong: oklch(0.820 0.022 200); /* borde de control vs. de separación */
+  --nav-w: 238px;                         /* ancho de la barra lateral */
+  --row-h: 36px;                          /* alto de fila */
+
+  /* Disposición */
+  --row-pad: 12px;
+}
+
+/* ── Provisional (H0): «papel» ──
+   Neutros cálidos. El turquesa es el complementario del ocre, así que destaca
+   más que sobre «agua», a cambio de que la app deje de ser «toda turquesa». */
+:root[data-paleta='papel'] {
+  --bg: oklch(0.984 0.008 85);
+  --bg-sidebar: oklch(0.998 0.003 85);
+  --bg-card: oklch(0.998 0.003 85);
+  --bg-input: oklch(0.984 0.008 85);
+  --bg-active: oklch(0.942 0.014 85);
+  --bg-hover: oklch(0.970 0.010 85);
+  --border: oklch(0.900 0.014 85);
+  --scroll-thumb: oklch(0.860 0.014 85);
+  --text-primary: oklch(0.260 0.012 60);
+  --text-secondary: oklch(0.480 0.014 60);
+  --text-tertiary: oklch(0.630 0.012 60);
+  --bg-sunk: oklch(0.962 0.012 85);
+  --border-strong: oklch(0.815 0.020 85);
+}
+
+/* ── Provisional (H0): «niebla» ──
+   Neutros fríos, gris azulado: la familia de la Quality Test App. */
+:root[data-paleta='niebla'] {
+  --bg: oklch(0.982 0.006 240);
+  --bg-sidebar: oklch(0.998 0.002 240);
+  --bg-card: oklch(0.998 0.002 240);
+  --bg-input: oklch(0.982 0.006 240);
+  --bg-active: oklch(0.940 0.012 240);
+  --bg-hover: oklch(0.968 0.008 240);
+  --border: oklch(0.900 0.010 240);
+  --scroll-thumb: oklch(0.860 0.012 240);
+  --text-primary: oklch(0.250 0.018 250);
+  --text-secondary: oklch(0.470 0.018 250);
+  --text-tertiary: oklch(0.620 0.014 250);
+  --bg-sunk: oklch(0.962 0.010 240);
+  --border-strong: oklch(0.815 0.016 240);
+}

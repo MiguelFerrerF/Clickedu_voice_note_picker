@@ -1,6 +1,45 @@
-/plantillas_clickedu_aulas
-/notas
-# Configuración local con credenciales (nunca versionar)
-/config.json
+# Credenciales: nunca en el repo. `config.json` es donde la v1 las guardaba en
+# texto plano (y se filtraron una vez); se sigue ignorando por si queda alguno
+# en una carpeta de trabajo. La v2 las guarda en el Administrador de
+# credenciales de Windows (D3).
 config.json
 .github_token
+
+# Dependencias
+node_modules/
+
+# Builds
+dist/
+dist-ssr/
+src-tauri/target/
+src-tauri/gen/
+
+# Entorno
+.env
+.env.local
+.env.*.local
+
+# Editor / SO
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.stackdump
+
+# Grafo de código (regenerable)
+graphify-out/
+
+# Python
+*.pyc
+__pycache__/
+
+# La prueba de diseño: las capturas son para mirarlas, no para versionarlas.
+scripts/probar-diseno/capturas/
+
+# Datos de alumnos: nunca en el repo. Las plantillas de los tests son
+# inventadas y viven en `src-tauri/tests/datos/` (H1).
+*.xlsx
+*.xls
+!src-tauri/tests/datos/**
