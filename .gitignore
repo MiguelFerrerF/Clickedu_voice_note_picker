@@ -1,2 +1,6 @@
 /plantillas_clickedu_aulas
 /notas
+# Configuración local con credenciales (nunca versionar)
+/config.json
+config.json
+.github_token
