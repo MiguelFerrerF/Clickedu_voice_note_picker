@@ -1,8 +1,0 @@
-customtkinter
-pandas
-openpyxl
-SpeechRecognition
-pyaudio
-rapidfuzz
-webrtcvad
-requests
