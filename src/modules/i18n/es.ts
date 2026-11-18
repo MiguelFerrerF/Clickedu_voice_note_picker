@@ -33,17 +33,61 @@ const es = {
   'comun.si': 'Sí',
   'comun.no': 'No',
 
-  // ── Pantallas todavía vacías (H0) ──
+  // ── Calificar (H1: en lectura) ──
   'calificar.titulo': 'Calificar',
-  'calificar.vacia': 'Aquí pondrás las notas de una clase, con el teclado o dictándolas: mantén ESPACIO, di el nombre y la nota, y suelta.',
+  'calificar.calificados': '{n} / {total} con nota',
+  'calificar.elegir_clase': 'Elegir la clase',
+  'calificar.no_se_lee': 'No se puede leer: {error}',
+
+  // ── La cuadrícula ──
+  'cuadricula.n': 'Nº',
+  'cuadricula.alumno': 'Alumno',
+  'cuadricula.nota': 'Nota',
+  'cuadricula.sin_nombre': 'Sin nombre (ID {id})',
+  'cuadricula.no_es_nota': 'No es una nota de 0 a 10',
+
+  // ── Avisos de una plantilla ──
+  'avisos.titulo': 'Al leer la plantilla',
+  'aviso.la_fila': 'la fila {fila}',
+  'aviso.las_filas': 'las filas {filas} y {ultima}',
+  'aviso.las_filas_y_mas': 'las filas {filas}, {ultima} y {mas} más',
+  'aviso.columnas_por_posicion': 'No se han reconocido las cabeceras: se ha tomado la primera columna como ID, la segunda como nombre y la tercera como nota.',
+  'aviso.notas_con_coma': 'Hay notas escritas con coma, en {filas}: se leen con punto, que es como las acepta Clickedu.',
+  'aviso.notas_invalidas': 'Hay valores que no son una nota de 0 a 10, en {filas}. Se enseñan en rojo, tal cual.',
+  'aviso.sin_nombre': 'Hay alumnos sin nombre, en {filas}.',
+  'aviso.id_repetido': 'El ID {id} está repetido, en {filas}.',
+
+  // ── Clases ──
   'clases.titulo': 'Clases',
-  'clases.vacia': 'Las plantillas de Clickedu que tienes en tu carpeta, una por clase, con cuántos alumnos llevas calificados en cada una.',
+  'clases.intro': 'Las plantillas de Clickedu de tu carpeta, una por clase. Si añades o quitas un Excel, la lista se pone al día sola.',
+  'clases.col_clase': 'Clase',
+  'clases.col_alumnos': 'Alumnos',
+  'clases.col_calificados': 'Con nota',
+  'clases.col_estado': 'Avisos',
+  'clases.un_aviso': '1 aviso',
+  'clases.n_avisos': '{n} avisos',
+  'clases.no_se_lee': 'No se puede leer: {error}',
+  'clases.abrir_carpeta': 'Abrir la carpeta',
+  'clases.cambiar_carpeta': 'Usar otra carpeta',
+  'clases.sin_plantillas': 'Todavía no hay ninguna plantilla en tu carpeta',
+  'clases.sin_plantillas_ayuda': 'Guarda aquí las plantillas de Clickedu, un Excel por clase. En cuanto añadas una, aparece.',
+  'clases.carpeta_no_existe': 'La carpeta de plantillas ya no existe',
+  'clases.carpeta_no_existe_ayuda': 'Puede que se haya movido o borrado, o que sea de un disco que no está conectado. Elige otra en Ajustes.',
+
+  // ── Pantallas todavía vacías ──
   'clickedu.titulo': 'Conexión con Clickedu',
   'clickedu.vacia': 'Entra con tu usuario, trae las plantillas de tus asignaturas y sube las notas a un ítem sin pasar por el navegador.',
   'estadisticas.titulo': 'Estadísticas',
   'estadisticas.vacia': 'Media, mediana, aprobados y cómo se reparten las notas de la clase, y lo que te ha ahorrado el dictado.',
+
+  // ── Ajustes ──
   'ajustes.titulo': 'Ajustes',
-  'ajustes.vacia': 'Dónde están tus plantillas y tus notas, el micrófono y la cuenta de Clickedu.',
+  'ajustes.plantillas': 'Plantillas',
+  'ajustes.plantillas_sub': 'La carpeta donde guardas las plantillas de Clickedu, un Excel por clase. La app las lee y no las cambia nunca.',
+  'ajustes.por_defecto': 'la de por defecto',
+  'ajustes.cambiar': 'Cambiar de carpeta…',
+  'ajustes.volver_por_defecto': 'Volver a la de por defecto',
+  'ajustes.llegan': 'El micrófono llega con el dictado y la cuenta de Clickedu con la conexión.',
 
   // ── Muestrario (H0) ──
   'muestrario.titulo': 'Muestrario',

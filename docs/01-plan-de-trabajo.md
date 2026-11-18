@@ -179,12 +179,36 @@ voz**: abre plantillas, se ponen notas a mano y se exporta.
 
 ### H1 · Las clases y sus alumnos
 
-- [ ] Leer las plantillas de Clickedu en Rust, con tests sobre plantillas
-      inventadas (nunca alumnos reales en el repo).
-- [ ] La lista de clases con nombre legible; la cuadrícula de alumnos **en
-      lectura**.
-- [ ] Carpeta de plantillas configurable y vigilada: si se añade un Excel,
-      aparece.
+- [x] Leer las plantillas de Clickedu en Rust (`plantillas.rs`, `calamine`),
+      con tests sobre plantillas inventadas que se escriben al vuelo (nunca
+      alumnos reales en el repo).
+      Las columnas se buscan **por su cabecera**, en castellano o catalán
+      (`Alumno`/`Alumne`/`Nombre`, `Nota`/`Qualificació`, `ID`/`Codi`), en
+      las diez primeras filas; si no se reconocen, ID · nombre · nota por
+      posición, como la v1, **diciéndolo**. Lo que se corrige o no cuadra
+      (nota con coma, valor que no es nota, alumno sin nombre, ID repetido)
+      vuelve como aviso y se enseña encima de la cuadrícula. El nombre del
+      alumno se deja **tal cual** (las reales traen algún doble espacio de
+      Clickedu): no se corrige, así que no se avisa.
+      **Comprobado sobre las siete plantillas reales** (2026-11-18, con
+      `cargo run --example revisar_plantillas -- <carpeta>`, que no enseña
+      datos de alumnos): hoja `Worksheet`, cabecera `Id | Alumnos | Nota` en
+      la fila 1; todas se leen sin avisos.
+- [x] La lista de clases con nombre legible (`biologia_1_ab_bach` →
+      «Biología 1.º AB Bachillerato», `fisicaQuimica_…` → «Física y
+      Química…»; el `Materia - Curso` de la
+      sincronización se deja tal cual); la cuadrícula de alumnos **en
+      lectura**, en Calificar.
+- [x] Carpeta de plantillas configurable en Ajustes (por defecto
+      `Documentos\Gestor de Notas\plantillas`, que se crea sola; una elegida
+      que desaparece se dice, no se crea) y vigilada con `notify`: si se
+      añade, cambia o quita un Excel, la lista se pone al día sola.
+- [ ] **Probado a mano** con `npm run tauri:dev`, apuntando Ajustes a la
+      carpeta de la v1.
+
+La v1 instalada guarda las plantillas en
+`%LOCALAPPDATA%\GestorNotasClickedu\plantillas_clickedu_aulas`: llevarlas
+a la carpeta nueva es parte del paso desde la v1.3.4 (H7).
 
 ### H2 · Poner notas a mano y exportar
 

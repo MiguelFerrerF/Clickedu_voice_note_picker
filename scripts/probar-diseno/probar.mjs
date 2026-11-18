@@ -40,24 +40,87 @@ const TAMANOS = [
 ];
 
 /**
- * El backend falso: lo justo para que las pantallas pinten. `invoke` de
- * `@tauri-apps/api` pasa por `window.__TAURI_INTERNALS__`. En H0 no hay
- * comandos; cada hito añade aquí los suyos con datos inventados.
+ * El backend falso: lo justo para que las pantallas pinten. `invoke` y
+ * `listen` de `@tauri-apps/api` pasan por `window.__TAURI_INTERNALS__`. Se
+ * inyecta en la página con `addInitScript`, así que **no puede usar nada de
+ * fuera de la función**: solo su argumento.
+ *
+ * Los datos son **inventados** (nunca alumnos reales en el repo) y buscan los
+ * casos difíciles: nombres largos, letras de fuera (Ș, Ł), una plantilla que
+ * no se lee, notas que no son nota, un alumno sin nombre. `carpeta` elige la
+ * carpeta de plantillas: `llena`, `vacia` o `no_existe`.
  */
-const SIMULACION = `
-  (() => {
-    let n = 1;
-    window.__TAURI_INTERNALS__ = {
-      transformCallback: () => n++,
-      invoke: async (cmd) => {
-        switch (cmd) {
-          case 'plugin:event|listen': return n++;
-          default: return null;
-        }
-      },
-    };
-  })();
-`;
+function simular(carpeta) {
+  let n = 1;
+  const ruta = 'C:\\Users\\profesora\\Documents\\Gestor de Notas\\plantillas';
+  const bien = (alumnos, calificados, avisos = 0) => ({tipo: 'bien', alumnos, calificados, avisos});
+  const largo = "Ciències Aplicades a l'Activitat Professional - 4t ESO B i C";
+  const CLASES = [
+    {fichero: 'biologia_1_ab_bach.xlsx', nombre: 'Biología 1.º AB Bachillerato', lectura: bien(18, 0)},
+    {fichero: `${largo}.xlsx`, nombre: largo, lectura: bien(31, 12)},
+    {fichero: 'fisica_2_bach.xlsx', nombre: 'Física 2.º Bachillerato', lectura: {tipo: 'mal', error: 'no es un Excel (.xlsx o .xls)'}},
+    {fichero: 'matematicas_3_a_eso.xlsx', nombre: 'Matemáticas 3.º A ESO', lectura: bien(26, 8, 3)},
+    {fichero: 'matematicas_3_b_eso.xlsx', nombre: 'Matemáticas 3.º B ESO', lectura: bien(25, 25)},
+  ];
+  const NOMBRES = [
+    'Castro Molina, Lucía', 'Martínez Ruiz, Hugo', 'Ramos Ortega, Martina', 'Navarro Gil, Mateo',
+    'Pérez Gómez, Irene', 'Ionescu, Ștefan', 'Nowak, Łukasz', 'Fernández de la Fuente Villalobos, María Inmaculada',
+    'Sánchez Díaz, Leo', 'Romero Serrano, Daniela', 'Torres Vidal, Álex', 'Domínguez Blanco, Sara',
+    'Vázquez Ramos, Pablo', 'Gil Cortés, Carmen', 'Ortiz Rubio, Marco', 'Moreno Prieto, Julia',
+    'Herrera Santos, Adrián', 'Iglesias Peña, Noa', 'Marín Lozano, Gael', 'Garrido León, Vega',
+    '', 'Rey Cabrera, Olivia', 'Flores Pastor, Bruno', 'Vega Calvo, Lola',
+    'Santana Ruiz, Thiago', 'Ferrer Soler, Abril',
+  ];
+  const NOTAS = {1: 8.7, 2: 3.4, 4: 6.8, 5: 'NP', 7: 10, 9: 5, 11: '12', 12: 7.25, 14: 4.5, 17: 9.1};
+  const nota = (i) => {
+    const v = NOTAS[i];
+    if (v === undefined) return {tipo: 'vacia'};
+    return typeof v === 'number' ? {tipo: 'valor', valor: v} : {tipo: 'invalida', valor: v};
+  };
+  const PLANTILLA = {
+    alumnos: NOMBRES.map((nombre, i) => ({fila: i + 2, id: String(20231 + i), nombre, nota: nota(i)})),
+    columnas: {
+      hoja: 'Full1',
+      filaCabecera: 1,
+      id: {indice: 0, cabecera: 'Codi'},
+      nombre: {indice: 1, cabecera: 'Alumne'},
+      nota: {indice: 2, cabecera: 'Nota'},
+    },
+    avisos: [
+      {tipo: 'notas_con_coma', filas: [14]},
+      {tipo: 'notas_invalidas', filas: [7, 13]},
+      {tipo: 'sin_nombre', filas: [22]},
+    ],
+  };
+  /** Las otras clases: las 18 primeras, sin nada que avisar ni notas. */
+  const OTRA = {
+    ...PLANTILLA,
+    avisos: [],
+    alumnos: PLANTILLA.alumnos.slice(0, 18).map((a) => ({...a, nota: {tipo: 'vacia'}})),
+  };
+  const perdida = carpeta === 'no_existe';
+  const lista = () => ({
+    carpeta: {ruta: perdida ? 'E:\\Clase\\plantillas' : ruta, porDefecto: !perdida, existe: !perdida},
+    clases: carpeta === 'llena' ? CLASES : [],
+  });
+
+  window.__TAURI_EVENT_PLUGIN_INTERNALS__ = {unregisterListener() {}};
+  window.__TAURI_INTERNALS__ = {
+    transformCallback: () => n++,
+    invoke: async (cmd, args) => {
+      switch (cmd) {
+        case 'plugin:event|listen':
+          return n++;
+        case 'listar_clases':
+          return lista();
+        case 'leer_clase':
+          return args.fichero === 'matematicas_3_a_eso.xlsx' ? PLANTILLA : OTRA;
+        default:
+          return null;
+      }
+    },
+  };
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Lo que se mide
@@ -138,11 +201,65 @@ const vacia = (nombre, rotulo) => ({
 });
 
 const PRUEBAS = [
-  vacia('calificar', 'Calificar'),
-  vacia('clases', 'Clases'),
+  {
+    nombre: 'calificar',
+    async probar(page, paso) {
+      // Sin clase elegida enseña la primera; desde el desplegable, otra.
+      const main = page.locator('[data-pantalla="calificar"]');
+      await main.getByRole('row').first().waitFor();
+      await paso('primera');
+      await main.getByRole('button', {name: 'Biología 1.º AB Bachillerato'}).click();
+      await page.waitForTimeout(150);
+      await paso('desplegable');
+      await page.getByRole('button', {name: 'Matemáticas 3.º A ESO', exact: true}).last().click();
+      await main.getByRole('status').waitFor();
+      await paso('avisos');
+    },
+  },
+  {
+    nombre: 'clases',
+    async probar(page, paso) {
+      await ir(page, 'Clases', 'clases');
+      await page.locator('.fila-clase').first().waitFor();
+      await paso('lista');
+      // Pulsar una clase la abre en Calificar.
+      await page.locator('.fila-clase').filter({hasText: 'Matemáticas 3.º B ESO'}).click();
+      await page.locator('[data-pantalla="calificar"] h1', {hasText: 'Matemáticas 3.º B ESO'}).waitFor();
+      await paso('abierta');
+    },
+  },
+  {
+    nombre: 'sin-plantillas',
+    carpeta: 'vacia',
+    async probar(page, paso) {
+      await page.locator('[data-pantalla="calificar"]').getByText('Todavía no hay').waitFor();
+      await paso('calificar');
+      await ir(page, 'Clases', 'clases');
+      await page.locator('[data-pantalla="clases"]').getByText('Todavía no hay').waitFor();
+      await paso('clases');
+    },
+  },
+  {
+    nombre: 'carpeta-perdida',
+    carpeta: 'no_existe',
+    async probar(page, paso) {
+      await page.locator('[data-pantalla="calificar"]').getByText('ya no existe').first().waitFor();
+      await paso('calificar');
+      await ir(page, 'Ajustes', 'ajustes');
+      await page.locator('[data-pantalla="ajustes"]').getByText('ya no existe').waitFor();
+      await paso('ajustes');
+    },
+  },
+  {
+    nombre: 'ajustes',
+    async probar(page, paso) {
+      await ir(page, 'Ajustes', 'ajustes');
+      await page.locator('[data-pantalla="ajustes"]').getByText('Gestor de Notas').waitFor();
+      await paso('reposo');
+    },
+  },
   vacia('estadisticas', 'Estadísticas'),
   vacia('clickedu', 'Conexión'),
-  vacia('ajustes', 'Ajustes'),
   {
     nombre: 'muestrario',
     async probar(page, paso) {
@@ -184,7 +301,7 @@ try {
     for (const [w, h] of TAMANOS) {
       const tam = `${w}x${h}`;
       const page = await navegador.newPage({viewport: {width: w, height: h}});
-      await page.addInitScript(SIMULACION);
+      await page.addInitScript(simular, prueba.carpeta ?? 'llena');
       page.on('pageerror', (e) => fallos.push(`${prueba.nombre} ${tam}: error en la página: ${e.message}`));
       await page.goto(`http://localhost:${PUERTO}/`);
       await page.evaluate(() => document.fonts.ready);

@@ -172,3 +172,11 @@ textarea:focus {
 }
 .btn-ghost:hover:not(:disabled) { background: var(--bg-active); }
 .btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Filas que se pulsan (la lista de Clases) ──
+   Un `<button>` por fila: se llega con el teclado y se ve el foco. */
+.fila-clase:hover { background: var(--bg-hover) !important; }
+.fila-clase:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}

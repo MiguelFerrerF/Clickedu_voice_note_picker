@@ -1,22 +1,80 @@
 /**
- * Carpetas, micrófono y cuenta. Cada ajuste llega con el hito que lo necesita; la pantalla, con el primero (H2: las carpetas).
+ * Ajustes. H1 trae el primero: **dónde están las plantillas**. Por defecto,
+ * `Documentos\Gestor de Notas\plantillas` (D4); se puede elegir otra, y
+ * volver a la de por defecto.
  *
- * H0: vacía. Ver `docs/01-plan-de-trabajo.md`.
+ * El micrófono llega con la voz (H3) y la cuenta de Clickedu con H4.
  */
 
-import {PantallaVacia} from '@components/PantallaVacia';
-import {ICONOS} from '@components/ui/Icon';
+import {invoke} from '@tauri-apps/api/core';
+import {useState} from 'react';
+
+import {Ruta} from '@components/clases/SinPlantillas';
+import {Cabecera} from '@components/layout/Cabecera';
+import {Button} from '@components/ui/Button';
+import {Card} from '@components/ui/Card';
+import {Icon, ICONOS} from '@components/ui/Icon';
+import {useClases} from '@modules/clases/useClases';
 import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
 
 export function Ajustes() {
   useIdioma();
+  const {lista, error} = useClases();
+  const [fallo, setFallo] = useState<string>();
+  const carpeta = lista?.carpeta;
+
+  // La lista se pone al día sola con el evento que manda el backend al
+  // cambiar de carpeta; aquí solo queda decir si algo falla.
+  const hacer = (cmd: string) => {
+    setFallo(undefined);
+    invoke(cmd).catch((e) => setFallo(String(e)));
+  };
+
   return (
-    <PantallaVacia
-      titulo={t('ajustes.titulo')}
-      descripcion={t('ajustes.vacia')}
-      icono={ICONOS.ajustes}
-      hito="H2"
-    />
+    <div style={{padding: '28px 32px', maxWidth: 880}}>
+      <Cabecera titulo={t('ajustes.titulo')} />
+      <Card title={t('ajustes.plantillas')} subtitle={t('ajustes.plantillas_sub')}>
+        {carpeta && (
+          <>
+            <div style={{display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0}}>
+              <div style={{minWidth: 0, flex: 1}}>
+                <Ruta ruta={carpeta.ruta} />
+              </div>
+              {carpeta.porDefecto && (
+                <span style={{flexShrink: 0, fontSize: 11.5, color: 'var(--text-tertiary)'}}>{t('ajustes.por_defecto')}</span>
+              )}
+            </div>
+            {!carpeta.existe && (
+              <p role="alert" style={{margin: 0, fontSize: 13, color: 'var(--danger)'}}>
+                {t('clases.carpeta_no_existe')}
+              </p>
+            )}
+            <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
+              <Button variant="ghost" onClick={() => hacer('elegir_carpeta_plantillas')}>
+                {t('ajustes.cambiar')}
+              </Button>
+              {carpeta.existe && (
+                <Button variant="ghost" onClick={() => hacer('abrir_carpeta_plantillas')}>
+                  <Icon d={ICONOS.carpeta} size={14} />
+                  {t('clases.abrir_carpeta')}
+                </Button>
+              )}
+              {!carpeta.porDefecto && (
+                <Button variant="ghost" onClick={() => hacer('restablecer_carpeta_plantillas')}>
+                  {t('ajustes.volver_por_defecto')}
+                </Button>
+              )}
+            </div>
+          </>
+        )}
+        {(fallo ?? error) && (
+          <p role="alert" style={{margin: 0, fontSize: 13, color: 'var(--danger)'}}>
+            {fallo ?? error}
+          </p>
+        )}
+      </Card>
+      <p style={{margin: '16px 0 0', fontSize: 12.5, color: 'var(--text-tertiary)'}}>{t('ajustes.llegan')}</p>
+    </div>
   );
 }

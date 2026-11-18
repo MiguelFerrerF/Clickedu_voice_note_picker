@@ -11,6 +11,8 @@
  *   primera vez que se visitan, no al arrancar. **No guardes en el `useState`
  *   de una pantalla nada que dependa de que se desmonte.**
  * - Cada pantalla lleva su propio scroll.
+ * - Lo que comparten dos pantallas vive aquí: la clase que se califica
+ *   (la eligen Calificar y Clases).
  */
 
 import {useEffect, useState} from 'react';
@@ -30,9 +32,39 @@ export default function App() {
     () => new Set([PANTALLA_INICIAL]),
   );
 
+  // La clase que se está calificando: la eligen Calificar y Clases.
+  const [clase, setClase] = useState<string | null>(null);
+
   useEffect(() => {
     setVisitadas((v) => (v.has(pantalla) ? v : new Set(v).add(pantalla)));
   }, [pantalla]);
+
+  const irAAjustes = () => setPantalla('ajustes');
+
+  function renderizar(id: PantallaId) {
+    switch (id) {
+      case 'calificar':
+        return <Calificar clase={clase} setClase={setClase} irAAjustes={irAAjustes} />;
+      case 'clases':
+        return (
+          <Clases
+            abrir={(fichero) => {
+              setClase(fichero);
+              setPantalla('calificar');
+            }}
+            irAAjustes={irAAjustes}
+          />
+        );
+      case 'clickedu':
+        return <Clickedu />;
+      case 'estadisticas':
+        return <Estadisticas />;
+      case 'ajustes':
+        return <Ajustes />;
+      case 'muestrario':
+        return <Muestrario />;
+    }
+  }
 
   return (
     <div style={{display: 'flex', height: '100vh', overflow: 'hidden'}}>
@@ -49,21 +81,4 @@ export default function App() {
       </main>
     </div>
   );
-}
-
-function renderizar(id: PantallaId) {
-  switch (id) {
-    case 'calificar':
-      return <Calificar />;
-    case 'clases':
-      return <Clases />;
-    case 'clickedu':
-      return <Clickedu />;
-    case 'estadisticas':
-      return <Estadisticas />;
-    case 'ajustes':
-      return <Ajustes />;
-    case 'muestrario':
-      return <Muestrario />;
-  }
 }

@@ -19,7 +19,22 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+calamine = "0.36"
+tauri-plugin-dialog = "2.7.3"
+notify-debouncer-mini = "0.7.0"
 
-# H0 no hace nada todavía: las dependencias llegan con el hito que las use
-# (`calamine` en H1, `rust_xlsxwriter` en H2, `reqwest`/`scraper`/`keyring`
-# en H4…), cada una con su motivo escrito aquí, como en library-app.
+# Cada dependencia llega con el hito que la usa, con su motivo, como en
+# library-app:
+# `calamine` lee las plantillas de Clickedu (H1), `.xlsx` y `.xls`; es la misma
+# que usa library-app.
+# `tauri-plugin-dialog` es el selector de carpeta de Ajustes (H1).
+# `notify-debouncer-mini` vigila la carpeta de plantillas (H1): si se añade un
+# Excel, aparece sin pulsar nada. Con *debounce* porque Excel y el Explorador
+# tocan un fichero varias veces al guardarlo o copiarlo.
+# Llegarán `rust_xlsxwriter` en H2 y `reqwest`/`scraper`/`keyring` en H4.
+
+[dev-dependencies]
+# Los tests escriben sus plantillas inventadas al vuelo: así no hay ningún
+# Excel binario en el repo y cada test dice qué hay en la suya.
+rust_xlsxwriter = "0.99.1"
+tempfile = "3.27.0"
