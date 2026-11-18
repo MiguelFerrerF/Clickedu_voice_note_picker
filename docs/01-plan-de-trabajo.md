@@ -111,17 +111,17 @@ un JSON. El archivo de seguridad se copia a la carpeta de datos de la app.
 El logo es `#0F9096` = `oklch(0.592 0.100 195)`. **Tal cual no sirve de
 fondo de botón**: con texto blanco da 3,9:1 y el mínimo es 4,5:1. Punto de
 partida, con el detalle en [`02-sistema-visual.md`](02-sistema-visual.md).
-**Queda abierta la familia de neutros** (agua, papel o niebla), que se elige
-sobre pantalla en el Muestrario:
+Los neutros son **«niebla»**, gris azulado frío, elegidos sobre pantalla en
+el Muestrario el 2026-11-18:
 
 | Token | Valor | Contraste |
 |---|---|---|
-| `--bg` | `oklch(0.985 0.006 195)` · `#F6FBFB` | — |
+| `--bg` | `oklch(0.982 0.006 240)` · `#F6FAFD` | — |
 | `--accent` | `oklch(0.540 0.095 197)` · `#007F82` | blanco encima 4,8:1 |
 | `--accent-ink` | `oklch(0.455 0.085 200)` · `#006469` | sobre fondo 6,6:1 |
-| `--text-primary` | `oklch(0.255 0.020 215)` · `#182529` | 15:1 |
-| `--danger` | `oklch(0.520 0.180 28)` · `#BA2C25` | 5,8:1 |
-| `--success` | `oklch(0.540 0.130 150)` · `#258343` | 4,6:1 |
+| `--text-primary` | `oklch(0.250 0.018 250)` · `#1B222A` | 15:1 |
+| `--danger` | `oklch(0.520 0.180 28)` · `#BA2C25` | 5,7:1 |
+| `--success` | `oklch(0.540 0.130 150)` · `#258343` | 4,5:1 |
 
 ### D6 · Qué se pinta y qué no
 
@@ -162,7 +162,8 @@ voz**: abre plantillas, se ponen notas a mano y se exporta.
 - [x] **Muestrario** (solo en desarrollo) con las tres familias de neutros,
       los componentes y una maqueta de la cuadrícula con los seis estados de
       una nota.
-- [ ] **Elegir la familia de neutros** en el Muestrario y borrar las otras dos.
+- [x] **Elegir la familia de neutros**: «niebla» (2026-11-18); fuera «agua»,
+      «papel» y el selector.
 - [x] IBM Plex empaquetada, con `latin-ext` para los nombres de alumnos; icono
       y logo sacados del `icon.png` de la v1 (`src-tauri/icons/origen.png` y
       `src/assets/logo.png`).

@@ -44,25 +44,30 @@ WCAG AA para texto normal. Se oscurece lo justo, sin cambiar el tono:
 | `--accent-ink` | `oklch(0.455 0.085 200)` · `#006469` | Texto e iconos turquesa sobre el fondo | sobre fondo **6,6:1** |
 | `--accent-soft` | `oklch(0.760 0.075 195)` | Rellenos suaves, gráficos | — |
 | `--accent-wash` | `--accent` al 14 % | Selección, foco, el dictado dudoso | — |
-| `--success` | `oklch(0.540 0.130 150)` · `#258343` | Evento confirmado | 4,6:1 |
-| `--danger` | `oklch(0.520 0.180 28)` · `#BA2C25` | Error de verdad | 5,8:1 |
+| `--success` | `oklch(0.540 0.130 150)` · `#258343` | Evento confirmado | 4,5:1 |
+| `--danger` | `oklch(0.520 0.180 28)` · `#BA2C25` | Error de verdad | 5,7:1 |
 | `--warn` | `oklch(0.700 0.150 75)` | El punto «aquí hay algo que mirar» | (solo punto, sin texto) |
 
-Los contrastes se calcularon con la fórmula de WCAG sobre `--bg` de «agua».
+Los contrastes se calcularon con la fórmula de WCAG sobre `--bg` (`#F6FAFD`).
+El verde queda en **4,5:1**, justo en el mínimo: no se puede aclarar más.
 
-### Los neutros: tres familias, a elegir en el Muestrario
+### Los neutros: «niebla»
 
-El acento es el mismo en las tres; cambian fondos, bordes y texto.
+Elegidos sobre pantalla en el Muestrario el **2026-11-18**. Gris azulado frío
+(matiz 240 en fondos y bordes, 250 en el texto), la familia de la Quality Test
+App. El turquesa es el único color con croma de la pantalla, así que destaca
+sin tener que subirlo.
 
-| Familia | Matiz | Carácter |
+| Token | Valor | Contraste |
 |---|---|---|
-| **Agua** (por defecto) | 195 | Neutros teñidos del propio turquesa: la app entera «es» del logo |
-| **Papel** | 85 | Neutros cálidos: el turquesa destaca más por ser su complementario |
-| **Niebla** | 240 | Gris azulado frío: la familia de la Quality Test App |
+| `--bg` | `oklch(0.982 0.006 240)` · `#F6FAFD` | — |
+| `--bg-card` | `oklch(0.998 0.002 240)` · `#FDFFFF` | — |
+| `--text-primary` | `oklch(0.250 0.018 250)` · `#1B222A` | **15,2:1** |
+| `--text-secondary` | `oklch(0.470 0.018 250)` · `#535C65` | 6,5:1 |
+| `--text-tertiary` | `oklch(0.620 0.014 250)` · `#80878E` | 3,5:1 (solo rótulos y `—`) |
 
-⚠️ **Pendiente de elegir** sobre la pantalla (`npm run tauri:dev` → Muestrario).
-En cuanto se elija, las otras dos se borran de `tokens.css` y el Muestrario
-pierde el selector.
+Se descartaron «agua» (neutros teñidos del propio turquesa, matiz 195) y
+«papel» (cálidos, matiz 85).
 
 ## 3. La regla de color
 
@@ -86,7 +91,6 @@ eso las pantallas vacías de H0 llevan borde continuo.
 
 No bloquea H1. Se resuelve cuando la pantalla exista:
 
-- **La familia de neutros** (§2).
 - **La celda de nota**: `<input type="number">` muestra `7,5` con la coma del
   sistema, y aquí la nota va con punto (es lo que acepta Clickedu). La celda
   de H2 será un campo de texto propio con `inputMode="decimal"`, que convierte

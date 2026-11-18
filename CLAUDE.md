@@ -12,18 +12,17 @@ está en esta rama**: vive en `main` y en el tag `v1.3.4`, que es la última
 publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-17): H0 hecho, falta elegir paleta y probarlo a mano.**
-> Rama `v2/h0-andamiaje`. La app abre con la barra lateral, cinco pantallas
-> vacías y el Muestrario; `npm run probar:diseno` pasa sin fallos. Lo siguiente:
+> **Dónde se quedó (2026-11-18): H0 hecho, falta probarlo a mano.**
+> Rama `v2/h0-andamiaje`. Neutros elegidos: **«niebla»** (gris azulado frío);
+> fuera «agua», «papel» y el selector del Muestrario. `npm run probar:diseno`
+> pasa sin fallos. Lo siguiente:
 >
-> 1. **El usuario elige la familia de neutros** (agua, papel o niebla) en el
->    Muestrario; se borran las otras dos de `tokens.css` y el selector.
-> 2. Probar a mano con `npm run tauri:dev` y cerrar H0.
-> 3. **H1 · Las clases y sus alumnos.**
+> 1. Probar a mano con `npm run tauri:dev` y cerrar H0.
+> 2. **H1 · Las clases y sus alumnos.**
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
-| **H0** | Andamiaje Tauri 2 + Vite + React + TS, paleta turquesa en claro, primitivas de `components/ui/`, `Sidebar` y cinco pantallas vacías, Muestrario, i18n, IBM Plex con `latin-ext`, prueba de diseño | prueba de diseño, sí; a mano, no |
+| **H0** | Andamiaje Tauri 2 + Vite + React + TS, paleta turquesa en claro con neutros «niebla», primitivas de `components/ui/`, `Sidebar` y cinco pantallas vacías, Muestrario, i18n, IBM Plex con `latin-ext`, prueba de diseño | prueba de diseño, sí; a mano, no |
 
 ## Cómo se mira lo que hay
 

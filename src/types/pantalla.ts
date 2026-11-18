@@ -5,9 +5,8 @@
  * un `switch` en `App.tsx`. Para cinco pantallas sin URLs, un router sería
  * una dependencia de más.
  *
- * `muestrario` es provisional (H0): sirve para elegir la paleta sobre
- * pantalla y solo aparece en desarrollo. Se queda como catálogo de
- * componentes, sin selector, cuando la paleta esté elegida.
+ * `muestrario` solo aparece en desarrollo: el catálogo de componentes con la
+ * paleta. En H0 sirvió para elegir los neutros sobre pantalla.
  */
 
 export type PantallaId =

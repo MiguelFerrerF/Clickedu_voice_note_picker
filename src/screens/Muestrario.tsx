@@ -1,12 +1,9 @@
 /**
- * Muestrario — los componentes de la app con la paleta, para elegirla
- * viéndola y no sobre una tabla de valores.
+ * Muestrario — el catálogo de componentes con la paleta, para ver de un
+ * vistazo que un cambio de token no rompe nada.
  *
- * **Solo en desarrollo** (la barra lateral no lo enseña en un build). Es
- * provisional en su forma actual: el selector de neutros desaparece en cuanto
- * se elija una familia (`docs/02-sistema-visual.md`), y lo que queda es el
- * catálogo de componentes, que sirve para ver de un vistazo que un cambio de
- * token no rompe nada.
+ * **Solo en desarrollo** (la barra lateral no lo enseña en un build). Sirvió
+ * para elegir la familia de neutros sobre pantalla (`docs/02-sistema-visual.md`).
  *
  * La cuadrícula de abajo es una **maqueta**: no es el componente de H1, solo
  * los seis estados de una nota pintados con la regla de color, para decidir
@@ -29,46 +26,11 @@ import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// La paleta provisional
-// ─────────────────────────────────────────────────────────────────────────────
-
-type Paleta = 'agua' | 'papel' | 'niebla';
-const CLAVE_PALETA = 'gestornotas-paleta';
-
-/** La aplica `main.tsx` al arrancar, para que recargar no la pierda. */
-export function aplicarPaletaGuardada() {
-  try {
-    const p = localStorage.getItem(CLAVE_PALETA);
-    if (p === 'papel' || p === 'niebla') document.documentElement.dataset.paleta = p;
-  } catch {
-    /* sin almacenamiento: se queda «agua» */
-  }
-}
-
-function usarPaleta(): [Paleta, (p: Paleta) => void] {
-  const [paleta, setEstado] = useState<Paleta>(
-    () => (document.documentElement.dataset.paleta as Paleta | undefined) ?? 'agua',
-  );
-  const set = (p: Paleta) => {
-    if (p === 'agua') delete document.documentElement.dataset.paleta;
-    else document.documentElement.dataset.paleta = p;
-    try {
-      localStorage.setItem(CLAVE_PALETA, p);
-    } catch {
-      /* da igual */
-    }
-    setEstado(p);
-  };
-  return [paleta, set];
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // La pantalla
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function Muestrario() {
   useIdioma();
-  const [paleta, setPaleta] = usarPaleta();
   const [dialogo, setDialogo] = useState(false);
   const [clase, setClase] = useState('mat3a');
 
@@ -77,20 +39,6 @@ export function Muestrario() {
       <Cabecera
         titulo={t('muestrario.titulo')}
         intro={t('muestrario.subtitulo')}
-        derecha={
-          <div style={{width: 300}}>
-            <Etiqueta>{t('muestrario.paleta')}</Etiqueta>
-            <Dropdown
-              value={paleta}
-              onChange={(v) => setPaleta(v as Paleta)}
-              options={[
-                {value: 'agua', label: t('muestrario.paleta_agua')},
-                {value: 'papel', label: t('muestrario.paleta_papel')},
-                {value: 'niebla', label: t('muestrario.paleta_niebla')},
-              ]}
-            />
-          </div>
-        }
       />
 
       <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>

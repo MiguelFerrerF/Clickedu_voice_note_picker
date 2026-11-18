@@ -47,11 +47,7 @@ const es = {
 
   // ── Muestrario (H0) ──
   'muestrario.titulo': 'Muestrario',
-  'muestrario.subtitulo': 'Los componentes de la app con la paleta, para elegirla viéndola. Solo existe en desarrollo.',
-  'muestrario.paleta': 'Neutros',
-  'muestrario.paleta_agua': 'Agua — neutros del propio turquesa',
-  'muestrario.paleta_papel': 'Papel — neutros cálidos',
-  'muestrario.paleta_niebla': 'Niebla — neutros fríos',
+  'muestrario.subtitulo': 'Los componentes de la app con la paleta, para ver de un vistazo que un cambio no rompe nada. Solo existe en desarrollo.',
   'muestrario.colores': 'Colores',
   'muestrario.botones': 'Botones',
   'muestrario.campos': 'Campos',

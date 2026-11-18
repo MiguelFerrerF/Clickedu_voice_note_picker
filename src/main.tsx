@@ -12,10 +12,6 @@ import ReactDOM from 'react-dom/client';
 import './styles/fonts.css';
 import './styles/globals.css';
 import App from './App';
-import {aplicarPaletaGuardada} from '@screens/Muestrario';
-
-// Provisional (H0): la familia de neutros elegida en el Muestrario.
-if (import.meta.env.DEV) aplicarPaletaGuardada();
 
 const container = document.getElementById('root');
 if (!container) {

@@ -148,21 +148,8 @@ const PRUEBAS = [
     async probar(page, paso) {
       await ir(page, 'Muestrario', 'muestrario');
       const main = page.locator('[data-pantalla="muestrario"]');
-      for (const [paleta, rotulo] of [
-        ['agua', 'Agua — neutros del propio turquesa'],
-        ['papel', 'Papel — neutros cálidos'],
-        ['niebla', 'Niebla — neutros fríos'],
-      ]) {
-        // El desplegable de la paleta; sus opciones son botones en un portal
-        // al final de <body>, así que la última coincidencia es la opción.
-        await main.getByRole('button', {name: /neutros/}).first().click();
-        await page.getByRole('button', {name: rotulo, exact: true}).last().click();
-        await page.waitForTimeout(150);
-        await paso(paleta);
-      }
-      // Vuelta a «agua», el desplegable de clase abierto y el diálogo.
-      await main.getByRole('button', {name: /neutros/}).first().click();
-      await page.getByRole('button', {name: 'Agua — neutros del propio turquesa', exact: true}).last().click();
+      await paso('reposo');
+      // El desplegable de clase abierto y el diálogo.
       await main.getByRole('button', {name: 'Matemáticas 3.º A ESO'}).click();
       await page.waitForTimeout(150);
       await paso('desplegable');
