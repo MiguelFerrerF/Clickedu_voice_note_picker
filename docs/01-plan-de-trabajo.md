@@ -210,7 +210,7 @@ La v1 instalada guarda las plantillas en
 `%LOCALAPPDATA%\GestorNotasClickedu\plantillas_clickedu_aulas`: llevarlas
 a la carpeta nueva es parte del paso desde la v1.3.4 (H7).
 
-### H2 · Poner notas a mano y exportar
+### H2 · Poner notas a mano y exportar ✓ (2026-11-18)
 
 - [x] Escribir notas: 0–10, hasta dos decimales, coma → punto, Enter/↓
       guardan y pasan al siguiente, ↑ al anterior, Esc deshace. Lo que no es
@@ -234,8 +234,13 @@ a la carpeta nueva es parte del paso desde la v1.3.4 (H7).
       releer con `plantillas::leer`, y celda a celda con `calamine`.
 - [x] Contador de progreso (`18 / 24 con nota`), y la columna «Con nota» de
       Clases cuenta también la sesión.
-- [ ] **Probar a mano** con `npm run tauri:dev`: poner notas, cerrar y abrir
-      sin perderlas, exportar y **subir el exportado a Clickedu** a mano.
+- [x] **Probado a mano** con `npm run tauri:dev` (2026-11-18): poner notas,
+      cerrar y abrir sin perderlas, exportar.
+
+**Queda pendiente**, por decisión del usuario: importar un exportado en
+Clickedu a mano para confirmar que lo acepta. Se hará más adelante, y como
+muy tarde en H6, cuyo plan B es justo ese Excel. Si Clickedu lo rechaza, el
+formato vuelve a abrirse aquí (`exportar.rs`).
 
 ### H3a · Voz: el motor (cierra D2)
 
@@ -273,7 +278,8 @@ a la carpeta nueva es parte del paso desde la v1.3.4 (H7).
 
 - [ ] Elegir asignatura, evaluación e ítem; subir; **comprobar** que entraron.
 - [ ] Plan B: si falla, el Excel exportado y la página de importación abierta
-      en el navegador.
+      en el navegador. **Antes, confirmar que Clickedu acepta el exportado de
+      H2**, que no se ha importado todavía.
 
 ### H7 · Actualizaciones y la `v2.0.0`
 
