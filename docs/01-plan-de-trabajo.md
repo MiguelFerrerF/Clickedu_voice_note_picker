@@ -150,7 +150,7 @@ Desde ahí, el actualizador de Tauri.
 De lo necesario a lo superfluo. Hasta H2 la app ya es útil **sin Clickedu y sin
 voz**: abre plantillas, se ponen notas a mano y se exporta.
 
-### H0 · Andamiaje
+### H0 · Andamiaje ✓ (2026-11-18)
 
 **La app abre, tiene el aspecto definitivo y no hace nada.**
 
@@ -175,7 +175,7 @@ voz**: abre plantillas, se ponen notas a mano y se exporta.
 - [x] i18n en castellano; alias de rutas; la prueba de diseño, que además
       busca **texto cortado sin «…»**.
 - [x] `CLAUDE.md` del repo y `docs/` al estilo de library-app.
-- [ ] **Probado a mano** con `npm run tauri:dev`.
+- [x] **Probado a mano** con `npm run tauri:dev` (2026-11-18).
 
 ### H1 · Las clases y sus alumnos
 

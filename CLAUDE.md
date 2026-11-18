@@ -12,17 +12,15 @@ está en esta rama**: vive en `main` y en el tag `v1.3.4`, que es la última
 publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-18): H0 hecho, falta probarlo a mano.**
-> Rama `v2/h0-andamiaje`. Neutros elegidos: **«niebla»** (gris azulado frío);
-> fuera «agua», «papel» y el selector del Muestrario. `npm run probar:diseno`
-> pasa sin fallos. Lo siguiente:
->
-> 1. Probar a mano con `npm run tauri:dev` y cerrar H0.
-> 2. **H1 · Las clases y sus alumnos.**
+> **Dónde se quedó (2026-11-18): H0 cerrado.** Rama `v2/h0-andamiaje`, con
+> los neutros «niebla» y probado a mano. Lo siguiente es **H1 · Las clases y
+> sus alumnos**: leer las plantillas de Clickedu en Rust (con tests sobre
+> plantillas inventadas), la lista de clases y la cuadrícula en lectura, y la
+> carpeta de plantillas vigilada.
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
-| **H0** | Andamiaje Tauri 2 + Vite + React + TS, paleta turquesa en claro con neutros «niebla», primitivas de `components/ui/`, `Sidebar` y cinco pantallas vacías, Muestrario, i18n, IBM Plex con `latin-ext`, prueba de diseño | prueba de diseño, sí; a mano, no |
+| **H0** | Andamiaje Tauri 2 + Vite + React + TS, paleta turquesa en claro con neutros «niebla», primitivas de `components/ui/`, `Sidebar` y cinco pantallas vacías, Muestrario, i18n, IBM Plex con `latin-ext`, prueba de diseño | sí, a mano y con la prueba de diseño |
 
 ## Cómo se mira lo que hay
 
