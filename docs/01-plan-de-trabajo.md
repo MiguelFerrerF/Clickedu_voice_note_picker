@@ -177,7 +177,7 @@ voz**: abre plantillas, se ponen notas a mano y se exporta.
 - [x] `CLAUDE.md` del repo y `docs/` al estilo de library-app.
 - [x] **Probado a mano** con `npm run tauri:dev` (2026-11-18).
 
-### H1 · Las clases y sus alumnos
+### H1 · Las clases y sus alumnos ✓ (2026-11-18)
 
 - [x] Leer las plantillas de Clickedu en Rust (`plantillas.rs`, `calamine`),
       con tests sobre plantillas inventadas que se escriben al vuelo (nunca
@@ -203,7 +203,7 @@ voz**: abre plantillas, se ponen notas a mano y se exporta.
       `Documentos\Gestor de Notas\plantillas`, que se crea sola; una elegida
       que desaparece se dice, no se crea) y vigilada con `notify`: si se
       añade, cambia o quita un Excel, la lista se pone al día sola.
-- [ ] **Probado a mano** con `npm run tauri:dev`, apuntando Ajustes a la
+- [x] **Probado a mano** con `npm run tauri:dev` (2026-11-18), apuntando Ajustes a la
       carpeta de la v1.
 
 La v1 instalada guarda las plantillas en

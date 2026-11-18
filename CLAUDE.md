@@ -12,21 +12,17 @@ está en esta rama**: vive en `main` y en el tag `v1.3.4`, que es la última
 publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-18): H1 hecho, falta probarlo a mano.** Rama
-> `v2/h1-clases` (sale de `v2/h0-andamiaje`). Calificar enseña la clase en
-> lectura, Clases la lista, Ajustes la carpeta; `cargo test`, `clippy` y
-> `npm run probar:diseno` pasan. Lo siguiente:
->
-> 1. **Probar a mano**: en Ajustes, apuntar a la carpeta de la v1
->    (`%LOCALAPPDATA%\GestorNotasClickedu\plantillas_clickedu_aulas`). El
->    lector ya se pasó por esas siete plantillas reales con
->    `cargo run --example revisar_plantillas -- <carpeta>`, sin avisos. Las
->    reales **no entran en el repo**.
-> 2. Cerrar H1 y empezar **H2 · Poner notas a mano y exportar**.
+> **Dónde se quedó (2026-11-18): H1 cerrado.** Rama `v2/h1-clases` (sale de
+> `v2/h0-andamiaje`), probado a mano con las siete plantillas reales de la
+> v1. Lo siguiente es **H2 · Poner notas a mano y exportar**: escribir notas
+> en la cuadrícula, guardar la sesión al momento, exportar a `notas/` con la
+> plantilla intacta y el contador de progreso. Para ver una carpeta de
+> plantillas reales sin sacar datos de alumnos:
+> `cargo run --example revisar_plantillas -- <carpeta>`.
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
-| **H1** | `plantillas.rs` (lee por cabecera, con avisos), `ajustes.json`, vigilante de la carpeta; Calificar en lectura, Clases, Ajustes | tests de Rust y prueba de diseño, sí; a mano, no |
+| **H1** | `plantillas.rs` (lee por cabecera, con avisos), `ajustes.json`, vigilante de la carpeta; Calificar en lectura, Clases, Ajustes | sí, a mano (plantillas reales), con tests de Rust y la prueba de diseño |
 | **H0** | Andamiaje Tauri 2 + Vite + React + TS, paleta turquesa en claro con neutros «niebla», primitivas de `components/ui/`, `Sidebar` y cinco pantallas vacías, Muestrario, i18n, IBM Plex con `latin-ext`, prueba de diseño | sí, a mano y con la prueba de diseño |
 
 ## Cómo se mira lo que hay
