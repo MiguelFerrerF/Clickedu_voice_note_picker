@@ -69,8 +69,10 @@ como tal.
 Lo que hoy hace Python tiene equivalente directo en Rust: Excel con `calamine`
 (leer) y `rust_xlsxwriter` o el escritor propio de library-app; Clickedu con
 `reqwest` (cookies, multipart) + `scraper`; el emparejamiento difuso con
-`strsim` o un puerto de `token_set_ratio`. La v2 se hace en la rama
-`v2/h0-andamiaje` y siguientes, **sin la app Python** (se quitó el 2026-11-17):
+`strsim` o un puerto de `token_set_ratio`. La v2 se hace en **una sola rama, `v2`**,
+con un commit por hito y otro al cerrarlo (hasta H2 fue una rama por hito,
+`v2/h0-andamiaje`…, en línea recta; se juntaron el 2026-11-18), **sin la app
+Python** (se quitó el 2026-11-17):
 la v1 sigue en `main` y en el tag `v1.3.4`, y su código se lee con
 `git show main:GradingApp/…` cuando hay que portar algo.
 
@@ -287,7 +289,7 @@ formato vuelve a abrirse aquí (`exportar.rs`).
 - [ ] El paso desde la v1.3.4 (D7), probado de punta a punta en una máquina
       con la v1.3.4 instalada.
 
-**Con H7 cerrado, la `v2.0.0` sustituye a la app Python**: la rama de la v2
+**Con H7 cerrado, la `v2.0.0` sustituye a la app Python**: la rama `v2`
 pasa a `main`, y la v1 queda en el tag `v1.3.4`.
 
 ### H8 · Estadísticas

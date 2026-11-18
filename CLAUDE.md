@@ -12,8 +12,8 @@ está en esta rama**: vive en `main` y en el tag `v1.3.4`, que es la última
 publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-18): H2 cerrado.** Rama `v2/h2-notas` (sale de
-> `v2/h1-clases`), probado a mano: notas, cerrar y abrir, exportar. **Queda
+> **Dónde se quedó (2026-11-18): H2 cerrado.** En la rama `v2`, la única
+> de la v2 (un commit por hito y otro al cerrarlo), probado a mano: notas, cerrar y abrir, exportar. **Queda
 > pendiente importar un exportado en Clickedu** (el usuario lo deja para más
 > adelante; como muy tarde en H6): si lo rechaza, se vuelve a `exportar.rs`.
 > Lo siguiente es **H3a · Voz: el motor** (cierra D2): 50 frases grabadas con
@@ -113,5 +113,5 @@ Cerradas el 2026-11-17. No se reabren sin que el usuario lo pida.
   se borran `android/` e `ios/`).
 - `node_modules` es de Windows: se instala siempre desde Windows.
 - Repo **público**: <https://github.com/MiguelFerrerF/Clickedu_voice_note_picker>
-  (`origin`, rama `main`). **El usuario hace el push.**
+  (`origin`, rama `main`; la v2, en `v2`). **El usuario hace el push.**
 - Los commits terminan con la línea `Co-Authored-By` que indique la sesión.
