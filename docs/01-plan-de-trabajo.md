@@ -212,12 +212,30 @@ a la carpeta nueva es parte del paso desde la v1.3.4 (H7).
 
 ### H2 · Poner notas a mano y exportar
 
-- [ ] Escribir notas: 0–10, hasta dos decimales, coma → punto, Enter/↑/↓.
-- [ ] El estado de la sesión se guarda al momento; cerrar y abrir no pierde
-      nada.
-- [ ] Exportar a `notas/`, con la plantilla intacta y **el exportado que
-      Clickedu acepta**: test de ida y vuelta.
-- [ ] Contador de progreso (`18 / 24 calificados`).
+- [x] Escribir notas: 0–10, hasta dos decimales, coma → punto, Enter/↓
+      guardan y pasan al siguiente, ↑ al anterior, Esc deshace. Lo que no es
+      nota (`12`, `siete`, `7.555`) **no se guarda ni se corrige**: se queda
+      en rojo con el motivo al lado del nombre.
+- [x] El estado de la sesión se guarda al momento (`sesion.rs`:
+      `sesion.json` en la carpeta de la app, escrito de una vez con cada
+      nota). Cada nota va con la **clave** del alumno —su ID, o la fila si no
+      tiene o está repetido—, no con su posición: si Clickedu reordena la
+      lista, cada nota sigue con su alumno. Una nota de la plantilla se puede
+      quitar (`null`), que no es lo mismo que no tocarla.
+- [x] Exportar (`exportar.rs`) **replicando el de la v1**, que Clickedu
+      aceptaba: un `.xlsx` nuevo, hoja `Sheet1`, las cabeceras de la
+      plantilla, el ID como número (como texto si empieza por cero) y la nota
+      **como texto con punto** sin ceros de más (`"7.5"`, `"7"`). En
+      `Documentos\Gestor de Notas\notas\notas_<plantilla>.xlsx`; el de antes
+      de esa clase pasa a `notas_viejas\` (`notas_x (2).xlsx` si ya hay uno).
+      Lo que cambia respecto a la v1, que lo hacía en silencio: **si hay algo
+      que no es nota no se exporta** y se dice quién; solo se aparta el
+      exportado de esa clase, no todos. Test de ida y vuelta: exportar y
+      releer con `plantillas::leer`, y celda a celda con `calamine`.
+- [x] Contador de progreso (`18 / 24 con nota`), y la columna «Con nota» de
+      Clases cuenta también la sesión.
+- [ ] **Probar a mano** con `npm run tauri:dev`: poner notas, cerrar y abrir
+      sin perderlas, exportar y **subir el exportado a Clickedu** a mano.
 
 ### H3a · Voz: el motor (cierra D2)
 

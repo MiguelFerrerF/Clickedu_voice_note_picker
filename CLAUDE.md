@@ -12,16 +12,18 @@ está en esta rama**: vive en `main` y en el tag `v1.3.4`, que es la última
 publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-18): H1 cerrado.** Rama `v2/h1-clases` (sale de
-> `v2/h0-andamiaje`), probado a mano con las siete plantillas reales de la
-> v1. Lo siguiente es **H2 · Poner notas a mano y exportar**: escribir notas
-> en la cuadrícula, guardar la sesión al momento, exportar a `notas/` con la
-> plantilla intacta y el contador de progreso. Para ver una carpeta de
-> plantillas reales sin sacar datos de alumnos:
-> `cargo run --example revisar_plantillas -- <carpeta>`.
+> **Dónde se quedó (2026-11-18): H2 hecho, falta probarlo a mano.** Rama
+> `v2/h2-notas` (sale de `v2/h1-clases`). Notas a mano en la cuadrícula,
+> guardadas al momento en `sesion.json`; exportado que replica el de la v1
+> (`exportar.rs`, con test de ida y vuelta); contador. Para cerrar H2: probar
+> con `npm run tauri:dev` (poner notas, cerrar y abrir, exportar) y **subir
+> un exportado a Clickedu** a mano para confirmar que lo acepta. Después,
+> **H3a · Voz: el motor**. Para ver una carpeta de plantillas reales sin
+> sacar datos de alumnos: `cargo run --example revisar_plantillas -- <carpeta>`.
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
+| **H2** | `sesion.rs` (notas por clave de alumno, al momento), `exportar.rs` (el `.xlsx` de la v1, a `Documentos\Gestor de Notas\notas`); Calificar con campos de nota, Exportar y contador | tests de Rust (ida y vuelta) y la prueba de diseño; **falta a mano** |
 | **H1** | `plantillas.rs` (lee por cabecera, con avisos), `ajustes.json`, vigilante de la carpeta; Calificar en lectura, Clases, Ajustes | sí, a mano (plantillas reales), con tests de Rust y la prueba de diseño |
 | **H0** | Andamiaje Tauri 2 + Vite + React + TS, paleta turquesa en claro con neutros «niebla», primitivas de `components/ui/`, `Sidebar` y cinco pantallas vacías, Muestrario, i18n, IBM Plex con `latin-ext`, prueba de diseño | sí, a mano y con la prueba de diseño |
 

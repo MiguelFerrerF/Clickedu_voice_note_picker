@@ -1,41 +1,10 @@
 //! Leer plantillas de Clickedu (H1) sobre plantillas **inventadas**, escritas
 //! al vuelo por cada test: nunca alumnos reales en el repo.
 
-use std::path::{Path, PathBuf};
+mod comun;
 
+use comun::{plantilla, C, C::*};
 use gestor_de_notas_lib::plantillas::{self, Aviso, ErrorPlantilla, Lectura, Nota};
-use rust_xlsxwriter::Workbook;
-
-/// Una celda de la plantilla de prueba.
-enum C {
-    T(&'static str),
-    N(f64),
-    /// Vacía.
-    V,
-}
-use C::{N, T, V};
-
-/// Escribe `filas` en la primera hoja de `nombre`, desde la A1.
-fn plantilla(dir: &Path, nombre: &str, filas: &[&[C]]) -> PathBuf {
-    let mut libro = Workbook::new();
-    let hoja = libro.add_worksheet();
-    for (f, fila) in filas.iter().enumerate() {
-        for (c, celda) in fila.iter().enumerate() {
-            match celda {
-                T(t) => {
-                    hoja.write_string(f as u32, c as u16, *t).unwrap();
-                }
-                N(n) => {
-                    hoja.write_number(f as u32, c as u16, *n).unwrap();
-                }
-                V => {}
-            }
-        }
-    }
-    let ruta = dir.join(nombre);
-    libro.save(&ruta).unwrap();
-    ruta
-}
 
 #[test]
 fn la_de_la_v1_id_nombre_nota() {
@@ -139,6 +108,9 @@ fn lo_que_no_cuadra_se_queda_y_se_dice() {
             Aviso::IdRepetido { id: "1".into(), filas: vec![2, 5] },
         ]
     );
+    // La clave de la sesión: el ID, salvo si está repetido.
+    let claves: Vec<&str> = p.alumnos.iter().map(|a| a.clave.as_str()).collect();
+    assert_eq!(claves, ["fila:2", "2", "fila:5"]);
 }
 
 #[test]
@@ -170,7 +142,7 @@ fn listar_la_carpeta() {
     std::fs::write(dir.path().join("léeme.txt"), "").unwrap();
     std::fs::create_dir(dir.path().join("notas.xlsx")).unwrap();
 
-    let clases = plantillas::listar(dir.path()).unwrap();
+    let clases = plantillas::listar(dir.path(), |_, p| p.calificados()).unwrap();
     let nombres: Vec<&str> = clases.iter().map(|c| c.nombre.as_str()).collect();
     assert_eq!(nombres, ["Biología 1.º AB Bachillerato", "Matemáticas 3.º A ESO", "Rota"]);
 
@@ -185,7 +157,7 @@ fn la_plantilla_no_se_toca() {
     let antes = std::fs::read(&ruta).unwrap();
     let modificada = std::fs::metadata(&ruta).unwrap().modified().unwrap();
     plantillas::leer(&ruta).unwrap();
-    plantillas::listar(dir.path()).unwrap();
+    plantillas::listar(dir.path(), |_, p| p.calificados()).unwrap();
     assert_eq!(std::fs::read(&ruta).unwrap(), antes);
     assert_eq!(std::fs::metadata(&ruta).unwrap().modified().unwrap(), modificada);
 }

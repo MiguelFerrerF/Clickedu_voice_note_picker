@@ -1,0 +1,47 @@
+/*
+ * El campo de nota de la cuadrícula (H2). Es el de `inputs.module.css` en
+ * pequeño: 28 px de alto, cifras en mono y a la derecha, como la maqueta del
+ * Muestrario. Va en su módulo porque el foco y el hover no caben en un
+ * `style`.
+ *
+ * Regla de color (D6): sin nota en gris (el «—» del placeholder), una nota es
+ * texto normal —también un suspenso— y solo lo que no es nota va en rojo.
+ */
+
+.nota {
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-align: right;
+  transition: border-color 120ms, box-shadow 120ms;
+}
+
+.nota::placeholder {
+  color: var(--text-tertiary);
+}
+
+.nota:hover {
+  border-color: color-mix(in oklch, var(--border-strong) 55%, var(--accent));
+}
+
+.nota:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-wash);
+}
+
+.mal,
+.mal:hover,
+.mal:focus {
+  border-color: var(--danger);
+  color: var(--danger);
+  font-weight: 600;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--danger) 12%, transparent);
+}

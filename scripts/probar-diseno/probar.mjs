@@ -78,7 +78,7 @@ function simular(carpeta) {
     return typeof v === 'number' ? {tipo: 'valor', valor: v} : {tipo: 'invalida', valor: v};
   };
   const PLANTILLA = {
-    alumnos: NOMBRES.map((nombre, i) => ({fila: i + 2, id: String(20231 + i), nombre, nota: nota(i)})),
+    alumnos: NOMBRES.map((nombre, i) => ({fila: i + 2, id: String(20231 + i), nombre, nota: nota(i), clave: String(20231 + i)})),
     columnas: {
       hoja: 'Full1',
       filaCabecera: 1,
@@ -114,7 +114,19 @@ function simular(carpeta) {
         case 'listar_clases':
           return lista();
         case 'leer_clase':
-          return args.fichero === 'matematicas_3_a_eso.xlsx' ? PLANTILLA : OTRA;
+          // En la de los avisos, una nota ya puesta en la sesión y otra quitada.
+          return args.fichero === 'matematicas_3_a_eso.xlsx'
+            ? {plantilla: PLANTILLA, puestas: {20233: 6.5, 20232: null}}
+            : {plantilla: OTRA, puestas: {}};
+        case 'poner_nota':
+          return args.nota;
+        case 'exportar_clase':
+          return {
+            ruta: `${ruta.replace(/plantillas$/, 'notas')}\\notas_${args.fichero.replace(/\.xlsx?$/, '')}.xlsx`,
+            conNota: 2,
+            alumnos: 18,
+            viejo: 'notas_viejas',
+          };
         default:
           return null;
       }
@@ -214,6 +226,32 @@ const PRUEBAS = [
       await page.getByRole('button', {name: 'Matemáticas 3.º A ESO', exact: true}).last().click();
       await main.getByRole('status').waitFor();
       await paso('avisos');
+    },
+  },
+  {
+    // H2: escribir notas, una que no es nota, y exportar bien y mal.
+    nombre: 'notas',
+    async probar(page, paso) {
+      const main = page.locator('[data-pantalla="calificar"]');
+      const campo = (nombre) => main.getByRole('textbox', {name: `Nota de ${nombre}`});
+      await campo('Castro Molina, Lucía').fill('7,5');
+      await page.keyboard.press('Enter');
+      await page.keyboard.type('4');
+      await page.keyboard.press('Enter');
+      await page.keyboard.type('12');
+      await page.keyboard.press('Enter');
+      await main.getByText('Ha de ir de 0 a 10').waitFor();
+      await paso('escritas');
+      await page.keyboard.press('Escape');
+      await main.getByRole('button', {name: 'Exportar'}).click();
+      await main.getByText('Exportadas 2 notas').waitFor();
+      await paso('exportado');
+      await main.getByRole('button', {name: 'Biología 1.º AB Bachillerato'}).click();
+      await page.getByRole('button', {name: 'Matemáticas 3.º A ESO', exact: true}).last().click();
+      await campo('Castro Molina, Lucía').waitFor();
+      await main.getByRole('button', {name: 'Exportar'}).click();
+      await main.getByText('No se exporta').waitFor();
+      await paso('no-se-exporta');
     },
   },
   {

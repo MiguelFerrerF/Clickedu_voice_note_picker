@@ -21,6 +21,20 @@ export function filasEnPalabras(filas: number[]): string {
   return t('aviso.las_filas', {filas: filas.slice(0, -1).join(', '), ultima: filas[filas.length - 1]});
 }
 
+/**
+ * «Castro Molina, Lucía», «A» y «B», «A», «B», «C» y 2 más. Entre comillas
+ * porque el nombre ya lleva coma (`Apellidos, Nombre`).
+ */
+export function alumnosEnPalabras(nombres: string[]): string {
+  const q = nombres.map((n) => `«${n.trim().replace(/\s+/g, ' ')}»`);
+  if (q.length === 1) return q[0];
+  const MAX = 3;
+  if (q.length > MAX) {
+    return t('lista.y_mas', {primeros: q.slice(0, MAX - 1).join(', '), ultimo: q[MAX - 1], mas: q.length - MAX});
+  }
+  return t('lista.y', {primeros: q.slice(0, -1).join(', '), ultimo: q[q.length - 1]});
+}
+
 export function avisoEnPalabras(a: Aviso): string {
   switch (a.tipo) {
     case 'columnas_por_posicion':

@@ -1,4 +1,5 @@
-//! Los ajustes de la app (H1): por ahora, solo dónde están las plantillas.
+//! Los ajustes de la app (H1): por ahora, solo dónde están las plantillas. Y
+//! dónde van las notas exportadas (H2), que no se elige.
 //!
 //! Viven en `ajustes.json`, en la carpeta de la app (D4:
 //! `%APPDATA%\es.gestornotas.app\`). **Nunca credenciales** aquí (D3): las de
@@ -33,18 +34,23 @@ pub fn leer(ruta: &Path) -> Result<Ajustes, String> {
     }
 }
 
-/// Guarda los ajustes de una vez: se escriben a un temporal al lado y se
-/// renombra, para que un corte a mitad no deje medio JSON.
+/// Guarda los ajustes de una vez (ver [`guardar_json`]).
 pub fn guardar(ruta: &Path, ajustes: &Ajustes) -> Result<(), String> {
-    let error = |e: &dyn std::fmt::Display| format!("no se pueden guardar los ajustes en {}: {e}", ruta.display());
-    let carpeta = ruta.parent().ok_or_else(|| error(&"ruta sin carpeta"))?;
-    std::fs::create_dir_all(carpeta).map_err(|e| error(&e))?;
-    let texto = serde_json::to_string_pretty(ajustes).map_err(|e| error(&e))?;
+    guardar_json(ruta, ajustes).map_err(|e| format!("no se pueden guardar los ajustes en {}: {e}", ruta.display()))
+}
+
+/// Escribe `valor` como JSON de una vez: a un temporal al lado y se renombra,
+/// para que un corte a mitad no deje medio fichero. Lo usan los ajustes y la
+/// sesión.
+pub(crate) fn guardar_json<T: Serialize>(ruta: &Path, valor: &T) -> Result<(), String> {
+    let carpeta = ruta.parent().ok_or("ruta sin carpeta")?;
+    std::fs::create_dir_all(carpeta).map_err(|e| e.to_string())?;
+    let texto = serde_json::to_string_pretty(valor).map_err(|e| e.to_string())?;
     let temporal = ruta.with_extension("json.tmp");
-    let mut f = std::fs::File::create(&temporal).map_err(|e| error(&e))?;
-    f.write_all(texto.as_bytes()).and_then(|_| f.sync_all()).map_err(|e| error(&e))?;
+    let mut f = std::fs::File::create(&temporal).map_err(|e| e.to_string())?;
+    f.write_all(texto.as_bytes()).and_then(|_| f.sync_all()).map_err(|e| e.to_string())?;
     drop(f);
-    std::fs::rename(&temporal, ruta).map_err(|e| error(&e))
+    std::fs::rename(&temporal, ruta).map_err(|e| e.to_string())
 }
 
 /// La carpeta de plantillas que toca, y si es la de por defecto.
@@ -72,6 +78,13 @@ pub fn carpeta_plantillas(ajustes: &Ajustes, documentos: &Path) -> CarpetaPlanti
 /// `Documentos\Gestor de Notas\plantillas` (D4).
 pub fn por_defecto(documentos: &Path) -> PathBuf {
     documentos.join("Gestor de Notas").join("plantillas")
+}
+
+/// `Documentos\Gestor de Notas\notas` (D4): donde se exporta. Siempre esta,
+/// aunque las plantillas estén en otra carpeta: lo exportado es para subirlo
+/// a Clickedu, y ha de estar a la vista.
+pub fn carpeta_notas(documentos: &Path) -> PathBuf {
+    documentos.join("Gestor de Notas").join("notas")
 }
 
 #[cfg(test)]

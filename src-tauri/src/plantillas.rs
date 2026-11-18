@@ -62,6 +62,10 @@ pub struct Alumno {
     pub id: String,
     pub nombre: String,
     pub nota: Nota,
+    /// Con qué se guarda su nota en la sesión (H2): el ID, que no cambia
+    /// aunque Clickedu reordene la lista; si no tiene o está repetido, la
+    /// fila (`fila:7`).
+    pub clave: String,
 }
 
 /// La nota de la plantilla, tal como venía.
@@ -225,7 +229,7 @@ pub fn leer_rango(hoja: String, rango: &Range<Data>) -> Result<Plantilla, ErrorP
             Nota::Valor(_) if matches!(celda(columnas[2]), Data::String(s) if s.contains(',')) => con_coma.push(fila),
             _ => {}
         }
-        alumnos.push(Alumno { fila, id, nombre, nota });
+        alumnos.push(Alumno { fila, id, nombre, nota, clave: String::new() });
     }
     if alumnos.is_empty() {
         return Err(ErrorPlantilla::SinAlumnos);
@@ -240,7 +244,12 @@ pub fn leer_rango(hoja: String, rango: &Range<Data>) -> Result<Plantilla, ErrorP
     if !sin_nombre.is_empty() {
         avisos.push(Aviso::SinNombre { filas: sin_nombre });
     }
-    avisos.extend(ids_repetidos(&alumnos));
+    let repetidos = ids_repetidos(&alumnos);
+    for a in &mut alumnos {
+        let repetido = repetidos.iter().any(|r| matches!(r, Aviso::IdRepetido { id, .. } if *id == a.id));
+        a.clave = if a.id.is_empty() || repetido { format!("fila:{}", a.fila) } else { a.id.clone() };
+    }
+    avisos.extend(repetidos);
 
     Ok(Plantilla { alumnos, columnas: columnas_leidas, avisos })
 }
@@ -473,7 +482,10 @@ pub fn es_plantilla(nombre: &str) -> bool {
 
 /// Las clases de `carpeta`, ordenadas por nombre. Solo la carpeta, sin
 /// subcarpetas: `notas/` puede vivir al lado y no son plantillas.
-pub fn listar(carpeta: &Path) -> std::io::Result<Vec<Clase>> {
+///
+/// `calificados` cuenta los alumnos con nota de cada plantilla (fichero y
+/// plantilla leída): la sesión (H2) tiene notas que el Excel no.
+pub fn listar(carpeta: &Path, calificados: impl Fn(&str, &Plantilla) -> usize) -> std::io::Result<Vec<Clase>> {
     let mut clases = Vec::new();
     for entrada in std::fs::read_dir(carpeta)? {
         let entrada = entrada?;
@@ -486,7 +498,7 @@ pub fn listar(carpeta: &Path) -> std::io::Result<Vec<Clase>> {
         }
         let sin_extension = Path::new(&fichero).file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
         let lectura = match leer(&entrada.path()) {
-            Ok(p) => Lectura::Bien { alumnos: p.alumnos.len(), calificados: p.calificados(), avisos: p.avisos.len() },
+            Ok(p) => Lectura::Bien { alumnos: p.alumnos.len(), calificados: calificados(&fichero, &p), avisos: p.avisos.len() },
             Err(e) => Lectura::Mal { error: e.to_string() },
         };
         clases.push(Clase { nombre: nombre_legible(&sin_extension), fichero, lectura });

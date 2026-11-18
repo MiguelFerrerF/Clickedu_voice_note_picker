@@ -28,7 +28,7 @@ export interface ClasesProps {
 
 export function Clases({abrir, irAAjustes}: ClasesProps) {
   useIdioma();
-  const {lista, error} = useClases();
+  const {lista, error} = useClases({contarNotas: true});
   const hay = (lista?.clases.length ?? 0) > 0;
 
   return (

@@ -32,12 +32,27 @@ const es = {
   'comun.llega_en': 'Llega en {hito}',
   'comun.si': 'Sí',
   'comun.no': 'No',
+  'lista.y': '{primeros} y {ultimo}',
+  'lista.y_mas': '{primeros}, {ultimo} y {mas} más',
 
-  // ── Calificar (H1: en lectura) ──
+  // ── Calificar ──
   'calificar.titulo': 'Calificar',
   'calificar.calificados': '{n} / {total} con nota',
   'calificar.elegir_clase': 'Elegir la clase',
   'calificar.no_se_lee': 'No se puede leer: {error}',
+  'calificar.no_se_guarda': 'No se ha podido guardar la nota: {error}',
+
+  // ── Exportar (H2) ──
+  'exportar.boton': 'Exportar',
+  'exportar.ayuda': 'Deja las notas en un Excel para subirlo a Clickedu, en Documentos\\Gestor de Notas\\notas',
+  'exportar.hecho': 'Exportadas {n} notas de {total} a {fichero}.',
+  'exportar.hecho_una': 'Exportada 1 nota de {total} a {fichero}.',
+  'exportar.viejo': 'El exportado anterior está en notas_viejas.',
+  'exportar.abrir_carpeta': 'Abrir la carpeta',
+  'exportar.hay_invalidas': 'No se exporta: {alumnos} no tienen una nota de 0 a 10. Escribe encima la nota buena o bórrala.',
+  'exportar.hay_invalida': 'No se exporta: {alumno} no tiene una nota de 0 a 10. Escribe encima la nota buena o bórrala.',
+  'exportar.fallo': 'No se ha podido exportar: {error}',
+  'exportar.no_abre': 'No se puede abrir la carpeta: {error}',
 
   // ── La cuadrícula ──
   'cuadricula.n': 'Nº',
@@ -45,6 +60,11 @@ const es = {
   'cuadricula.nota': 'Nota',
   'cuadricula.sin_nombre': 'Sin nombre (ID {id})',
   'cuadricula.no_es_nota': 'No es una nota de 0 a 10',
+  'cuadricula.nota_de': 'Nota de {nombre}',
+  'cuadricula.mal_no_es_numero': 'No es un número',
+  'cuadricula.mal_fuera_de_rango': 'Ha de ir de 0 a 10',
+  'cuadricula.mal_decimales': 'Dos decimales como mucho',
+  'cuadricula.ayuda': 'Con coma o con punto. Enter o ↓ guarda y pasa al siguiente, ↑ al anterior, Esc deshace. Cada nota se guarda al momento.',
 
   // ── Avisos de una plantilla ──
   'avisos.titulo': 'Al leer la plantilla',
@@ -53,7 +73,7 @@ const es = {
   'aviso.las_filas_y_mas': 'las filas {filas}, {ultima} y {mas} más',
   'aviso.columnas_por_posicion': 'No se han reconocido las cabeceras: se ha tomado la primera columna como ID, la segunda como nombre y la tercera como nota.',
   'aviso.notas_con_coma': 'Hay notas escritas con coma, en {filas}: se leen con punto, que es como las acepta Clickedu.',
-  'aviso.notas_invalidas': 'Hay valores que no son una nota de 0 a 10, en {filas}. Se enseñan en rojo, tal cual.',
+  'aviso.notas_invalidas': 'Hay valores que no son una nota de 0 a 10, en {filas}. Se enseñan en rojo, tal cual: escribe encima la nota buena o bórralos.',
   'aviso.sin_nombre': 'Hay alumnos sin nombre, en {filas}.',
   'aviso.id_repetido': 'El ID {id} está repetido, en {filas}.',
 
