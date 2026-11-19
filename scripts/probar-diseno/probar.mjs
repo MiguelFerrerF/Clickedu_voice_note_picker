@@ -307,6 +307,11 @@ const PRUEBAS = [
       const main = page.locator('[data-pantalla="calificar"]');
       await main.getByRole('row').first().waitFor();
       await paso('primera');
+      // HUI: las teclas, con el ⓘ de encima de la tabla.
+      await main.getByRole('button', {name: 'Las teclas'}).click();
+      await main.getByRole('region', {name: 'Las teclas'}).waitFor();
+      await paso('teclas');
+      await main.getByRole('button', {name: 'Cerrar las teclas'}).click();
       await main.getByRole('button', {name: 'Biología 1.º AB Bachillerato'}).click();
       await page.waitForTimeout(150);
       await paso('desplegable');

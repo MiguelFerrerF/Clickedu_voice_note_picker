@@ -604,7 +604,11 @@ Ninguna rompe D5/D6 ni añade tokens.
       nota» sigue desde el último campo tocado.
 - [x] 9. **La ayuda del teclado** («Enter o ↓ guarda…»), arriba o al
       enfocar la primera celda: debajo de la tabla no se ve con 30 alumnos.
-      Hecho (2026-11-19): arriba, junto al avance, con las teclas dibujadas.
+      Hecho (2026-11-19): un ⓘ junto al avance abre las teclas, una por
+      fila, las de la tabla y las del dictado (el usuario prefirió eso a una
+      línea siempre a la vista). **Supr** vacía la celda y quita la nota;
+      Esc sigue devolviendo lo de antes de escribir. Una pantalla «Ayuda»
+      en la barra lateral, pedida también, se deja para H9.
 
 **C · La cabecera de Calificar**
 
@@ -670,6 +674,9 @@ pasa a `main`, y la v1 queda en el tag `v1.3.4`.
 ### H9 · La ayuda guiada
 
 - [ ] La primera vez, y una ayuda por pantalla, como H12 de library-app.
+- [ ] **«Ayuda» en la barra lateral** (pedido por el usuario el
+      2026-11-19): cómo funciona cada cosa de la app, en un sitio; el «?»
+      de library-app. Se deja para aquí porque H4–H8 cambian las pantallas.
 
 ---
 

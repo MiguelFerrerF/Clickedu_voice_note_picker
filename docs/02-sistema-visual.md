@@ -103,9 +103,11 @@ Para ver la clase entera sin bajar ni usar el ratón:
 - **Encima, el avance** (HUI, bloque B): una barra fina de 120 px en
   `--accent` (el color del progreso) sobre `--bg-sunk`, «2 / 18 con nota»
   en `--text-secondary`, el botón fantasma «Siguiente sin nota» (desde el
-  último campo tocado, y del final vuelve al principio) y, a la derecha, la
-  ayuda del teclado con las teclas dibujadas (`ui/Tecla`). Si la ayuda no
-  cabe, baja a la izquierda. Debajo de la tabla, con 30 alumnos, no se veía.
+  último campo tocado, y del final vuelve al principio) y, a la derecha, un
+  ⓘ que abre **las teclas**, una por fila y con la tecla dibujada
+  (`ui/Tecla`): las de la tabla y las del dictado. Panel neutro, sin color
+  (es una consulta, no un evento). La línea de ayuda siempre a la vista
+  saturaba la pantalla (pedido por el usuario); la ayuda de verdad es H9.
 
 A 1280×800, una clase de 26 se ve entera con los avisos de la plantilla
 encima.

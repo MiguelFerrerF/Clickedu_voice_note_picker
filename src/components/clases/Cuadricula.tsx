@@ -19,8 +19,8 @@
  *   trae a la vista.
  *
  * - **Encima** (HUI), cuántos tienen nota, con una barra fina (turquesa:
- *   es progreso), «Siguiente sin nota» y la ayuda del teclado: debajo de la
- *   tabla, con 30 alumnos, no se veía.
+ *   es progreso), «Siguiente sin nota» y el ⓘ que abre las teclas
+ *   (`Teclado`): debajo de la tabla, con 30 alumnos, no se veían.
  *
  * Lo que se está escribiendo vive en cada campo hasta que se guarda; la nota
  * guardada vive en Calificar, que es quien la manda al backend.
@@ -28,10 +28,10 @@
 
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
+import {ID_TECLADO, Teclado} from '@components/clases/Teclado';
 import {ALTO_PANEL} from '@components/dictado/PanelDictado';
 import {Button} from '@components/ui/Button';
 import {Icon, ICONOS} from '@components/ui/Icon';
-import {conTeclas} from '@components/ui/Tecla';
 import type {Alumno, Nota, Puestas} from '@modules/clases/tipos';
 import {t} from '@modules/i18n';
 import {leerEscrita, notaComoTexto, notaDe, type MotivoMal} from '@modules/notas/nota';
@@ -222,58 +222,70 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
 /**
  * Encima de la tabla (HUI): cuántos tienen nota, con una barra fina en
  * `--accent` (el color del progreso, `docs/02`), el botón que lleva al
- * siguiente sin nota y la ayuda del teclado, que debajo de 30 alumnos no se
- * veía. Sin `siguiente`, no queda ninguno sin nota.
+ * siguiente sin nota y, a la derecha, el ⓘ que abre las teclas. Sin
+ * `siguiente`, no queda ninguno sin nota.
  */
 function Avance({conNota, total, siguiente}: {conNota: number; total: number; siguiente?: () => void}) {
   const fraccion = total > 0 ? conNota / total : 0;
+  const [teclado, setTeclado] = useState(false);
   return (
-    // Si la ayuda no cabe al lado, baja a la izquierda: `space-between` con
-    // una sola cosa en la línea la pone al principio.
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '8px 16px',
-        marginBottom: 10,
-      }}>
-      <span style={{display: 'inline-flex', alignItems: 'center', gap: 16}}>
-        <span style={{display: 'inline-flex', alignItems: 'center', gap: 10}}>
-          <span
-            aria-hidden
-            style={{width: 120, height: 6, borderRadius: 3, background: 'var(--bg-sunk)', overflow: 'hidden'}}>
+    <>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '8px 16px',
+          marginBottom: 10,
+        }}>
+        <span style={{display: 'inline-flex', alignItems: 'center', gap: 16}}>
+          <span style={{display: 'inline-flex', alignItems: 'center', gap: 10}}>
             <span
-              style={{
-                display: 'block',
-                height: '100%',
-                borderRadius: 3,
-                background: 'var(--accent)',
-                transformOrigin: 'left',
-                transform: `scaleX(${fraccion})`,
-                transition: 'transform 150ms ease',
-              }}
-            />
+              aria-hidden
+              style={{width: 120, height: 6, borderRadius: 3, background: 'var(--bg-sunk)', overflow: 'hidden'}}>
+              <span
+                style={{
+                  display: 'block',
+                  height: '100%',
+                  borderRadius: 3,
+                  background: 'var(--accent)',
+                  transformOrigin: 'left',
+                  transform: `scaleX(${fraccion})`,
+                  transition: 'transform 150ms ease',
+                }}
+              />
+            </span>
+            <span style={{fontSize: 13, color: 'var(--text-secondary)', whiteSpace: 'nowrap'}}>
+              {t('cuadricula.con_nota', {n: conNota, total})}
+            </span>
           </span>
-          <span style={{fontSize: 13, color: 'var(--text-secondary)', whiteSpace: 'nowrap'}}>
-            {t('cuadricula.con_nota', {n: conNota, total})}
-          </span>
+          <Button variant="ghost" onClick={siguiente} disabled={!siguiente} title={t('cuadricula.siguiente_ayuda')}>
+            {t('cuadricula.siguiente')}
+            <Icon d={ICONOS.galonAbajo} size={14} />
+          </Button>
         </span>
-        <Button variant="ghost" onClick={siguiente} disabled={!siguiente} title={t('cuadricula.siguiente_ayuda')}>
-          {t('cuadricula.siguiente')}
-          <Icon d={ICONOS.galonAbajo} size={14} />
-        </Button>
-      </span>
-      <span style={{fontSize: 12, color: 'var(--text-secondary)', lineHeight: '22px'}}>
-        {conTeclas(t('cuadricula.ayuda'), {
-          enter: t('cuadricula.tecla_enter'),
-          abajo: t('cuadricula.tecla_abajo'),
-          arriba: t('cuadricula.tecla_arriba'),
-          supr: t('cuadricula.tecla_supr'),
-        })}
-      </span>
-    </div>
+        <button
+          type="button"
+          onClick={() => setTeclado((a) => !a)}
+          aria-expanded={teclado}
+          aria-controls={ID_TECLADO}
+          aria-label={t('teclado.titulo')}
+          title={t('teclado.titulo')}
+          style={{
+            display: 'inline-flex',
+            padding: 6,
+            border: 'none',
+            borderRadius: 6,
+            background: teclado ? 'var(--bg-sunk)' : 'none',
+            color: teclado ? 'var(--text-primary)' : 'var(--text-secondary)',
+            cursor: 'pointer',
+          }}>
+          <Icon d={ICONOS.info} size={16} />
+        </button>
+      </div>
+      {teclado && <Teclado cerrar={() => setTeclado(false)} />}
+    </>
   );
 }
 
