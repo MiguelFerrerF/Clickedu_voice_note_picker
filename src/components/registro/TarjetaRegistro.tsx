@@ -78,7 +78,7 @@ export function TarjetaRegistro({visible}: {visible: boolean}) {
     : [];
 
   return (
-    <Card title={t('registro.titulo')} subtitle={t('registro.sub')} style={{marginTop: 16}}>
+    <Card title={t('registro.titulo')} subtitle={t('registro.sub')}>
       {resumen && !hay && <p style={{margin: 0, fontSize: 13, color: 'var(--text-tertiary)'}}>{t('registro.vacio')}</p>}
       {hay && (
         <>
