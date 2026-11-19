@@ -87,6 +87,12 @@ pub fn carpeta_notas(documentos: &Path) -> PathBuf {
     documentos.join("Gestor de Notas").join("notas")
 }
 
+/// `Documentos\Gestor de Notas\informes` (D8): los informes del registro,
+/// a la vista para mandarlos.
+pub fn carpeta_informes(documentos: &Path) -> PathBuf {
+    documentos.join("Gestor de Notas").join("informes")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

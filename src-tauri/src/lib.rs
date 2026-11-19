@@ -9,6 +9,8 @@
 //! - `sesion` (H2) — las notas puestas, guardadas al momento.
 //! - `exportar` (H2) — el Excel que se sube a Clickedu.
 //! - `voz` (H3) — del micrófono al texto, con Whisper local.
+//! - `registro` (D8) — lo no entendido, lo corregido y los fallos, en
+//!   local, y el informe sin nombres que se puede mandar.
 //! - `commands` — lo que la interfaz puede llamar.
 //!
 //! Llegará `clickedu` (H4–H6).
@@ -20,9 +22,12 @@ pub mod ajustes;
 pub mod commands;
 pub mod exportar;
 pub mod plantillas;
+pub mod registro;
 pub mod sesion;
 pub mod vigilante;
 pub mod voz;
+
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -41,8 +46,20 @@ pub fn run() {
             commands::notas::exportar_clase,
             commands::notas::abrir_carpeta_notas,
             commands::voz::entender_frase,
+            commands::registro::responder_dictado,
+            commands::registro::resumen_registro,
+            commands::registro::preparar_informe,
+            commands::registro::mostrar_informe,
+            commands::registro::borrar_registro,
         ])
         .setup(|app| {
+            // El registro (D8), lo primero: así se apunta cualquier fallo,
+            // también un pánico.
+            let registro = std::sync::Arc::new(registro::Registro::new(commands::carpeta_registro(app.handle())?));
+            registro.purgar();
+            apuntar_panicos(registro.clone());
+            app.manage(registro);
+
             // Vigilar la carpeta desde el arranque. Si los ajustes no se
             // pueden leer, no se vigila: la pantalla de Clases dirá por qué.
             if let Ok(c) = commands::carpeta(app.handle()) {
@@ -52,4 +69,13 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("error al arrancar la aplicación");
+}
+
+/// Un pánico, al registro, y luego lo de siempre (la consola).
+fn apuntar_panicos(registro: std::sync::Arc<registro::Registro>) {
+    let antes = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        registro.apuntar(registro::Que::Fallo { donde: "pánico".into(), error: info.to_string() });
+        antes(info);
+    }));
 }

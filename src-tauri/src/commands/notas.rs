@@ -17,7 +17,7 @@ pub const EVENTO: &str = "notas-cambiadas";
 /// `None`, y la guarda al momento. Devuelve la nota tal como ha quedado.
 #[tauri::command]
 pub async fn poner_nota(fichero: String, clave: String, nota: Option<f64>, app: AppHandle) -> Result<Option<f64>, String> {
-    en_segundo_plano(move || {
+    en_segundo_plano(app.clone(), "poner_nota", move || {
         if !plantillas::es_plantilla(&fichero) {
             return Err(format!("«{fichero}» no es una plantilla"));
         }
@@ -35,7 +35,7 @@ pub async fn poner_nota(fichero: String, clave: String, nota: Option<f64>, app: 
 /// dictado sobre un alumno que no se había tocado).
 #[tauri::command]
 pub async fn devolver_nota(fichero: String, clave: String, app: AppHandle) -> Result<(), String> {
-    en_segundo_plano(move || {
+    en_segundo_plano(app.clone(), "devolver_nota", move || {
         let ruta = ruta_sesion(&app)?;
         let cerrojo = app.state::<Cerrojo>();
         let _cogido = cerrojo.0.lock().map_err(|e| e.to_string())?;
@@ -49,7 +49,7 @@ pub async fn devolver_nota(fichero: String, clave: String, app: AppHandle) -> Re
 /// Exporta la clase `fichero` a `Documentos\Gestor de Notas\notas`.
 #[tauri::command]
 pub async fn exportar_clase(fichero: String, app: AppHandle) -> Result<Exportado, String> {
-    en_segundo_plano(move || {
+    en_segundo_plano(app.clone(), "exportar_clase", move || {
         let plantilla = leer_plantilla(&app, &fichero)?;
         let puestas = {
             let cerrojo = app.state::<Cerrojo>();
@@ -65,7 +65,7 @@ pub async fn exportar_clase(fichero: String, app: AppHandle) -> Result<Exportado
 /// falta: es la nuestra, D4).
 #[tauri::command]
 pub async fn abrir_carpeta_notas(app: AppHandle) -> Result<(), String> {
-    en_segundo_plano(move || {
+    en_segundo_plano(app.clone(), "abrir_carpeta_notas", move || {
         let carpeta = carpeta_notas(&app)?;
         std::fs::create_dir_all(&carpeta).map_err(|e| format!("no se puede crear {}: {e}", carpeta.display()))?;
         std::process::Command::new("explorer")

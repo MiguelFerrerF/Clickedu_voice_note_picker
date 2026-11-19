@@ -152,6 +152,40 @@ instalador NSIS se sube con el nombre **`Instalador_GestorNotas.exe`**, la
 v1.3.4 lo encuentra, lo descarga y lo instala sola: no hay que avisar a nadie.
 Desde ahí, el actualizador de Tauri.
 
+### D8 · Aprender de los casos reales, sin que salgan los datos
+
+**Cerrada el 2026-11-19** (el usuario pidió poder registrar y enviar los
+errores para mejorar la app, y dejó la manera a criterio). Choca con D2:
+la voz y los nombres de menores no salen del ordenador, y el repo es
+público (nada de issues con casos). Por eso **sale la forma del error,
+nunca su contenido**, como en `revisar_plantillas`:
+
+1. **Registro en local** (`registro.rs`): en
+   `%APPDATA%\es.gestornotas.app\registro\`, un `.jsonl` por mes, seis
+   meses. Cada dictado (lo oído, lo entendido, los candidatos con su
+   parecido y su distancia) y **la respuesta buena, que da el profesor sin
+   hacer nada aparte**: elegir otra opción, descartar, deshacer, corregir a
+   mano la nota recién dictada. Y cada error que devuelve un comando
+   (`en_segundo_plano` lo apunta; uno igual, una vez al día) y los
+   pánicos. Se ve y se borra en Ajustes.
+2. **Un informe sin nombres ni voz** (`registro::informe`), que el profesor
+   prepara en Ajustes, abre si quiere y manda **como fichero, por correo**
+   (sin servidor ni terceros: son pocos usuarios). Lo oído va con **lista
+   blanca**: solo quedan las palabras de dictar una nota (números, «con»,
+   «coma», el relleno), y lo demás pasa a su forma (`▢5`); los alumnos son
+   A, B, C; las clases, «clase 1»; en los errores, las rutas pasan a
+   `%DOCUMENTOS%` y `~` y se tapan las palabras de los nombres de los
+   alumnos. Con los números de los candidatos se ajustan los umbrales de
+   `voz::entender` con datos reales.
+3. **Medir en local**, con el push-to-talk (H3a): cada versión nueva vuelve
+   a pasar los casos guardados y solo cuenta (cuántos mal sin preguntar,
+   cuántas preguntas). Así se sabe si un cambio mejora sin mover un nombre.
+
+**El audio**: el registro no lo guarda. Se decide con el push-to-talk; si
+se guarda, solo si el profesor lo activa, unos días, y nunca sale. Un
+nombre concreto mal oído no se puede reproducir sin el nombre: para eso se
+graban frases parecidas con la clase inventada, como en H3a.
+
 ---
 
 ## Los hitos
@@ -361,6 +395,8 @@ formato vuelve a abrirse aquí (`exportar.rs`).
 - [ ] **Queda abierto**: la latencia en un ordenador de profesor, que será
       más lento que este.
 - [ ] Push-to-talk con ESPACIO, sin congelar nada, con indicador de «escuchando».
+- [ ] **Medir en local con el registro** (D8): pasar los casos guardados por
+      la versión nueva y contar. Y decidir si se guarda el audio.
 
 ### H3b · Voz: entender la frase
 
@@ -448,8 +484,16 @@ formato vuelve a abrirse aquí (`exportar.rs`).
       - Siempre se enseña lo oído, en gris, para saber de dónde sale.
       Hasta el push-to-talk, en desarrollo, un campo para escribir la frase
       como si se dictara. Prueba de diseño con los tres casos.
+- [x] **El registro (D8)**, con la confirmación (2026-11-19): cada frase
+      entendida se apunta con sus candidatos, y lo que haces con ella
+      (elegir, descartar, deshacer, corregir a mano) es su respuesta. En
+      Ajustes, «Mejorar el dictado»: cuánto hay, preparar el informe y
+      borrar. Tests: el informe no lleva nombres, claves, clases ni rutas, y
+      ninguna de las 50 frases del corpus deja pasar una palabra de un
+      nombre.
 - [ ] **Probado a mano** con `npm run tauri:dev`, escribiendo frases en el
-      campo de desarrollo sobre una plantilla real.
+      campo de desarrollo sobre una plantilla real, y preparando y abriendo
+      el informe.
 
 ### H4 · Conectar con Clickedu
 
@@ -476,6 +520,9 @@ formato vuelve a abrirse aquí (`exportar.rs`).
       H2**, que no se ha importado todavía.
 
 ### H7 · Actualizaciones y la `v2.0.0`
+
+- [ ] Antes de pasarla a otros profesores: **un informe del registro (D8)
+      de verdad**, mirado línea a línea para ver que no lleva nada de nadie.
 
 - [ ] `release.yml` y el actualizador de Tauri, como en library-app.
 - [ ] El paso desde la v1.3.4 (D7), probado de punta a punta en una máquina

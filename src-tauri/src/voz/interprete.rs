@@ -56,6 +56,17 @@ const RELLENO: &[&str] = &[
     "bueno", "eh", "em", "mm",
 ];
 
+/// Si `palabra` es de dictar una nota y no de un nombre: un número dicho,
+/// «con», «coma», «y medio» o el relleno. Lo demás de una frase puede ser
+/// un nombre, y el informe del registro (D8) lo cambia por su forma antes
+/// de que salga del ordenador.
+pub fn es_de_dictar(palabra: &str) -> bool {
+    let p = normalizar(palabra);
+    numero_dicho(&p).is_some()
+        || RELLENO.contains(&p.as_str())
+        || matches!(p.as_str(), "coma" | "punto" | "medio" | "media" | "cien")
+}
+
 pub fn interpretar(texto: &str) -> Frase {
     let trozos = sin_bucles(trocear(texto));
     let elementos = leer_numeros(&trozos);
@@ -125,6 +136,11 @@ fn trocear(texto: &str) -> Vec<String> {
         trozos.push(actual);
     }
     trozos
+}
+
+/// En minúscula y sin acentos, como trabaja el intérprete.
+pub fn normalizar(palabra: &str) -> String {
+    palabra.chars().map(sin_acento).collect()
 }
 
 fn sin_acento(c: char) -> char {

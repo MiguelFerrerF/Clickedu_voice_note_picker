@@ -60,7 +60,7 @@ export default function App() {
       case 'estadisticas':
         return <Estadisticas />;
       case 'ajustes':
-        return <Ajustes />;
+        return <Ajustes visible={pantalla === 'ajustes'} />;
       case 'muestrario':
         return <Muestrario />;
     }

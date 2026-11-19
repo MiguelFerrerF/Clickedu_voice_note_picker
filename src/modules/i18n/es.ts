@@ -131,6 +131,26 @@ const es = {
   'ajustes.volver_por_defecto': 'Volver a la de por defecto',
   'ajustes.llegan': 'El micrófono llega con el dictado y la cuenta de Clickedu con la conexión.',
 
+  // ── El registro del dictado (D8), en Ajustes ──
+  'registro.titulo': 'Mejorar el dictado',
+  'registro.sub': 'Lo que la app no entiende, lo que te pregunta, lo que corriges y los fallos se guardan en este ordenador seis meses, y no salen de aquí. Si quieres ayudar a mejorar la app, prepara un informe y mándalo: no lleva nombres de alumnos ni voz.',
+  'registro.vacio': 'Todavía no hay nada guardado.',
+  'registro.dictados': 'Frases dictadas',
+  'registro.seguros': 'Apuntadas sin preguntar',
+  'registro.preguntados': 'Preguntadas',
+  'registro.no_entendidos': 'Sin entender',
+  'registro.corregidos': 'Corregidas después',
+  'registro.fallos': 'Fallos',
+  'registro.desde': 'Desde el {fecha}.',
+  'registro.preparar': 'Preparar un informe',
+  'registro.preparado': 'Informe listo: {fichero}. Ábrelo para ver lo que lleva y mándaselo a quien te pasó la app.',
+  'registro.mostrar': 'Mostrar el informe',
+  'registro.borrar': 'Borrar lo guardado',
+  'registro.borrar_titulo': 'Borrar lo guardado del dictado',
+  'registro.borrar_texto': 'Se borra todo lo que se ha guardado para mejorar el dictado. Las notas no se tocan.',
+  'registro.cancelar': 'Cancelar',
+  'registro.borrar_si': 'Borrar',
+
   // ── Muestrario (H0) ──
   'muestrario.titulo': 'Muestrario',
   'muestrario.subtitulo': 'Los componentes de la app con la paleta, para ver de un vistazo que un cambio no rompe nada. Solo existe en desarrollo.',

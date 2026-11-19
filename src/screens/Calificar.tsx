@@ -17,6 +17,9 @@
  *   «Deshacer»; si duda, se pregunta en el panel y en las filas, y no se
  *   apunta nada hasta que eliges. El push-to-talk de H3a mandará aquí lo
  *   que oiga; hasta entonces, en desarrollo, se escribe la frase.
+ * - **El registro** (D8): lo que haces con cada dictado (elegir, descartar,
+ *   deshacer, corregir la nota a mano) se apunta en local con
+ *   `responder_dictado`: es la respuesta buena para mejorar el dictado.
  *
  * La clase elegida vive en `App` (la eligen también desde Clases). Si no hay
  * ninguna elegida, o la elegida ya no está en la carpeta, se enseña la
@@ -36,7 +39,7 @@ import {Dropdown} from '@components/ui/Dropdown';
 import {Icon, ICONOS} from '@components/ui/Icon';
 import {alumnosEnPalabras} from '@modules/clases/avisos';
 import type {ClaseAbierta, Exportado} from '@modules/clases/tipos';
-import type {Dictado, UltimoDictado} from '@modules/dictado/tipos';
+import type {Dictado, Respuesta, UltimoDictado} from '@modules/dictado/tipos';
 import {useClases} from '@modules/clases/useClases';
 import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
@@ -126,7 +129,7 @@ export function Calificar({clase, setClase, irAAjustes}: CalificarProps) {
   const dictadoAqui = ultimoAqui?.dictado;
   const propuestas =
     dictadoAqui?.tipo === 'duda' && !ultimoAqui?.apuntada
-      ? Object.fromEntries(dictadoAqui.claves.map((c) => [c, dictadoAqui.notas]))
+      ? Object.fromEntries(dictadoAqui.alumnos.map((c) => [c, dictadoAqui.notas]))
       : undefined;
   const prefijo = `${fichero}|`; // `|` no puede ir en un nombre de fichero
   const dictadas = new Set(
@@ -148,7 +151,10 @@ export function Calificar({clase, setClase, irAAjustes}: CalificarProps) {
 
   /** La nota a mano, desde la cuadrícula: si era la recién dictada, ya no se deshace ni va en verde. */
   function ponerAMano(clave: string, nota: number | null) {
-    if (ultimoAqui?.apuntada?.clave === clave) setUltimo(undefined);
+    if (ultimoAqui?.apuntada?.clave === clave) {
+      responder(ultimoAqui.dictado, {tipo: 'corregida', nota});
+      setUltimo(undefined);
+    }
     apagar(clave);
     poner(clave, nota);
   }
@@ -192,14 +198,34 @@ export function Calificar({clase, setClase, irAAjustes}: CalificarProps) {
   }
 
   function alDictar(d: Dictado) {
-    if (d.tipo === 'seguro') return apuntar(d.clave, d.nota, d);
+    if (d.tipo === 'seguro') return apuntar(d.alumno, d.nota, d);
     setUltimo({fichero, dictado: d});
-    if (d.tipo === 'duda') traerAVista(d.claves[0]);
+    if (d.tipo === 'duda') traerAVista(d.alumnos[0]);
+  }
+
+  /**
+   * Apunta en el registro lo que se ha hecho con un dictado. Si no se puede,
+   * no se dice: el backend ya apunta el fallo, y no es asunto del profesor.
+   */
+  function responder(dictado: Dictado, respuesta: Respuesta) {
+    invoke('responder_dictado', {id: dictado.id, respuesta}).catch(() => {});
+  }
+
+  function elegir(clave: string, nota: number) {
+    if (!dictadoAqui) return;
+    responder(dictadoAqui, {tipo: 'elegida', clave, nota});
+    apuntar(clave, nota, dictadoAqui);
+  }
+
+  function descartar() {
+    if (dictadoAqui?.tipo === 'duda' && !ultimoAqui?.apuntada) responder(dictadoAqui, {tipo: 'descartada'});
+    setUltimo(undefined);
   }
 
   function deshacer() {
     const a = ultimoAqui?.apuntada;
-    if (!a) return;
+    if (!a || !ultimoAqui) return;
+    responder(ultimoAqui.dictado, {tipo: 'deshecha'});
     if (a.antes === undefined) devolver(a.clave);
     else poner(a.clave, a.antes);
     apagar(a.clave);
@@ -300,8 +326,8 @@ export function Calificar({clase, setClase, irAAjustes}: CalificarProps) {
             ultimo={ultimoAqui}
             encendido={ultimoAqui?.apuntada ? dictadas.has(ultimoAqui.apuntada.clave) : false}
             nombreDe={nombreDe}
-            elegir={(clave, nota) => dictadoAqui && apuntar(clave, nota, dictadoAqui)}
-            descartar={() => setUltimo(undefined)}
+            elegir={elegir}
+            descartar={descartar}
             deshacer={deshacer}
             probar={import.meta.env.DEV ? probar : undefined}
           />
@@ -311,7 +337,7 @@ export function Calificar({clase, setClase, irAAjustes}: CalificarProps) {
             poner={ponerAMano}
             dictadas={dictadas}
             propuestas={propuestas}
-            elegir={(clave, nota) => dictadoAqui && apuntar(clave, nota, dictadoAqui)}
+            elegir={elegir}
             ver={ver}
           />
           <p style={{margin: '10px 0 0', fontSize: 12, color: 'var(--text-tertiary)'}}>{t('cuadricula.ayuda')}</p>

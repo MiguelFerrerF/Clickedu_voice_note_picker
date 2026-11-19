@@ -26,7 +26,7 @@ pub struct ListaClases {
 /// `false`.
 #[tauri::command]
 pub async fn listar_clases(app: AppHandle) -> Result<ListaClases, String> {
-    en_segundo_plano(move || {
+    en_segundo_plano(app.clone(), "listar_clases", move || {
         let carpeta = carpeta(&app)?;
         let sesion = sesion::leer(&ruta_sesion(&app)?)?;
         let clases = if carpeta.existe {
@@ -52,7 +52,7 @@ pub struct ClaseAbierta {
 /// Lee la plantilla `fichero` de la carpeta y sus notas de la sesión.
 #[tauri::command]
 pub async fn leer_clase(fichero: String, app: AppHandle) -> Result<ClaseAbierta, String> {
-    en_segundo_plano(move || {
+    en_segundo_plano(app.clone(), "leer_clase", move || {
         let plantilla = leer_plantilla(&app, &fichero)?;
         let puestas = sesion::leer(&ruta_sesion(&app)?)?.puestas(&fichero);
         Ok(ClaseAbierta { plantilla, puestas })
@@ -75,7 +75,7 @@ pub(crate) fn leer_plantilla(app: &AppHandle, fichero: &str) -> Result<Plantilla
 /// interfaz recibe `plantillas-cambiadas`. `None` si se cancela.
 #[tauri::command]
 pub async fn elegir_carpeta_plantillas(app: AppHandle) -> Result<Option<CarpetaPlantillas>, String> {
-    en_segundo_plano(move || {
+    en_segundo_plano(app.clone(), "elegir_carpeta_plantillas", move || {
         let elegida = app
             .dialog()
             .file()
@@ -93,13 +93,13 @@ pub async fn elegir_carpeta_plantillas(app: AppHandle) -> Result<Option<CarpetaP
 /// Vuelve a `Documentos\Gestor de Notas\plantillas`.
 #[tauri::command]
 pub async fn restablecer_carpeta_plantillas(app: AppHandle) -> Result<CarpetaPlantillas, String> {
-    en_segundo_plano(move || cambiar_carpeta(&app, None)).await
+    en_segundo_plano(app.clone(), "restablecer_carpeta_plantillas", move || cambiar_carpeta(&app, None)).await
 }
 
 /// Abre la carpeta de plantillas en el Explorador.
 #[tauri::command]
 pub async fn abrir_carpeta_plantillas(app: AppHandle) -> Result<(), String> {
-    en_segundo_plano(move || {
+    en_segundo_plano(app.clone(), "abrir_carpeta_plantillas", move || {
         let carpeta = carpeta(&app)?;
         if !carpeta.existe {
             return Err(format!("la carpeta {} no existe", carpeta.ruta));

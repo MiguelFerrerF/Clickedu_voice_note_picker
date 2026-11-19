@@ -126,17 +126,26 @@ function simular(carpeta) {
           // H3b: lo seguro, lo dudoso (con el nombre más largo y dos notas,
           // cuatro opciones) y lo que no se entiende.
           const oido = args.texto;
-          if (/thiago/i.test(oido)) return {tipo: 'seguro', oido, clave: '20255', nota: 9.5};
+          const id = String(n++);
+          if (/thiago/i.test(oido)) return {id, oido, tipo: 'seguro', alumno: '20255', nota: 9.5};
           if (/mar[ií]a/i.test(oido))
             return {
-              tipo: 'duda',
+              id,
               oido,
-              claves: ['20238', '20233'],
+              tipo: 'duda',
+              alumnos: ['20238', '20233'],
               notas: [7.5, 7.3],
               motivos: ['nombre_parecido', 'nota_reinterpretada'],
             };
-          return {tipo: 'no_entendido', oido, motivo: 'sin_nota'};
+          return {id, oido, tipo: 'no_entendido', motivo: 'sin_nota'};
         }
+        case 'resumen_registro':
+          // D8: con casos en la carpeta llena; vacío en las demás.
+          return carpeta === 'llena'
+            ? {dictados: 142, seguros: 109, preguntados: 27, noEntendidos: 6, corregidos: 3, fallos: 2, desde: 1795046400}
+            : {dictados: 0, seguros: 0, preguntados: 0, noEntendidos: 0, corregidos: 0, fallos: 0, desde: null};
+        case 'preparar_informe':
+          return `${ruta.replace(/plantillas$/, 'informes')}\\informe-2026-11-19.json`;
         case 'exportar_clase':
           return {
             ruta: `${ruta.replace(/plantillas$/, 'notas')}\\notas_${args.fichero.replace(/\.xlsx?$/, '')}.xlsx`,
@@ -343,8 +352,17 @@ const PRUEBAS = [
     nombre: 'ajustes',
     async probar(page, paso) {
       await ir(page, 'Ajustes', 'ajustes');
-      await page.locator('[data-pantalla="ajustes"]').getByText('Gestor de Notas').waitFor();
+      const main = page.locator('[data-pantalla="ajustes"]');
+      await main.getByText('Frases dictadas').waitFor();
       await paso('reposo');
+      // D8: el informe preparado y el diálogo de borrar.
+      await main.getByRole('button', {name: 'Preparar un informe'}).click();
+      await main.getByText('Informe listo').waitFor();
+      await paso('informe');
+      await main.getByRole('button', {name: 'Borrar lo guardado'}).click();
+      await page.waitForTimeout(250);
+      await paso('borrar');
+      await page.keyboard.press('Escape');
     },
   },
   vacia('estadisticas', 'Estadísticas'),

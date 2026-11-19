@@ -20,9 +20,9 @@
 //! al 95 %. Whisper reparte la probabilidad entre maneras de escribir lo
 //! mismo («10» o «diez», «9,5» o «9.5»), no entre cosas oídas.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-use super::emparejar::emparejar;
+use super::emparejar::{emparejar, Parecido};
 use super::interprete::{interpretar, PorQueDudosa};
 
 /// Por debajo, lo oído no se parece a nadie de la clase.
@@ -32,20 +32,45 @@ pub const PARECIDO_SEGURO: f32 = 0.75;
 /// Si otro alumno queda a estos sonidos de más, o menos, se pregunta.
 pub const MARGEN: usize = 2;
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+/// `A`: cómo se nombra a un alumno. Aquí, su posición en la lista de la
+/// clase; para la interfaz y el registro, su clave de la sesión
+/// ([`Entendido::con`]).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "tipo", rename_all = "snake_case")]
-pub enum Entendido {
-    /// Se apunta sin preguntar (verde, D6). `alumno`: su posición en la
-    /// lista de la clase.
-    Seguro { alumno: usize, nota: f64 },
+pub enum Entendido<A = usize> {
+    /// Se apunta sin preguntar (verde, D6).
+    Seguro { alumno: A, nota: f64 },
     /// Se pregunta: los alumnos y las notas posibles, lo más probable
     /// primero, y por qué se duda.
-    Duda { alumnos: Vec<usize>, notas: Vec<f64>, motivos: Vec<Motivo> },
+    Duda { alumnos: Vec<A>, notas: Vec<f64>, motivos: Vec<Motivo> },
     /// No se apunta nada, y se dice por qué.
     NoEntendido { motivo: Motivo },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+impl<A> Entendido<A> {
+    /// Lo mismo, con cada alumno nombrado de otra manera.
+    pub fn con<B>(self, mut f: impl FnMut(A) -> B) -> Entendido<B> {
+        match self {
+            Self::Seguro { alumno, nota } => Entendido::Seguro { alumno: f(alumno), nota },
+            Self::Duda { alumnos, notas, motivos } => {
+                Entendido::Duda { alumnos: alumnos.into_iter().map(f).collect(), notas, motivos }
+            }
+            Self::NoEntendido { motivo } => Entendido::NoEntendido { motivo },
+        }
+    }
+}
+
+/// Con qué se ha decidido: para el registro (D8), que mide con casos
+/// reales si los umbrales están bien puestos.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Detalle {
+    /// Las palabras que se tomaron por el nombre.
+    pub nombre: Vec<String>,
+    /// Los alumnos más parecidos a lo oído, de más a menos (tres como mucho).
+    pub parecidos: Vec<Parecido>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Motivo {
     /// No se oyó ninguna nota (de 0 a 10).
@@ -68,15 +93,25 @@ pub enum Motivo {
 
 /// `clase`: los nombres de los alumnos, en el orden de la lista.
 pub fn entender<S: AsRef<str>>(texto: &str, clase: &[S]) -> Entendido {
+    entender_con_detalle(texto, clase).0
+}
+
+/// [`entender`], y con qué se ha decidido.
+pub fn entender_con_detalle<S: AsRef<str>>(texto: &str, clase: &[S]) -> (Entendido, Detalle) {
     let frase = interpretar(texto);
+    let palabras: Vec<&str> = frase.nombre.iter().map(String::as_str).collect();
+    let parecidos = emparejar(&palabras, clase);
+    let detalle = Detalle { nombre: frase.nombre.clone(), parecidos: parecidos.iter().take(3).cloned().collect() };
+    (decidir(frase, &parecidos), detalle)
+}
+
+fn decidir(frase: super::interprete::Frase, parecidos: &[Parecido]) -> Entendido {
     let Some(nota) = frase.nota else {
         return Entendido::NoEntendido { motivo: Motivo::SinNota };
     };
     if frase.nombre.is_empty() {
         return Entendido::NoEntendido { motivo: Motivo::SinNombre };
     }
-    let palabras: Vec<&str> = frase.nombre.iter().map(String::as_str).collect();
-    let parecidos = emparejar(&palabras, clase);
     let Some(mejor) = parecidos.first().filter(|p| p.parecido >= PARECIDO_MINIMO) else {
         return Entendido::NoEntendido { motivo: Motivo::NombreDesconocido };
     };
@@ -147,6 +182,17 @@ mod tests {
         let Entendido::Duda { alumnos, notas, motivos } = de("Elena Gómez 825") else { panic!() };
         assert_eq!(alumnos[0], 5);
         assert_eq!((notas, motivos), (vec![8.25], vec![Motivo::NotaReinterpretada]));
+    }
+
+    #[test]
+    fn con_claves() {
+        let claves = ["1001", "1002", "1003", "1004", "1005", "1006", "1007"];
+        let Entendido::Duda { alumnos, .. } = de("Pablo García 10").con(|i| claves[i]) else { panic!() };
+        assert_eq!(alumnos, vec!["1003", "1004"]);
+        let (_, detalle) = entender_con_detalle("Pablo García 10", CLASE);
+        assert_eq!(detalle.nombre, vec!["pablo", "garcia"]);
+        assert_eq!(detalle.parecidos.len(), 3);
+        assert_eq!(detalle.parecidos[0].alumno, 2);
     }
 
     #[test]

@@ -3,6 +3,9 @@
  * `Documentos\Gestor de Notas\plantillas` (D4); se puede elegir otra, y
  * volver a la de por defecto.
  *
+ * Y **mejorar el dictado** (D8): lo guardado en el registro, el informe para
+ * mandarlo y borrarlo.
+ *
  * El micrófono llega con la voz (H3) y la cuenta de Clickedu con H4.
  */
 
@@ -11,6 +14,7 @@ import {useState} from 'react';
 
 import {Ruta} from '@components/clases/SinPlantillas';
 import {Cabecera} from '@components/layout/Cabecera';
+import {TarjetaRegistro} from '@components/registro/TarjetaRegistro';
 import {Button} from '@components/ui/Button';
 import {Card} from '@components/ui/Card';
 import {Icon, ICONOS} from '@components/ui/Icon';
@@ -18,7 +22,8 @@ import {useClases} from '@modules/clases/useClases';
 import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
 
-export function Ajustes() {
+/** `visible`: la pantalla se está viendo (no se desmonta al irse). */
+export function Ajustes({visible}: {visible: boolean}) {
   useIdioma();
   const {lista, error} = useClases();
   const [fallo, setFallo] = useState<string>();
@@ -42,7 +47,9 @@ export function Ajustes() {
                 <Ruta ruta={carpeta.ruta} />
               </div>
               {carpeta.porDefecto && (
-                <span style={{flexShrink: 0, fontSize: 11.5, color: 'var(--text-tertiary)'}}>{t('ajustes.por_defecto')}</span>
+                <span style={{flexShrink: 0, fontSize: 11.5, color: 'var(--text-tertiary)'}}>
+                  {t('ajustes.por_defecto')}
+                </span>
               )}
             </div>
             {!carpeta.existe && (
@@ -74,6 +81,7 @@ export function Ajustes() {
           </p>
         )}
       </Card>
+      <TarjetaRegistro visible={visible} />
       <p style={{margin: '16px 0 0', fontSize: 12.5, color: 'var(--text-tertiary)'}}>{t('ajustes.llegan')}</p>
     </div>
   );

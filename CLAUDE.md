@@ -33,8 +33,10 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > que se apaga, con Deshacer; duda con borde discontinuo y opciones; no
 > entendida con el punto ámbar); en desarrollo se escribe la frase.
 > `emparejar` prueba los dos órdenes de «Apellidos, Nombre», que es como
-> vienen las plantillas reales. **Falta probarla a mano**, y luego el
-> push-to-talk de H3a. Para
+> vienen las plantillas reales. **El registro de D8, hecho**: cada dictado
+> y lo que haces con él se guarda en local, y en Ajustes («Mejorar el
+> dictado») se prepara un informe sin nombres para mandarlo. **Falta
+> probar las dos cosas a mano**, y luego el push-to-talk de H3a. Para
 > ver una carpeta de plantillas reales sin sacar datos de alumnos:
 > `cargo run --example revisar_plantillas -- <carpeta>`.
 
@@ -72,13 +74,13 @@ cd src-tauri; cargo test # los tests de Rust
 ## Antes de proponer o escribir nada, lee
 
 1. [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md) — **las
-   decisiones D1–D7 y los hitos**
+   decisiones D1–D8 y los hitos**
 2. [`docs/02-sistema-visual.md`](docs/02-sistema-visual.md) — la paleta y la
    regla de color
 
 ## Decisiones que no hay que reabrir
 
-Cerradas el 2026-11-17. No se reabren sin que el usuario lo pida.
+Cerradas el 2026-11-17 (D8, el 2026-11-19). No se reabren sin que el usuario lo pida.
 
 - **D1 · Stack**: Tauri 2 + React + TS, lógica en Rust, como library-app.
 - **D2 · Voz**: Whisper local, `small` `q5_1` con la ventana recortada
@@ -97,6 +99,10 @@ Cerradas el 2026-11-17. No se reabren sin que el usuario lo pida.
 - **D7 · Publicar**: `v2.0.0` en este repo, **que sigue público**. El
   instalador se sube como **`Instalador_GestorNotas.exe`**: con ese nombre lo
   encuentra el actualizador de la v1.3.4 y lo instala solo.
+- **D8 · Casos reales**: registro en local (`registro.rs`, seis meses) con
+  la respuesta buena del profesor, y un **informe sin nombres ni voz** que
+  se manda a mano como fichero. Sale la forma del error, nunca su
+  contenido. El audio no se guarda (se decide en H3a).
 - **Clickedu no tiene API para esto**: la oficial no expone notas y no nos dan
   credenciales. Se lee la web, con una capa resistente (H4).
 

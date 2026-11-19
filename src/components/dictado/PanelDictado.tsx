@@ -157,7 +157,7 @@ function Duda({
   elegir: (clave: string, nota: number) => void;
   descartar: () => void;
 }) {
-  const variosAlumnos = dictado.claves.length > 1;
+  const variosAlumnos = dictado.alumnos.length > 1;
   const variasNotas = dictado.notas.length > 1;
   const pregunta =
     variosAlumnos && variasNotas
@@ -165,8 +165,8 @@ function Duda({
       : variosAlumnos
         ? t('dictado.duda_quien', {nota: nota(dictado.notas[0])})
         : variasNotas
-          ? t('dictado.duda_nota', {alumno: nombreDe(dictado.claves[0])})
-          : t('dictado.duda_si', {nota: nota(dictado.notas[0]), alumno: nombreDe(dictado.claves[0])});
+          ? t('dictado.duda_nota', {alumno: nombreDe(dictado.alumnos[0])})
+          : t('dictado.duda_si', {nota: nota(dictado.notas[0]), alumno: nombreDe(dictado.alumnos[0])});
   return (
     <div
       role="alertdialog"
