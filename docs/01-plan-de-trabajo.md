@@ -626,14 +626,19 @@ Ninguna rompe D5/D6 ni añade tokens.
 
 **D · El resto**
 
-- [ ] 13. **«Descargar el modelo de voz», botón principal**: es lo que hace
-      falta para dictar.
-- [ ] 14. **Ajustes**: las seis cifras del registro, en una fila o en 3×2
-      (a 1280, «Fallos» se queda sola abajo).
-- [ ] 15. **Clases**: que se vea que la fila se pulsa (fondo al pasar, `›` al
-      final) y «Con nota» como mini barra en vez de «12 / 31».
-- [ ] 16. **La barra lateral**: el Muestrario, solo en desarrollo;
+- [x] 13. **«Descargar el modelo de voz», botón principal**: es lo que hace
+      falta para dictar. Hecho (2026-11-19).
+- [x] 14. **Ajustes**: las seis cifras del registro, en una fila o en 3×2
+      (a 1280, «Fallos» se queda sola abajo). Hecho (2026-11-19): seis desde
+      640 px de tarjeta, si no tres.
+- [x] 15. **Clases**: que se vea que la fila se pulsa (fondo al pasar, `›` al
+      final) y «Con nota» como mini barra en vez de «12 / 31». Hecho
+      (2026-11-19): el fondo ya estaba; la barra es la de Calificar
+      (`BarraAvance`), con la cifra en su etiqueta y al pasar el ratón.
+- [x] 16. **La barra lateral**: el Muestrario, solo en desarrollo;
       Estadísticas y Conexión, «próximamente» o escondidas hasta H4/H8.
+      Hecho (2026-11-19): escondidas (`HAY_ESTADISTICAS`, `HAY_CLICKEDU` en
+      `Sidebar`); el Muestrario ya era solo de desarrollo.
 
 ### H4 · Conectar con Clickedu
 
