@@ -28,9 +28,13 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > confianza de Whisper por palabra se midió y **no sirve** para decidir;
 > se pregunta si con dos sonidos sería otro alumno (detalle en `docs/01`,
 > H3b); **el usuario la deja así** (2026-11-19), aunque pregunte por
-> Martín/Martínez sin segundo apellido. **Siguiente: la confirmación en
-> Calificar** (verde si está seguro; borde discontinuo y elegir entre dos
-> si duda), y luego el push-to-talk de H3a. Para
+> Martín/Martínez sin segundo apellido. **La confirmación en Calificar,
+> hecha** (2026-11-19): `entender_frase` y el panel del dictado (verde
+> que se apaga, con Deshacer; duda con borde discontinuo y opciones; no
+> entendida con el punto ámbar); en desarrollo se escribe la frase.
+> `emparejar` prueba los dos órdenes de «Apellidos, Nombre», que es como
+> vienen las plantillas reales. **Falta probarla a mano**, y luego el
+> push-to-talk de H3a. Para
 > ver una carpeta de plantillas reales sin sacar datos de alumnos:
 > `cargo run --example revisar_plantillas -- <carpeta>`.
 

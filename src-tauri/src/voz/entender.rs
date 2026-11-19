@@ -33,7 +33,7 @@ pub const PARECIDO_SEGURO: f32 = 0.75;
 pub const MARGEN: usize = 2;
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
-#[serde(tag = "tipo", rename_all = "camelCase")]
+#[serde(tag = "tipo", rename_all = "snake_case")]
 pub enum Entendido {
     /// Se apunta sin preguntar (verde, D6). `alumno`: su posición en la
     /// lista de la clase.
@@ -46,7 +46,7 @@ pub enum Entendido {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "snake_case")]
 pub enum Motivo {
     /// No se oyó ninguna nota (de 0 a 10).
     SinNota,

@@ -69,6 +69,21 @@ pub fn poner(ruta: &Path, fichero: &str, clave: &str, nota: Option<f64>) -> Resu
     Ok(nota)
 }
 
+/// Devuelve al alumno `clave` de `fichero` a la nota de la plantilla:
+/// olvida lo puesto en la sesión. Es deshacer un dictado (H3b) sobre un
+/// alumno que no se había tocado. Quien llama tiene el [`Cerrojo`].
+pub fn devolver(ruta: &Path, fichero: &str, clave: &str) -> Result<(), String> {
+    let mut sesion = leer(ruta)?;
+    let Some(puestas) = sesion.clases.get_mut(fichero) else { return Ok(()) };
+    if puestas.remove(clave).is_none() {
+        return Ok(());
+    }
+    if puestas.is_empty() {
+        sesion.clases.remove(fichero);
+    }
+    guardar_json(ruta, &sesion).map_err(|e| format!("no se puede guardar en {}: {e}", ruta.display()))
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum ErrorNota {
     FueraDeRango,
@@ -168,6 +183,15 @@ mod tests {
         assert_eq!(s.puestas("bio.xlsx").get("2001"), Some(&Some(10.0)));
         assert!(s.puestas("otra.xlsx").is_empty());
         assert!(!ruta.with_extension("json.tmp").exists());
+
+        // Devolver a la de la plantilla no es quitarla.
+        devolver(&ruta, "mates.xlsx", "1001").unwrap();
+        devolver(&ruta, "bio.xlsx", "2001").unwrap();
+        devolver(&ruta, "otra.xlsx", "1").unwrap();
+        let s = leer(&ruta).unwrap();
+        assert_eq!(s.puestas("mates.xlsx").get("1001"), None);
+        assert_eq!(s.puestas("mates.xlsx").get("fila:9"), Some(&None));
+        assert!(!s.clases.contains_key("bio.xlsx"));
 
         std::fs::write(&ruta, "{ medio json").unwrap();
         assert!(poner(&ruta, "mates.xlsx", "1001", Some(3.0)).is_err());

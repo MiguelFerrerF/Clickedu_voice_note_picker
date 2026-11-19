@@ -6,6 +6,8 @@
  *
  * Regla de color (D6): sin nota en gris (el «—» del placeholder), una nota es
  * texto normal —también un suspenso— y solo lo que no es nota va en rojo.
+ * La recién dictada, en verde con el micrófono, se apaga sola; la que un
+ * dictado dudoso propone, con borde discontinuo junto al nombre (H3b).
  */
 
 .nota {
@@ -20,7 +22,8 @@
   font-family: var(--font-mono);
   font-size: 13px;
   text-align: right;
-  transition: border-color 120ms, box-shadow 120ms;
+  /* El color y el fondo, despacio: así se apaga el verde del dictado. */
+  transition: border-color 120ms, box-shadow 120ms, color 600ms, background-color 600ms;
 }
 
 .nota::placeholder {
@@ -44,4 +47,41 @@
   color: var(--danger);
   font-weight: 600;
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--danger) 12%, transparent);
+}
+
+/* La nota recién dictada (H3b): un evento, y se apaga sola. */
+.dictada {
+  padding-left: 26px;
+  border-color: var(--success);
+  background: color-mix(in oklch, var(--success) 10%, var(--bg-card));
+  color: var(--success);
+  font-weight: 600;
+}
+
+.microfono {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  color: var(--success);
+  pointer-events: none;
+  transition: opacity 600ms;
+}
+
+/* Lo que propone un dictado dudoso: provisional, espera que lo elijas. */
+.propuesta {
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px dashed var(--accent);
+  background: var(--accent-wash);
+  color: var(--accent-ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms;
+}
+
+.propuesta:hover {
+  background: color-mix(in oklch, var(--accent) 24%, transparent);
 }

@@ -120,6 +120,23 @@ function simular(carpeta) {
             : {plantilla: OTRA, puestas: {}};
         case 'poner_nota':
           return args.nota;
+        case 'devolver_nota':
+          return null;
+        case 'entender_frase': {
+          // H3b: lo seguro, lo dudoso (con el nombre más largo y dos notas,
+          // cuatro opciones) y lo que no se entiende.
+          const oido = args.texto;
+          if (/thiago/i.test(oido)) return {tipo: 'seguro', oido, clave: '20255', nota: 9.5};
+          if (/mar[ií]a/i.test(oido))
+            return {
+              tipo: 'duda',
+              oido,
+              claves: ['20238', '20233'],
+              notas: [7.5, 7.3],
+              motivos: ['nombre_parecido', 'nota_reinterpretada'],
+            };
+          return {tipo: 'no_entendido', oido, motivo: 'sin_nota'};
+        }
         case 'exportar_clase':
           return {
             ruta: `${ruta.replace(/plantillas$/, 'notas')}\\notas_${args.fichero.replace(/\.xlsx?$/, '')}.xlsx`,
@@ -252,6 +269,40 @@ const PRUEBAS = [
       await main.getByRole('button', {name: 'Exportar'}).click();
       await main.getByText('No se exporta').waitFor();
       await paso('no-se-exporta');
+    },
+  },
+  {
+    // H3b: lo dictado, escrito en el campo de desarrollo. Seguro (en verde,
+    // abajo del todo), deshacerlo, una duda con cuatro opciones, elegir y lo
+    // que no se entiende.
+    nombre: 'dictado',
+    async probar(page, paso) {
+      const main = page.locator('[data-pantalla="calificar"]');
+      await main.getByRole('button', {name: 'Biología 1.º AB Bachillerato'}).click();
+      await page.getByRole('button', {name: 'Matemáticas 3.º A ESO', exact: true}).last().click();
+      await main.getByRole('textbox', {name: 'Nota de Castro Molina, Lucía'}).waitFor();
+      const dictar = async (frase) => {
+        await main.getByPlaceholder('Escribe lo que dirías y pulsa Enter').fill(frase);
+        await page.keyboard.press('Enter');
+      };
+      await dictar('Thiago nueve y medio');
+      await main.getByText('Apuntado un 9.5').waitFor();
+      await page.waitForTimeout(700);
+      await paso('apuntada');
+      await main.getByRole('button', {name: 'Deshacer'}).click();
+      await page.waitForTimeout(700);
+      await paso('deshecha');
+      await dictar('María siete con treinta');
+      await main.getByRole('alertdialog').waitFor();
+      await page.waitForTimeout(700);
+      await paso('duda');
+      await main.getByRole('alertdialog').getByRole('button').first().click();
+      await main.getByText('Apuntado un 7.5').waitFor();
+      await page.waitForTimeout(700);
+      await paso('elegida');
+      await dictar('Way this');
+      await main.getByText('No se ha apuntado nada').waitFor();
+      await paso('no-entendida');
     },
   },
   {

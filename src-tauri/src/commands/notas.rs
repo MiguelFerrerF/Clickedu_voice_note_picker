@@ -31,6 +31,21 @@ pub async fn poner_nota(fichero: String, clave: String, nota: Option<f64>, app: 
     .await
 }
 
+/// Devuelve al alumno `clave` a la nota de su plantilla (deshacer un
+/// dictado sobre un alumno que no se había tocado).
+#[tauri::command]
+pub async fn devolver_nota(fichero: String, clave: String, app: AppHandle) -> Result<(), String> {
+    en_segundo_plano(move || {
+        let ruta = ruta_sesion(&app)?;
+        let cerrojo = app.state::<Cerrojo>();
+        let _cogido = cerrojo.0.lock().map_err(|e| e.to_string())?;
+        sesion::devolver(&ruta, &fichero, &clave)?;
+        let _ = app.emit(EVENTO, ());
+        Ok(())
+    })
+    .await
+}
+
 /// Exporta la clase `fichero` a `Documentos\Gestor de Notas\notas`.
 #[tauri::command]
 pub async fn exportar_clase(fichero: String, app: AppHandle) -> Result<Exportado, String> {

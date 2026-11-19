@@ -80,7 +80,7 @@ library-app, aplicada a las notas:
 | Nota puesta | Texto normal, en mono, a la derecha | Es un dato, no un evento |
 | **Suspenso** | **Igual que cualquier nota** | Una nota baja no es un error: pintarla de rojo gasta el único color que debe quedar para los problemas |
 | Recién dictada | Verde, con el micrófono, **y se apaga sola** | Es un evento: «acaba de entrar por voz» |
-| Dictado dudoso | **Borde discontinuo** + `--accent-wash`, con «¿Pérez Gómez, Irene? ✓ ✕» | Provisional: espera que lo confirmes |
+| Dictado dudoso | La nota no cambia; al lado del nombre, la propuesta con **borde discontinuo** + `--accent-wash` («¿6.8?»), y la pregunta en el panel del dictado | Provisional: espera que elijas |
 | Valor que no es nota | Rojo, con anillo | Error de verdad: `12`, `abc` |
 
 **La forma dice lo que el color no**: el borde discontinuo significa
@@ -95,5 +95,7 @@ No bloquea H1. Se resuelve cuando la pantalla exista:
   sistema, y aquí la nota va con punto (es lo que acepta Clickedu). La celda
   de H2 será un campo de texto propio con `inputMode="decimal"`, que convierte
   la coma en punto al teclearla, como hacía la app de Python.
-- **El indicador de «escuchando»** (H3a): dónde va y cómo se ve mientras se
-  mantiene ESPACIO.
+- **El indicador de «escuchando»** (H3a): cómo se ve mientras se mantiene
+  ESPACIO. Dónde, ya está: en el **panel del dictado** de Calificar (H3b),
+  encima de la cuadrícula y pegado arriba, donde se ve lo apuntado, la duda
+  o lo que no se ha entendido.

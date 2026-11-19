@@ -1,8 +1,8 @@
 //! Los comandos que la interfaz puede llamar.
 //!
 //! Llegan con la pantalla que los necesita, no antes. Hoy están los de las
-//! **Clases** y la carpeta de plantillas (H1), y los de poner notas y
-//! exportarlas (H2).
+//! **Clases** y la carpeta de plantillas (H1), los de poner notas y
+//! exportarlas (H2) y el de entender lo dictado (H3b).
 //!
 //! Regla que no se relaja (library-app): **ningún comando síncrono hace
 //! trabajo**. Todos son `async` y lo que toca disco pasa por
@@ -10,6 +10,7 @@
 
 pub mod clases;
 pub mod notas;
+pub mod voz;
 
 use std::path::PathBuf;
 

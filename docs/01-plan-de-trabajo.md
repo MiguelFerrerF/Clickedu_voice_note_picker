@@ -390,6 +390,11 @@ formato vuelve a abrirse aquí (`exportar.rs`).
       nombre** (cada subsecuencia de sus palabras: «Etxeberria» solo es
       Iker Etxeberria entero). Una partícula sola («el», «de») no es forma:
       si no, «el cinco» era de Mohamed El Amrani.
+      **Clickedu da los nombres como «Apellidos, Nombre»** (las siete
+      plantillas reales, todos), y comparar en orden no casaba «Lucía
+      Martín» con «Martín Ortega, Lucía»: con coma, se prueban los dos
+      órdenes (2026-11-19). Con la clase del corpus escrita así
+      (`probar_entender -- --como-clickedu`) sale lo mismo: 77 / 20 / 2 / 0.
 - [x] **Cuándo se pregunta** (`voz::entender`), medido con las 100
       grabaciones (`cargo run --release --example probar_entender`, que
       guarda lo oído en `resultados\oidos.json` y cuenta apuntadas,
@@ -423,8 +428,28 @@ formato vuelve a abrirse aquí (`exportar.rs`).
       **La regla se queda así** (el usuario, 2026-11-19), aunque pregunte
       por las parejas que se llaman casi igual si no se dice el segundo
       apellido.
-- [ ] Confirmación: verde si está seguro; borde discontinuo y elegir entre los
-      dos más probables si duda.
+- [x] **La confirmación en Calificar** (2026-11-19). El comando
+      `entender_frase` entiende una frase con los alumnos de la clase y
+      devuelve cada uno por su **clave** (la de la sesión). Un **panel del
+      dictado** encima de la cuadrícula, pegado arriba al bajar por la
+      lista, enseña lo último:
+      - **Seguro**: se apunta; la celda, en verde con el micrófono, y el
+        panel, «Apuntado un 9.5 a …», se apagan solos a los 6 s. La fila se
+        trae a la vista. **«Deshacer»** deja la nota de antes, exacta: si
+        el alumno no se había tocado, vuelve a la de la plantilla
+        (`devolver_nota`, que no es lo mismo que quitarla).
+      - **Duda**: no se apunta nada. Borde discontinuo, la pregunta («¿Para
+        quién es el 9.5?»), por qué se duda y las opciones (cada alumno con
+        cada nota, cuatro como mucho, lo más probable primero) o
+        «Descartar». En la fila de cada candidato, la nota propuesta con
+        borde discontinuo («¿9.5?»), que también se puede pulsar.
+      - **No entendida**: el punto ámbar y por qué, no rojo: la app no ha
+        fallado.
+      - Siempre se enseña lo oído, en gris, para saber de dónde sale.
+      Hasta el push-to-talk, en desarrollo, un campo para escribir la frase
+      como si se dictara. Prueba de diseño con los tres casos.
+- [ ] **Probado a mano** con `npm run tauri:dev`, escribiendo frases en el
+      campo de desarrollo sobre una plantilla real.
 
 ### H4 · Conectar con Clickedu
 

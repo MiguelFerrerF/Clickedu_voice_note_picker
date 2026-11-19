@@ -1,6 +1,6 @@
 //! La prueba de H3b: ¿entiende la app las 100 frases grabadas en H3a?
 //!
-//!     cargo run --release --example probar_entender [-- <carpeta>…] [--de-nuevo] [--todos]
+//!     cargo run --release --example probar_entender [-- <carpeta>…] [--de-nuevo] [--todos] [--como-clickedu]
 //!
 //! Por cada carpeta de grabaciones (por defecto, las dos de H3a:
 //! `Documentos\Gestor de Notas\prueba-voz` y su `mesa`), pasa las 50 frases
@@ -22,6 +22,9 @@
 //! `resultados\experimentos\`: los otros motores (Google, Windows) y las
 //! variantes de Whisper, con sus «825», «7.30» y bucles. Es para ver que la
 //! regla aguanta con más que una pasada.
+//!
+//! `--como-clickedu` le da a entender la clase como la escribe Clickedu,
+//! «Apellidos, Nombre», en vez de «Nombre Apellidos»: tiene que dar lo mismo.
 
 #[path = "comun/corpus.rs"]
 mod corpus;
@@ -53,6 +56,19 @@ fn main() {
     }
     let frases = corpus::frases();
     let clase = corpus::clase();
+    // A quién se le pregunta: la misma clase, en el mismo orden, quizá escrita
+    // como Clickedu. Los veredictos se dan siempre con `clase`.
+    let para_entender: Vec<String> = if args.iter().any(|a| a == "--como-clickedu") {
+        clase
+            .iter()
+            .map(|n| match n.split_once(' ') {
+                Some((nombre, apellidos)) => format!("{apellidos}, {nombre}"),
+                None => n.clone(),
+            })
+            .collect()
+    } else {
+        clase.clone()
+    };
 
     let mut whisper: Option<Whisper> = None;
     let mut totales = Cuenta::default();
@@ -70,7 +86,7 @@ fn main() {
             let Some(f) = frases.iter().find(|f| f.n == g.n) else {
                 continue;
             };
-            let entendido = entender(&g.oido.texto, &clase);
+            let entendido = entender(&g.oido.texto, &para_entender);
             let veredicto = cuenta.apuntar(&entendido, &clase, &f.alumno, f.nota);
             writeln!(detalle, "\n{:02} · {}  →  {} · {}", f.n, f.frase, f.alumno, f.nota).unwrap();
             writeln!(detalle, "     oído: {}", con_confianza(&g.oido)).unwrap();
@@ -84,7 +100,7 @@ fn main() {
         writeln!(tabla, "\nLo que dejó H3a, por motor:").unwrap();
         for carpeta in &carpetas {
             for sub in ["resultados", "resultados/experimentos"] {
-                otros_motores(&carpeta.join(sub), &frases, &clase, &mut tabla, &mut detalle);
+                otros_motores(&carpeta.join(sub), &frases, &clase, &para_entender, &mut tabla, &mut detalle);
             }
         }
     }
@@ -107,7 +123,14 @@ struct Transcrita {
 }
 
 /// Entiende los `*.json` de resultados de `probar_voz` y de los scripts.
-fn otros_motores(dir: &Path, frases: &[corpus::Frase], clase: &[String], tabla: &mut String, detalle: &mut String) {
+fn otros_motores(
+    dir: &Path,
+    frases: &[corpus::Frase],
+    clase: &[String],
+    para_entender: &[String],
+    tabla: &mut String,
+    detalle: &mut String,
+) {
     let Ok(entradas) = std::fs::read_dir(dir) else {
         return;
     };
@@ -128,7 +151,7 @@ fn otros_motores(dir: &Path, frases: &[corpus::Frase], clase: &[String], tabla: 
             let Some(f) = frases.iter().find(|f| f.n == t.n) else {
                 continue;
             };
-            let entendido = entender(&t.texto, clase);
+            let entendido = entender(&t.texto, para_entender);
             if cuenta.apuntar(&entendido, clase, &f.alumno, f.nota) == "MAL EN SILENCIO" {
                 let que = describir(&entendido, clase);
                 writeln!(

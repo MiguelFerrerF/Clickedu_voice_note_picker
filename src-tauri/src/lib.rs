@@ -37,8 +37,10 @@ pub fn run() {
             commands::clases::restablecer_carpeta_plantillas,
             commands::clases::abrir_carpeta_plantillas,
             commands::notas::poner_nota,
+            commands::notas::devolver_nota,
             commands::notas::exportar_clase,
             commands::notas::abrir_carpeta_notas,
+            commands::voz::entender_frase,
         ])
         .setup(|app| {
             // Vigilar la carpeta desde el arranque. Si los ajustes no se

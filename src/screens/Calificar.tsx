@@ -12,23 +12,31 @@
  *   Notas\notas`. Si hay algo que no es nota, no se exporta y se dice dónde.
  *   Lo que sale bien se dice en verde, que se apaga solo (D6).
  *
+ * - **El dictado** (H3b): lo dicho se entiende en el backend
+ *   (`entender_frase`). Si está seguro, se apunta, en verde y con
+ *   «Deshacer»; si duda, se pregunta en el panel y en las filas, y no se
+ *   apunta nada hasta que eliges. El push-to-talk de H3a mandará aquí lo
+ *   que oiga; hasta entonces, en desarrollo, se escribe la frase.
+ *
  * La clase elegida vive en `App` (la eligen también desde Clases). Si no hay
  * ninguna elegida, o la elegida ya no está en la carpeta, se enseña la
  * primera de la lista.
  */
 
 import {invoke} from '@tauri-apps/api/core';
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 import {Avisos} from '@components/clases/Avisos';
 import {Cuadricula} from '@components/clases/Cuadricula';
 import {SinPlantillas} from '@components/clases/SinPlantillas';
+import {PanelDictado} from '@components/dictado/PanelDictado';
 import {Cabecera} from '@components/layout/Cabecera';
 import {Button} from '@components/ui/Button';
 import {Dropdown} from '@components/ui/Dropdown';
 import {Icon, ICONOS} from '@components/ui/Icon';
 import {alumnosEnPalabras} from '@modules/clases/avisos';
 import type {ClaseAbierta, Exportado} from '@modules/clases/tipos';
+import type {Dictado, UltimoDictado} from '@modules/dictado/tipos';
 import {useClases} from '@modules/clases/useClases';
 import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
@@ -43,7 +51,7 @@ export interface CalificarProps {
 /** Lo último que ha pasado al exportar o guardar, para decirlo. */
 type Resultado = {tipo: 'exportado'; exportado: Exportado} | {tipo: 'fallo'; texto: string};
 
-/** Lo que tarda en apagarse el verde de «exportado» (D6). */
+/** Lo que tarda en apagarse el verde de «exportado» y de lo dictado (D6). */
 const APAGAR_MS = 6000;
 
 export function Calificar({clase, setClase, irAAjustes}: CalificarProps) {
@@ -79,6 +87,14 @@ export function Calificar({clase, setClase, irAAjustes}: CalificarProps) {
     return () => clearTimeout(apagar);
   }, [resultado]);
 
+  // El dictado: lo último que ha pasado, las notas dictadas que siguen en
+  // verde (`fichero|clave` → la vez que se encendieron) y la fila que hay
+  // que traer a la vista.
+  const [ultimo, setUltimo] = useState<UltimoDictado>();
+  const [encendidas, setEncendidas] = useState<Record<string, number>>({});
+  const [ver, setVer] = useState<{clave: string; vez: number}>();
+  const veces = useRef(0);
+
   const contenedor = (hijos: React.ReactNode) => <div style={{padding: '28px 32px', maxWidth: 1040}}>{hijos}</div>;
 
   if (!lista) {
@@ -106,6 +122,19 @@ export function Calificar({clase, setClase, irAAjustes}: CalificarProps) {
   const notas = alumnos.map((a) => notaDe(a, puestas));
   const calificados = notas.filter((n) => n.tipo === 'valor').length;
 
+  const ultimoAqui = ultimo?.fichero === fichero ? ultimo : undefined;
+  const dictadoAqui = ultimoAqui?.dictado;
+  const propuestas =
+    dictadoAqui?.tipo === 'duda' && !ultimoAqui?.apuntada
+      ? Object.fromEntries(dictadoAqui.claves.map((c) => [c, dictadoAqui.notas]))
+      : undefined;
+  const prefijo = `${fichero}|`; // `|` no puede ir en un nombre de fichero
+  const dictadas = new Set(
+    Object.keys(encendidas)
+      .filter((k) => k.startsWith(prefijo))
+      .map((k) => k.slice(prefijo.length)),
+  );
+
   function poner(clave: string, nota: number | null) {
     setResultado(undefined);
     setAbierta((a) =>
@@ -116,6 +145,79 @@ export function Calificar({clase, setClase, irAAjustes}: CalificarProps) {
       setReleer((r) => r + 1);
     });
   }
+
+  /** La nota a mano, desde la cuadrícula: si era la recién dictada, ya no se deshace ni va en verde. */
+  function ponerAMano(clave: string, nota: number | null) {
+    if (ultimoAqui?.apuntada?.clave === clave) setUltimo(undefined);
+    apagar(clave);
+    poner(clave, nota);
+  }
+
+  /** Vuelve a la nota de la plantilla: olvida lo puesto en la sesión. */
+  function devolver(clave: string) {
+    setAbierta((a) => {
+      if (a?.fichero !== fichero || !a.clase) return a;
+      const {[clave]: _, ...puestas} = a.clase.puestas;
+      return {...a, clase: {...a.clase, puestas}};
+    });
+    invoke('devolver_nota', {fichero, clave}).catch((e) => {
+      setResultado({tipo: 'fallo', texto: t('calificar.no_se_guarda', {error: String(e)})});
+      setReleer((r) => r + 1);
+    });
+  }
+
+  function encender(clave: string) {
+    const k = `${fichero}|${clave}`;
+    const vez = ++veces.current;
+    setEncendidas((e) => ({...e, [k]: vez}));
+    setTimeout(() => setEncendidas((e) => (e[k] === vez ? sin(e, k) : e)), APAGAR_MS);
+  }
+
+  function apagar(clave: string) {
+    const k = `${fichero}|${clave}`;
+    setEncendidas((e) => (k in e ? sin(e, k) : e));
+  }
+
+  function traerAVista(clave: string) {
+    setVer({clave, vez: ++veces.current});
+  }
+
+  /** Apunta lo dictado, guardando la nota de antes para poder deshacerlo. */
+  function apuntar(clave: string, nota: number, dictado: Dictado) {
+    const antes = clave in puestas ? puestas[clave] : undefined;
+    poner(clave, nota);
+    setUltimo({fichero, dictado, apuntada: {clave, nota, antes}});
+    encender(clave);
+    traerAVista(clave);
+  }
+
+  function alDictar(d: Dictado) {
+    if (d.tipo === 'seguro') return apuntar(d.clave, d.nota, d);
+    setUltimo({fichero, dictado: d});
+    if (d.tipo === 'duda') traerAVista(d.claves[0]);
+  }
+
+  function deshacer() {
+    const a = ultimoAqui?.apuntada;
+    if (!a) return;
+    if (a.antes === undefined) devolver(a.clave);
+    else poner(a.clave, a.antes);
+    apagar(a.clave);
+    setUltimo(undefined);
+    traerAVista(a.clave);
+  }
+
+  function probar(texto: string) {
+    invoke<Dictado>('entender_frase', {fichero, texto}).then(alDictar, (e) =>
+      setResultado({tipo: 'fallo', texto: t('dictado.fallo', {error: String(e)})}),
+    );
+  }
+
+  const nombreDe = (clave: string) => {
+    const a = alumnos.find((x) => x.clave === clave);
+    if (!a) return clave;
+    return a.nombre.trim() ? a.nombre : t('cuadricula.sin_nombre', {id: a.id});
+  };
 
   function exportar() {
     const invalidas = alumnos
@@ -194,12 +296,35 @@ export function Calificar({clase, setClase, irAAjustes}: CalificarProps) {
       {abiertaAhora && (
         <>
           <Avisos avisos={abiertaAhora.plantilla.avisos} />
-          <Cuadricula alumnos={alumnos} puestas={puestas} poner={poner} />
+          <PanelDictado
+            ultimo={ultimoAqui}
+            encendido={ultimoAqui?.apuntada ? dictadas.has(ultimoAqui.apuntada.clave) : false}
+            nombreDe={nombreDe}
+            elegir={(clave, nota) => dictadoAqui && apuntar(clave, nota, dictadoAqui)}
+            descartar={() => setUltimo(undefined)}
+            deshacer={deshacer}
+            probar={import.meta.env.DEV ? probar : undefined}
+          />
+          <Cuadricula
+            alumnos={alumnos}
+            puestas={puestas}
+            poner={ponerAMano}
+            dictadas={dictadas}
+            propuestas={propuestas}
+            elegir={(clave, nota) => dictadoAqui && apuntar(clave, nota, dictadoAqui)}
+            ver={ver}
+          />
           <p style={{margin: '10px 0 0', fontSize: 12, color: 'var(--text-tertiary)'}}>{t('cuadricula.ayuda')}</p>
         </>
       )}
     </>,
   );
+}
+
+/** `e` sin la clave `k`. */
+function sin<T>(e: Record<string, T>, k: string): Record<string, T> {
+  const {[k]: _, ...resto} = e;
+  return resto;
 }
 
 /** Un error de verdad: en rojo (D6). */

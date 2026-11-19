@@ -23,6 +23,7 @@ import {Progreso} from '@components/ui/Progreso';
 import {Select} from '@components/ui/Select';
 import {NumInput, TextInput} from '@components/ui/TextInput';
 import {t} from '@modules/i18n';
+import styles from '@styles/cuadricula.module.css';
 import {useIdioma} from '@modules/i18n/useIdioma';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -36,10 +37,7 @@ export function Muestrario() {
 
   return (
     <div style={{padding: '28px 32px', maxWidth: 1040}}>
-      <Cabecera
-        titulo={t('muestrario.titulo')}
-        intro={t('muestrario.subtitulo')}
-      />
+      <Cabecera titulo={t('muestrario.titulo')} intro={t('muestrario.subtitulo')} />
 
       <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>
         <Card title={t('muestrario.cuadricula')} subtitle={t('muestrario.cuadricula_sub')}>
@@ -216,7 +214,7 @@ const FILAS: {n: number; alumno: string; nota: string; estado: EstadoNota}[] = [
   {n: 2, alumno: 'Martínez Ruiz, Hugo', nota: '8.7', estado: 'nota'},
   {n: 3, alumno: 'Ramos Ortega, Martina', nota: '3.4', estado: 'suspenso'},
   {n: 4, alumno: 'Navarro Gil, Mateo', nota: '7.5', estado: 'dictada'},
-  {n: 5, alumno: 'Pérez Gómez, Irene', nota: '6.8', estado: 'dudosa'},
+  {n: 5, alumno: 'Pérez Gómez, Irene', nota: '', estado: 'dudosa'},
   {n: 6, alumno: 'Ionescu, Ștefan', nota: '12', estado: 'invalida'},
 ];
 
@@ -292,11 +290,8 @@ function CeldaNota({nota, estado}: {nota: string; estado: EstadoNota}) {
       color: 'var(--success)',
       fontWeight: 600,
     },
-    dudosa: {
-      border: '1px dashed var(--accent)',
-      background: 'var(--accent-wash)',
-      color: 'var(--accent-ink)',
-    },
+    // Su nota no cambia hasta que se elige: lo propuesto va al lado (H3b).
+    dudosa: {color: 'var(--text-tertiary)'},
     invalida: {
       borderColor: 'var(--danger)',
       color: 'var(--danger)',
@@ -311,28 +306,14 @@ function CeldaNota({nota, estado}: {nota: string; estado: EstadoNota}) {
   );
 }
 
+/** Lo que propone un dictado dudoso, como en la cuadrícula de Calificar. */
 function Confirmar() {
-  const boton: React.CSSProperties = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    border: '1px solid var(--border-strong)',
-    background: 'var(--bg-sunk)',
-    color: 'var(--text-secondary)',
-    cursor: 'pointer',
-  };
   return (
-    <span style={{display: 'inline-flex', alignItems: 'center', gap: 6}}>
-      <span style={{color: 'var(--accent-ink)'}}>{t('muestrario.dudosa_confirmar')}</span>
-      <button type="button" style={{...boton, color: 'var(--accent-ink)'}} aria-label={t('comun.si')}>
-        <Icon d={ICONOS.comprobado} size={13} />
+    <span style={{display: 'inline-flex', alignItems: 'center', gap: 8}}>
+      <button type="button" className={styles.propuesta}>
+        {t('cuadricula.propuesta', {nota: '6.8'})}
       </button>
-      <button type="button" style={boton} aria-label={t('comun.no')}>
-        <Icon d={ICONOS.cerrar} size={13} />
-      </button>
+      {t('muestrario.estado_dudosa')}
     </span>
   );
 }

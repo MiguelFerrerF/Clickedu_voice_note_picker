@@ -30,8 +30,6 @@ const es = {
   // ── Común ──
   'comun.version': 'Versión {version}',
   'comun.llega_en': 'Llega en {hito}',
-  'comun.si': 'Sí',
-  'comun.no': 'No',
   'lista.y': '{primeros} y {ultimo}',
   'lista.y_mas': '{primeros}, {ultimo} y {mas} más',
 
@@ -64,7 +62,31 @@ const es = {
   'cuadricula.mal_no_es_numero': 'No es un número',
   'cuadricula.mal_fuera_de_rango': 'Ha de ir de 0 a 10',
   'cuadricula.mal_decimales': 'Dos decimales como mucho',
+  'cuadricula.propuesta': '¿{nota}?',
+  'cuadricula.apuntar_propuesta': 'Apuntar un {nota} a {nombre}',
   'cuadricula.ayuda': 'Con coma o con punto. Enter o ↓ guarda y pasa al siguiente, ↑ al anterior, Esc deshace. Cada nota se guarda al momento.',
+
+  // ── El dictado (H3b) ──
+  'dictado.oido': 'Se ha oído «{oido}».',
+  'dictado.apuntada': 'Apuntado un {nota} a {alumno}.',
+  'dictado.deshacer': 'Deshacer',
+  'dictado.descartar': 'Descartar',
+  'dictado.cerrar': 'Cerrar',
+  'dictado.duda_quien': '¿Para quién es el {nota}?',
+  'dictado.duda_nota': '¿Qué nota le pongo a {alumno}?',
+  'dictado.duda_quien_y_nota': '¿Para quién es, y qué nota?',
+  'dictado.duda_si': '¿Le pongo un {nota} a {alumno}?',
+  'dictado.motivo_nombre_poco_claro': 'El nombre no se ha oído claro.',
+  'dictado.motivo_nombre_parecido': 'Hay dos alumnos que se llaman casi igual: con el segundo apellido no te lo pregunta.',
+  'dictado.motivo_nota_reinterpretada': 'La nota se ha oído de una forma que se puede leer de dos maneras.',
+  'dictado.motivo_varias_notas': 'Se ha oído más de una nota.',
+  'dictado.motivo_numero_de_mas': 'Además de la nota se ha oído otro número.',
+  'dictado.no_entendido_sin_nota': 'No se ha apuntado nada: no se ha oído ninguna nota de 0 a 10.',
+  'dictado.no_entendido_sin_nombre': 'No se ha apuntado nada: se ha oído la nota, pero no para quién.',
+  'dictado.no_entendido_nombre_desconocido': 'No se ha apuntado nada: el nombre no se parece a nadie de esta clase.',
+  'dictado.fallo': 'No se ha podido entender lo dictado: {error}',
+  'dictado.probar': 'Probar el dictado (solo en desarrollo)',
+  'dictado.probar_ejemplo': 'Escribe lo que dirías y pulsa Enter',
 
   // ── Avisos de una plantilla ──
   'avisos.titulo': 'Al leer la plantilla',
@@ -137,9 +159,8 @@ const es = {
   'muestrario.estado_nota': 'Nota puesta: texto normal',
   'muestrario.estado_suspenso': 'Suspenso: también normal, no es un error',
   'muestrario.estado_dictada': 'Recién dictada: verde, se apaga sola',
-  'muestrario.estado_dudosa': 'Dictado dudoso: discontinuo, espera que confirmes',
+  'muestrario.estado_dudosa': 'Dictado dudoso: discontinuo, espera que elijas',
   'muestrario.estado_invalida': 'Valor que no es nota: rojo',
-  'muestrario.dudosa_confirmar': '¿Pérez Gómez, Irene?',
 } as const;
 
 export type TranslationKey = keyof typeof es;

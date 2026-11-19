@@ -39,9 +39,9 @@ pub fn emparejar<S: AsRef<str>>(oido: &[&str], clase: &[S]) -> Vec<Parecido> {
         .iter()
         .enumerate()
         .map(|(i, nombre)| {
-            let palabras: Vec<String> =
-                nombre.as_ref().split_whitespace().map(fonetica).filter(|p| !p.is_empty()).collect();
-            let (parecido, distancia) = formas(&palabras)
+            let (parecido, distancia) = ordenes(nombre.as_ref())
+                .iter()
+                .flat_map(|palabras| formas(palabras))
                 .map(|f| parecido(&oido, &f))
                 .max_by(|a, b| a.0.total_cmp(&b.0).then(b.1.cmp(&a.1)))
                 .unwrap_or((0.0, usize::MAX));
@@ -50,6 +50,20 @@ pub fn emparejar<S: AsRef<str>>(oido: &[&str], clase: &[S]) -> Vec<Parecido> {
         .collect();
     lista.sort_by(|a, b| b.parecido.total_cmp(&a.parecido));
     lista
+}
+
+/// Las palabras del nombre, ya en [`fonetica`], en cada orden en que se
+/// puede decir. Clickedu da los nombres como «Apellidos, Nombre» (las siete
+/// plantillas reales, todos), y se dicen «Nombre Apellidos»… o como en la
+/// lista. Sin coma, tal cual.
+fn ordenes(nombre: &str) -> Vec<Vec<String>> {
+    let palabras = |s: &str| s.split_whitespace().map(fonetica).filter(|p| !p.is_empty()).collect::<Vec<_>>();
+    match nombre.split_once(',') {
+        Some((apellidos, nombre)) => {
+            vec![palabras(&format!("{nombre} {apellidos}")), palabras(&format!("{apellidos} {nombre}"))]
+        }
+        None => vec![palabras(nombre)],
+    }
 }
 
 /// Cada forma de decir un nombre: las subsecuencias de sus palabras, en
@@ -226,6 +240,26 @@ mod tests {
         let clase = ["Mohamed El Amrani", "Iker Etxeberria Zubiri"];
         assert!(emparejar(&["el"], &clase)[0].parecido < 0.5);
         assert_eq!(emparejar(&["el", "amrani"], &clase)[0].parecido, 1.0);
+    }
+
+    #[test]
+    fn el_nombre_como_lo_da_clickedu() {
+        // «Apellidos, Nombre», como en las plantillas reales: se dice al revés.
+        let clase: Vec<String> = CLASE
+            .iter()
+            .map(|n| {
+                let (nombre, apellidos) = n.split_once(' ').unwrap();
+                format!("{apellidos}, {nombre}")
+            })
+            .collect();
+        for oido in ["lucia martin", "noria villa sk", "eche verria", "pablo garcia navarro", "weicheng"] {
+            let palabras: Vec<&str> = oido.split_whitespace().collect();
+            let (con_coma, sin_coma) = (emparejar(&palabras, &clase), emparejar(&palabras, CLASE));
+            assert_eq!(con_coma[0].alumno, sin_coma[0].alumno, "{oido}");
+            assert_eq!(con_coma[0].parecido, sin_coma[0].parecido, "{oido}");
+        }
+        // Y como en la lista, también.
+        assert_eq!(emparejar(&["martin", "ortega", "lucia"], &clase)[0].parecido, 1.0);
     }
 
     #[test]
