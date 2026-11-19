@@ -26,8 +26,12 @@ export interface DropdownProps {
   value: string | number;
   options: readonly DropdownOption[];
   onChange: (value: string) => void;
-  /** 'md' (por defecto) casa con los campos; 'sm' es para filas densas. */
-  size?: 'sm' | 'md';
+  /**
+   * 'md' (por defecto) casa con los campos; 'sm' es para filas densas;
+   * 'titulo' es el título de la pantalla (HUI): sin caja, con la letra de la
+   * `Cabecera`, para que lo que se elige no salga dos veces.
+   */
+  size?: 'sm' | 'md' | 'titulo';
   mono?: boolean;
   disabled?: boolean;
   title?: string;
@@ -72,6 +76,7 @@ export function Dropdown({
   const opts = options.map(norm);
   const actual = opts.find((o) => o.value === String(value));
   const sm = size === 'sm';
+  const titulo = size === 'titulo';
   const fontFamily = mono ? 'var(--font-mono)' : 'var(--font-body)';
 
   /**
@@ -138,7 +143,29 @@ export function Dropdown({
     setAbierto(true);
   };
 
-  const estiloDisparador: CSSProperties = {
+  // El título: el texto donde estaría sin botón (el margen negativo
+  // compensa el relleno). El fondo al pasar, que dice que se pulsa, y el
+  // foco, en `.titulo-desplegable` de `globals.css`.
+  const estiloTitulo: CSSProperties = {
+    maxWidth: 'calc(100% + 10px)',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 8,
+    margin: '-3px -10px',
+    padding: '3px 10px',
+    fontFamily: 'var(--font-display)',
+    fontSize: 22,
+    fontWeight: 600,
+    letterSpacing: '-0.015em',
+    background: abierto ? 'var(--bg-hover)' : undefined,
+    color: 'var(--text-primary)',
+    border: 'none',
+    borderRadius: 7,
+    cursor: disabled ? 'default' : 'pointer',
+    opacity: disabled ? 0.6 : 1,
+  };
+
+  const estiloDisparador: CSSProperties = titulo ? estiloTitulo : {
     width: '100%',
     display: 'flex',
     alignItems: 'center',
@@ -166,6 +193,9 @@ export function Dropdown({
         onClick={alternar}
         title={title}
         disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={abierto}
+        className={titulo ? 'titulo-desplegable' : undefined}
         style={estiloDisparador}>
         <span
           style={{
@@ -179,12 +209,12 @@ export function Dropdown({
         <span
           style={{
             flexShrink: 0,
-            color: 'var(--text-tertiary)',
+            color: titulo ? 'var(--text-secondary)' : 'var(--text-tertiary)',
             display: 'flex',
             transform: abierto ? 'rotate(180deg)' : 'none',
             transition: 'transform .15s',
           }}>
-          <Icon d={ICONOS.galonAbajo} size={sm ? 10 : 12} />
+          <Icon d={ICONOS.galonAbajo} size={sm ? 10 : titulo ? 16 : 12} />
         </span>
       </button>
       {abierto &&

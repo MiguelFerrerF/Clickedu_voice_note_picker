@@ -8,7 +8,8 @@
  */
 
 export interface CabeceraProps {
-  titulo: string;
+  /** Un texto o, si en la pantalla se elige qué se ve, un `Dropdown` con size="titulo". */
+  titulo: React.ReactNode;
   intro?: React.ReactNode;
   derecha?: React.ReactNode;
 }
@@ -23,7 +24,9 @@ export function Cabecera({titulo, intro, derecha}: CabeceraProps) {
         gap: 24,
         marginBottom: 20,
       }}>
-      <div style={{minWidth: 0}}>
+      {/* Ocupa lo que deja `derecha`: un título que es un desplegable se
+          corta con «…» solo cuando de verdad no cabe. */}
+      <div style={{flex: 1, minWidth: 0}}>
         <h1
           style={{
             margin: 0,

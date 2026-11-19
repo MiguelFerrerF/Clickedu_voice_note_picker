@@ -112,6 +112,15 @@ Para ver la clase entera sin bajar ni usar el ratón:
 A 1280×800, una clase de 26 se ve entera con los avisos de la plantilla
 encima.
 
+### La cabecera de Calificar (HUI, bloque C)
+
+- **El título es el desplegable de la clase** (2026-11-19): el nombre ya
+  no sale dos veces. Es el `Dropdown` con `size="titulo"`: la letra de la
+  `Cabecera` (22 px, semibold), sin caja ni borde, con el galón en
+  `--text-secondary`; al pasar o con la lista abierta, fondo
+  `--bg-hover`, que es lo que dice que se pulsa, y el foco con el anillo
+  de `--accent` (`.titulo-desplegable`). Debajo, el fichero en mono.
+
 ### Lo apuntado por voz, en el panel del dictado (2026-11-19)
 
 Es lo que se lee de un vistazo mientras se dicta, así que va grande: la

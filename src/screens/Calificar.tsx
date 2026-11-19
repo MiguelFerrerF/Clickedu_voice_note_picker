@@ -315,27 +315,25 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
   return contenedor(
     <>
       <Cabecera
-        titulo={actual.nombre}
+        titulo={
+          <Dropdown
+            size="titulo"
+            value={fichero}
+            onChange={setClase}
+            title={t('calificar.elegir_clase')}
+            options={clases.map((c) => ({value: c.fichero, label: c.nombre}))}
+          />
+        }
         intro={<span style={{fontFamily: 'var(--font-mono)', fontSize: 12}}>{fichero}</span>}
         derecha={
-          <div style={{display: 'flex', gap: 8, alignItems: 'center'}}>
-            <div style={{width: 260}}>
-              <Dropdown
-                value={fichero}
-                onChange={setClase}
-                title={t('calificar.elegir_clase')}
-                options={clases.map((c) => ({value: c.fichero, label: c.nombre}))}
-              />
-            </div>
-            <Button
-              variant="primary"
-              onClick={exportar}
-              disabled={!abiertaAhora || exportando}
-              title={t('exportar.ayuda')}>
-              <Icon d={ICONOS.exportar} size={14} />
-              {t('exportar.boton')}
-            </Button>
-          </div>
+          <Button
+            variant="primary"
+            onClick={exportar}
+            disabled={!abiertaAhora || exportando}
+            title={t('exportar.ayuda')}>
+            <Icon d={ICONOS.exportar} size={14} />
+            {t('exportar.boton')}
+          </Button>
         }
       />
       {errorClase && <Fallo texto={t('calificar.no_se_lee', {error: errorClase})} />}

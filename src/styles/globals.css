@@ -180,3 +180,11 @@ textarea:focus {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
+
+/* ── El título que es un desplegable (`Dropdown` con size="titulo") ── */
+.titulo-desplegable { background: transparent; }
+.titulo-desplegable:hover:not(:disabled) { background: var(--bg-hover); }
+.titulo-desplegable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
+}

@@ -20,8 +20,9 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > dudas con 1–4/Esc, el medidor de volumen, el micrófono elegido en
 > Ajustes) y **el bloque B** (encima de la tabla, el avance, «Siguiente sin
 > nota» y un ⓘ con las teclas; Supr borra la nota), con la prueba de diseño
-> y **probados a mano** (2026-11-19). **Siguiente: el bloque C** (la
-> cabecera de Calificar). Después, **H4**: conectar con Clickedu (login,
+> y **probados a mano** (2026-11-19). **Ahora: el bloque C** (la
+> cabecera de Calificar): hecho el 10 (el título es el desplegable);
+> siguen el 11 y el 12. Después, **H4**: conectar con Clickedu (login,
 > `keyring` por D3, la capa resistente). El audio **no se
 > guarda** (D8); lo dictado se mide en local con `cargo run --example
 > medir_registro` (solo cuenta, sin nombres). El campo «Probar el dictado»

@@ -612,8 +612,10 @@ Ninguna rompe D5/D6 ni añade tokens.
 
 **C · La cabecera de Calificar**
 
-- [ ] 10. **El título es el desplegable**: ahora el nombre de la clase sale
-      dos veces (título y desplegable).
+- [x] 10. **El título es el desplegable**: ahora el nombre de la clase sale
+      dos veces (título y desplegable). Hecho (2026-11-19): `Dropdown`
+      con `size="titulo"`, sin caja y con la letra de la `Cabecera`; se
+      corta con «…» solo si no cabe.
 - [ ] 11. **«Exportar» principal solo si hay algo que exportar**; antes, gris.
 - [ ] 12. **Los avisos de la plantilla, plegados** en una línea («● 3 avisos
       al leer la plantilla ›») que se abre al pulsarla.
