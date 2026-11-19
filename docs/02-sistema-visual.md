@@ -87,6 +87,23 @@ library-app, aplicada a las notas:
 «provisional, falta que una persona lo confirme», y **nada más lo usa**. Por
 eso las pantallas vacías de H0 llevan borde continuo.
 
+### La cuadrícula de alumnos, compacta (2026-11-19)
+
+Para ver la clase entera sin bajar ni usar el ratón:
+
+- **Dos columnas** desde 760 px de ancho de la cuadrícula (a 1100 ya
+  caben), en el orden de la lista: la primera mitad a la izquierda. Enter y
+  ↓ siguen al siguiente, también de una columna a otra. Con menos ancho,
+  una.
+- **Filas de 32 px** (`--row-h` es 36) y el campo de nota de 26. La letra
+  no cambia: 13 px el nombre, mono la nota.
+- **Sin nota, sin caja**: solo el `—` gris. La caja vuelve al pasar por la
+  fila (que se oscurece a `--bg-sunk`) o al escribir. Con 30 cajas vacías,
+  la lista era ruido.
+
+A 1280×800, una clase de 26 se ve entera con los avisos de la plantilla
+encima.
+
 ## 4. Lo que queda por decidir
 
 No bloquea H1. Se resuelve cuando la pantalla exista:

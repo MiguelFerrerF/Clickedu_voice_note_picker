@@ -1,8 +1,8 @@
 /*
  * El campo de nota de la cuadrícula (H2). Es el de `inputs.module.css` en
- * pequeño: 28 px de alto, cifras en mono y a la derecha, como la maqueta del
- * Muestrario. Va en su módulo porque el foco y el hover no caben en un
- * `style`.
+ * pequeño: 26 px de alto (con las filas de 32), cifras en mono y a la
+ * derecha, como la maqueta del Muestrario. Va en su módulo porque el foco y
+ * el hover no caben en un `style`.
  *
  * Regla de color (D6): sin nota en gris (el «—» del placeholder), una nota es
  * texto normal —también un suspenso— y solo lo que no es nota va en rojo.
@@ -10,10 +10,20 @@
  * dictado dudoso propone, con borde discontinuo junto al nombre (H3b).
  */
 
+/* La fila: al pasar por encima, el fondo hundido guía la vista del nombre a
+   la nota, y aparece la caja de la nota si no la tiene. */
+.fila {
+  transition: background-color 120ms;
+}
+
+.fila:hover {
+  background: var(--bg-sunk);
+}
+
 .nota {
   width: 100%;
   min-width: 0;
-  height: 28px;
+  height: 26px;
   padding: 0 8px;
   border-radius: 6px;
   border: 1px solid var(--border-strong);
@@ -28,6 +38,18 @@
 
 .nota::placeholder {
   color: var(--text-tertiary);
+}
+
+/* Sin nota, sin caja: solo el «—» gris. Con 30 cajas vacías la lista era
+   ruido; la caja vuelve al pasar por la fila o al escribir. */
+.nota:placeholder-shown:not(:focus) {
+  border-color: transparent;
+  background: transparent;
+}
+
+.fila:hover .nota:placeholder-shown:not(:focus) {
+  border-color: var(--border-strong);
+  background: var(--bg-card);
 }
 
 .nota:hover {
@@ -61,7 +83,7 @@
 .microfono {
   position: absolute;
   left: 8px;
-  top: 8px;
+  top: 7px;
   color: var(--success);
   pointer-events: none;
   transition: opacity 600ms;

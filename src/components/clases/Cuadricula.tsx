@@ -18,7 +18,7 @@
  * guardada vive en Calificar, que es quien la manda al backend.
  */
 
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import {ALTO_PANEL} from '@components/dictado/PanelDictado';
 import {Icon, ICONOS} from '@components/ui/Icon';
@@ -27,7 +27,17 @@ import {t} from '@modules/i18n';
 import {leerEscrita, notaComoTexto, notaDe, type MotivoMal} from '@modules/notas/nota';
 import styles from '@styles/cuadricula.module.css';
 
-const COLUMNAS = '52px minmax(200px, 1fr) 96px';
+const COLUMNAS = '36px minmax(0, 1fr) 84px';
+
+/**
+ * Desde este ancho, los alumnos van en **dos columnas** (1 a la mitad a la
+ * izquierda, el resto a la derecha): a 1280×800 se ve una clase de 30
+ * entera sin bajar. Con menos, una sola.
+ */
+const ANCHO_DOS_COLUMNAS = 760;
+
+/** Algo más baja que `--row-h` (36): caben más alumnos sin tocar la letra. */
+const ALTO_FILA = 32;
 
 export interface CuadriculaProps {
   alumnos: Alumno[];
@@ -59,99 +69,141 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
     campo.select();
   };
 
+  // Una o dos columnas, según el ancho. Pantalla sin visitar (`display:
+  // none`): mide 0, una; al enseñarla, el observador vuelve a medir.
+  const caja = useRef<HTMLDivElement>(null);
+  const [columnas, setColumnas] = useState(1);
+  useLayoutEffect(() => {
+    const el = caja.current;
+    if (!el) return;
+    const medir = () => setColumnas(el.clientWidth >= ANCHO_DOS_COLUMNAS ? 2 : 1);
+    medir();
+    const observador = new ResizeObserver(medir);
+    observador.observe(el);
+    return () => observador.disconnect();
+  }, []);
+  // Por columnas, en el orden de la lista: Enter y ↓ siguen al siguiente.
+  const porColumna = Math.max(1, Math.ceil(alumnos.length / columnas));
+  const grupos = Array.from({length: columnas}, (_, k) => k * porColumna).filter(
+    (desde) => desde < alumnos.length || desde === 0,
+  );
+
   return (
-    <div style={{border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', background: 'var(--bg-card)'}}>
+    <div
+      ref={caja}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${grupos.length}, minmax(0, 1fr))`,
+        border: '1px solid var(--border)',
+        borderRadius: 8,
+        overflow: 'hidden',
+        background: 'var(--bg-card)',
+      }}>
+      {grupos.map((desde, k) => (
+        <div key={desde} role="rowgroup" style={{minWidth: 0, borderLeft: k > 0 ? '1px solid var(--border)' : 'none'}}>
+          <Encabezado />
+          {alumnos.slice(desde, desde + porColumna).map((a, j, grupo) => fila(a, desde + j, j === grupo.length - 1))}
+        </div>
+      ))}
+    </div>
+  );
+
+  function fila(a: Alumno, i: number, ultima: boolean) {
+    const nombre = a.nombre.trim() ? a.nombre : t('cuadricula.sin_nombre', {id: a.id});
+    const motivo = motivos[a.fila];
+    const propuesta = propuestas?.[a.clave];
+    return (
       <div
+        key={a.fila}
+        ref={(el) => {
+          filas.current[a.clave] = el;
+        }}
         role="row"
+        className={styles.fila}
         style={{
+          // Que al traerla a la vista no quede debajo del panel del dictado.
+          scrollMarginTop: `calc(var(${ALTO_PANEL}, 0px) + 8px)`,
+          scrollMarginBottom: 24,
           display: 'grid',
           gridTemplateColumns: COLUMNAS,
           alignItems: 'center',
-          height: 32,
-          padding: '0 var(--row-pad)',
-          background: 'var(--bg-sunk)',
-          borderBottom: '1px solid var(--border)',
-          fontSize: 10.5,
-          fontWeight: 600,
-          letterSpacing: 0.8,
-          textTransform: 'uppercase',
-          color: 'var(--text-tertiary)',
+          minHeight: ALTO_FILA,
+          padding: '2px var(--row-pad)',
+          borderBottom: ultima ? 'none' : '1px solid var(--border)',
         }}>
-        <span>{t('cuadricula.n')}</span>
-        <span>{t('cuadricula.alumno')}</span>
-        <span style={{textAlign: 'right', paddingRight: 8}}>{t('cuadricula.nota')}</span>
-      </div>
-      {alumnos.map((a, i) => {
-        const nombre = a.nombre.trim() ? a.nombre : t('cuadricula.sin_nombre', {id: a.id});
-        const motivo = motivos[a.fila];
-        const propuesta = propuestas?.[a.clave];
-        return (
-          <div
-            key={a.fila}
-            ref={(el) => {
-              filas.current[a.clave] = el;
-            }}
-            role="row"
+        <span style={{fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-tertiary)'}}>{i + 1}</span>
+        <span style={{display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0, paddingRight: 12}}>
+          <span
             style={{
-              // Que al traerla a la vista no quede debajo del panel del dictado.
-              scrollMarginTop: `calc(var(${ALTO_PANEL}, 0px) + 8px)`,
-              scrollMarginBottom: 24,
-              display: 'grid',
-              gridTemplateColumns: COLUMNAS,
-              alignItems: 'center',
-              minHeight: 'var(--row-h)',
-              padding: '4px var(--row-pad)',
-              borderBottom: i < alumnos.length - 1 ? '1px solid var(--border)' : 'none',
-            }}>
-            <span style={{fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-tertiary)'}}>{i + 1}</span>
-            <span style={{display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0, paddingRight: 12}}>
-              <span
-                style={{
-                  fontSize: 13,
-                  color: a.nombre.trim() ? 'var(--text-primary)' : 'var(--text-tertiary)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  minWidth: 0,
-                }}
-                title={a.nombre.trim() || undefined}>
-                {nombre}
-              </span>
-              {(motivo || propuesta) && (
-                <span style={{marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0}}>
-                  {propuesta?.map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      className={styles.propuesta}
-                      onClick={() => elegir?.(a.clave, n)}
-                      title={t('cuadricula.apuntar_propuesta', {nota: String(n), nombre})}>
-                      {t('cuadricula.propuesta', {nota: String(n)})}
-                    </button>
-                  ))}
-                  {motivo && (
-                    <span role="alert" style={{fontSize: 12, color: 'var(--danger)'}}>
-                      {t(`cuadricula.mal_${motivo}`)}
-                    </span>
-                  )}
+              fontSize: 13,
+              color: a.nombre.trim() ? 'var(--text-primary)' : 'var(--text-tertiary)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              minWidth: 0,
+            }}
+            title={a.nombre.trim() || undefined}>
+            {nombre}
+          </span>
+          {(motivo || propuesta) && (
+            <span style={{marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0}}>
+              {propuesta?.map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className={styles.propuesta}
+                  onClick={() => elegir?.(a.clave, n)}
+                  title={t('cuadricula.apuntar_propuesta', {nota: String(n), nombre})}>
+                  {t('cuadricula.propuesta', {nota: String(n)})}
+                </button>
+              ))}
+              {motivo && (
+                <span role="alert" style={{fontSize: 12, color: 'var(--danger)'}}>
+                  {t(`cuadricula.mal_${motivo}`)}
                 </span>
               )}
             </span>
-            <CampoNota
-              campoRef={(el) => {
-                campos.current[i] = el;
-              }}
-              nombre={nombre}
-              nota={notaDe(a, puestas)}
-              dictada={dictadas?.has(a.clave) ?? false}
-              poner={(n) => poner(a.clave, n)}
-              setMotivo={(m) => setMotivos((antes) => (antes[a.fila] === m ? antes : {...antes, [a.fila]: m}))}
-              anterior={() => ir(i - 1)}
-              siguiente={() => ir(i + 1)}
-            />
-          </div>
-        );
-      })}
+          )}
+        </span>
+        <CampoNota
+          campoRef={(el) => {
+            campos.current[i] = el;
+          }}
+          nombre={nombre}
+          nota={notaDe(a, puestas)}
+          dictada={dictadas?.has(a.clave) ?? false}
+          poner={(n) => poner(a.clave, n)}
+          setMotivo={(m) => setMotivos((antes) => (antes[a.fila] === m ? antes : {...antes, [a.fila]: m}))}
+          anterior={() => ir(i - 1)}
+          siguiente={() => ir(i + 1)}
+        />
+      </div>
+    );
+  }
+}
+
+/** Los rótulos de una columna de alumnos. */
+function Encabezado() {
+  return (
+    <div
+      role="row"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: COLUMNAS,
+        alignItems: 'center',
+        height: 28,
+        padding: '0 var(--row-pad)',
+        background: 'var(--bg-sunk)',
+        borderBottom: '1px solid var(--border)',
+        fontSize: 10.5,
+        fontWeight: 600,
+        letterSpacing: 0.8,
+        textTransform: 'uppercase',
+        color: 'var(--text-tertiary)',
+      }}>
+      <span>{t('cuadricula.n')}</span>
+      <span>{t('cuadricula.alumno')}</span>
+      <span style={{textAlign: 'right', paddingRight: 8}}>{t('cuadricula.nota')}</span>
     </div>
   );
 }
