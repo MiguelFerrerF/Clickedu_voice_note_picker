@@ -125,6 +125,23 @@ pub struct Oido {
 }
 
 impl Oido {
+    /// Si no se ha dicho nada: ni una letra ni una cifra fuera de lo que
+    /// Whisper pone entre corchetes o paréntesis cuando no oye voz
+    /// («[Música]», «(Aplausos)»; pasó en la prueba a mano de H3a,
+    /// 2026-11-19). Es silencio, no una frase sin entender.
+    pub fn sin_palabras(&self) -> bool {
+        let mut dentro = 0usize;
+        for c in self.texto.chars() {
+            match c {
+                '[' | '(' => dentro += 1,
+                ']' | ')' => dentro = dentro.saturating_sub(1),
+                c if dentro == 0 && c.is_alphanumeric() => return false,
+                _ => {}
+            }
+        }
+        true
+    }
+
     /// De los bytes de los tokens a letras: cada letra se queda con la menor
     /// probabilidad de sus bytes. Sin los espacios de los extremos.
     fn de_bytes(bytes: &[u8], p_byte: &[f32]) -> Self {
@@ -167,5 +184,16 @@ mod tests {
         let o = Oido::de_bytes(bytes, &p);
         assert_eq!(o.texto, "Martín");
         assert_eq!(o.confianza, vec![0.9, 0.9, 0.9, 0.9, 0.4, 0.4]);
+    }
+
+    #[test]
+    fn lo_que_whisper_pone_sin_voz_no_son_palabras() {
+        let oido = |t: &str| Oido { texto: t.into(), confianza: vec![] };
+        for t in ["", "  ", "[Música]", "(Aplausos)", "[Música] [Risas]", "♪", "..."] {
+            assert!(oido(t).sin_palabras(), "{t}");
+        }
+        for t in ["Casals ocho", "[Música] Casals ocho", "7", "(Ruido) Lucía 9"] {
+            assert!(!oido(t).sin_palabras(), "{t}");
+        }
     }
 }

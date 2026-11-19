@@ -74,6 +74,10 @@ pub struct Dictado {
     pub id: String,
     /// Lo que se oyó (o se escribió), tal cual.
     pub oido: String,
+    /// Si Whisper repitió la frase en bucle, la primera vez: es lo que se
+    /// enseña, diciendo que venía repetida ([`crate::voz::interprete::una_vez`]).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub repetida: Option<String>,
     #[serde(flatten)]
     pub entendido: Entendido<String>,
 }
@@ -307,7 +311,7 @@ mod tests {
 
     pub(crate) fn dictado(id: &str, entendido: Entendido<String>) -> Que {
         Que::Dictado {
-            dictado: Dictado { id: id.into(), oido: "Lucía Martín nueve y medio".into(), entendido },
+            dictado: Dictado { id: id.into(), oido: "Lucía Martín nueve y medio".into(), repetida: None, entendido },
             fichero: "mates.xlsx".into(),
             nombre: vec!["lucia".into(), "martin".into()],
             candidatos: vec![
@@ -392,11 +396,15 @@ mod tests {
         let d = Dictado {
             id: "x".into(),
             oido: "Elena 7".into(),
+            repetida: None,
             entendido: Entendido::Seguro { alumno: "1001".into(), nota: 7.0 },
         };
         assert_eq!(
             serde_json::to_value(&d).unwrap(),
             serde_json::json!({"id": "x", "oido": "Elena 7", "tipo": "seguro", "alumno": "1001", "nota": 7.0})
         );
+        // La frase una vez, solo si vino repetida.
+        let d = Dictado { repetida: Some("Elena 7".into()), oido: "Elena 7 Elena 7 Ele".into(), ..d };
+        assert_eq!(serde_json::to_value(&d).unwrap()["repetida"], "Elena 7");
     }
 }

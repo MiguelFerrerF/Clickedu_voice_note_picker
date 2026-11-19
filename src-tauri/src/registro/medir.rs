@@ -276,7 +276,7 @@ mod tests {
             cuando: 1,
             version: "2.0.0".into(),
             que: Que::Dictado {
-                dictado: Dictado { id: id.into(), oido: oido.into(), entendido },
+                dictado: Dictado { id: id.into(), oido: oido.into(), repetida: None, entendido },
                 fichero: fichero.into(),
                 nombre: vec![],
                 candidatos: Vec::<Candidato>::new(),

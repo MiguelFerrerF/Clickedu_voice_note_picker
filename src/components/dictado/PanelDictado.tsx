@@ -97,7 +97,7 @@ export function PanelDictado({
           <Apuntada
             nota={ultimo.apuntada.nota}
             alumno={nombreDe(ultimo.apuntada.clave)}
-            oido={ultimo.dictado.oido}
+            dictado={ultimo.dictado}
             encendido={encendido}
             deshacer={deshacer}
           />
@@ -190,11 +190,14 @@ function Voz({voz}: {voz: Dictando}) {
   );
 }
 
-/** Lo que se ha oído, en pequeño y en gris: para saber de dónde sale. */
-function Oido({texto}: {texto: string}) {
+/**
+ * Lo que se ha oído, en pequeño y en gris: para saber de dónde sale. Si
+ * Whisper repitió la frase en bucle, una vez, y se dice.
+ */
+function Oido({dictado: {oido, repetida}}: {dictado: Dictado}) {
   return (
     <span style={{fontSize: 12, color: 'var(--text-tertiary)', overflowWrap: 'anywhere'}}>
-      {t('dictado.oido', {oido: texto.trim()})}
+      {repetida ? t('dictado.oido_repetida', {oido: repetida.trim()}) : t('dictado.oido', {oido: oido.trim()})}
     </span>
   );
 }
@@ -202,13 +205,13 @@ function Oido({texto}: {texto: string}) {
 function Apuntada({
   nota: n,
   alumno,
-  oido,
+  dictado,
   encendido,
   deshacer,
 }: {
   nota: number;
   alumno: string;
-  oido: string;
+  dictado: Dictado;
   encendido: boolean;
   deshacer: () => void;
 }) {
@@ -228,7 +231,7 @@ function Apuntada({
         <Icon d={ICONOS.microfono} size={14} style={{flexShrink: 0}} />
         <span style={{overflowWrap: 'anywhere'}}>{t('dictado.apuntada', {nota: nota(n), alumno})}</span>
       </span>
-      <Oido texto={oido} />
+      <Oido dictado={dictado} />
       <Button variant="ghost" onClick={deshacer} style={{marginLeft: 'auto'}}>
         {t('dictado.deshacer')}
       </Button>
@@ -274,7 +277,7 @@ function Duda({
         {pregunta}
       </div>
       <div style={{fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5}}>
-        {dictado.motivos.map((m) => t(`dictado.motivo_${m}`)).join(' ')} <Oido texto={dictado.oido} />
+        {dictado.motivos.map((m) => t(`dictado.motivo_${m}`)).join(' ')} <Oido dictado={dictado} />
       </div>
       <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
         {opciones(dictado).map(({clave, nota: n}) => (
@@ -304,7 +307,7 @@ function NoEntendido({dictado, descartar}: {dictado: Extract<Dictado, {tipo: 'no
         <Punto />
         {t(`dictado.no_entendido_${dictado.motivo}`)}
       </span>
-      <Oido texto={dictado.oido} />
+      <Oido dictado={dictado} />
       <Button
         variant="ghost"
         onClick={descartar}

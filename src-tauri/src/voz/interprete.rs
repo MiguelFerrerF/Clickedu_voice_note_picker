@@ -119,10 +119,17 @@ pub fn interpretar(texto: &str) -> Frase {
 /// «7,5», «7'5» y «5-75» pasan a «7.5» y «5.75»; «5x25» y «7:30» se quedan
 /// así, y se leen aparte.
 fn trocear(texto: &str) -> Vec<String> {
+    trocear_con_inicio(texto).into_iter().map(|(t, _)| t).collect()
+}
+
+/// Como [`trocear`], con la letra de `texto` en la que empieza cada trozo:
+/// cada letra de `texto` es una de las que se trocean.
+fn trocear_con_inicio(texto: &str) -> Vec<(String, usize)> {
     let letras: Vec<char> = texto.chars().map(sin_acento).collect();
     let cifra = |i: usize| letras.get(i).is_some_and(char::is_ascii_digit);
-    let mut trozos: Vec<String> = Vec::new();
+    let mut trozos: Vec<(String, usize)> = Vec::new();
     let mut actual = String::new();
+    let mut inicio = 0;
     for (i, &c) in letras.iter().enumerate() {
         let entre_cifras = i > 0 && cifra(i - 1) && cifra(i + 1);
         let c = match c {
@@ -131,7 +138,7 @@ fn trocear(texto: &str) -> Vec<String> {
             c if c.is_alphanumeric() => c,
             _ => {
                 if !actual.is_empty() {
-                    trozos.push(std::mem::take(&mut actual));
+                    trozos.push((std::mem::take(&mut actual), inicio));
                 }
                 continue;
             }
@@ -140,12 +147,15 @@ fn trocear(texto: &str) -> Vec<String> {
         // sigue con su separador y sus decimales («5x25»).
         let es_numero = actual.starts_with(|c: char| c.is_ascii_digit());
         if !actual.is_empty() && es_numero != c.is_ascii_digit() && !(es_numero && entre_cifras) {
-            trozos.push(std::mem::take(&mut actual));
+            trozos.push((std::mem::take(&mut actual), inicio));
+        }
+        if actual.is_empty() {
+            inicio = i;
         }
         actual.push(c);
     }
     if !actual.is_empty() {
-        trozos.push(actual);
+        trozos.push((actual, inicio));
     }
     trozos
 }
@@ -170,19 +180,35 @@ fn sin_acento(c: char) -> char {
 
 /// Si la frase es la misma repetida (un bucle de Whisper, cortado donde
 /// sea), solo la primera vez.
-fn sin_bucles(trozos: Vec<String>) -> Vec<String> {
+fn sin_bucles(mut trozos: Vec<String>) -> Vec<String> {
+    if let Some(periodo) = bucle(&trozos) {
+        trozos.truncate(periodo);
+    }
+    trozos
+}
+
+/// Si los trozos son una frase repetida en bucle, cuántos trozos tiene la
+/// frase.
+fn bucle(trozos: &[String]) -> Option<usize> {
     let n = trozos.len();
-    for periodo in 1..=n / 2 {
-        let repite = (periodo..n).all(|i| {
+    (1..=n / 2).find(|&periodo| {
+        (periodo..n).all(|i| {
             let (a, b) = (&trozos[i % periodo], &trozos[i]);
             // La última repetición puede quedar cortada a media palabra.
             a == b || (i == n - 1 && a.starts_with(b.as_str()))
-        });
-        if repite {
-            return trozos.into_iter().take(periodo).collect();
-        }
-    }
-    trozos
+        })
+    })
+}
+
+/// Si Whisper repitió la frase en bucle, la primera vez, como la escribió:
+/// es lo que se enseña, diciendo que venía repetida. Si no, nada.
+pub fn una_vez(texto: &str) -> Option<String> {
+    let trozos = trocear_con_inicio(texto);
+    let solo: Vec<String> = trozos.iter().map(|(t, _)| t.clone()).collect();
+    let periodo = bucle(&solo)?;
+    // `periodo` es como mucho la mitad: hay un trozo detrás.
+    let corte = trozos[periodo].1;
+    Some(texto.chars().take(corte).collect::<String>().trim_end().to_string())
 }
 
 // ── Los números ─────────────────────────────────────────────────────────
@@ -516,6 +542,20 @@ mod tests {
         assert_eq!(nombre(t), "barbara villalba");
         // Dos números distintos no son un bucle.
         assert_eq!(nota("Elena 7 Elena 8").map(|n| n.1), Some(Some(PorQueDudosa::Varias)));
+    }
+
+    #[test]
+    fn el_bucle_se_ensena_una_vez_como_se_escribio() {
+        // El de la prueba a mano de H3a (2026-11-19).
+        let t = "Marta Ortera Lucia, 7 Marta Ortera Lucia, 7 Marta Ortera Lucia, 7 Marta Ortera Lucia, 7 Mart";
+        assert_eq!(una_vez(t).as_deref(), Some("Marta Ortera Lucia, 7"));
+        let t = "Pablo García, un 10. Pablo García, un 10. Pablo";
+        assert_eq!(una_vez(t).as_deref(), Some("Pablo García, un 10."));
+        let t = "Elena Rémez, 7.5 Elena Rémez, 7.5 Elena";
+        assert_eq!(una_vez(t).as_deref(), Some("Elena Rémez, 7.5"));
+        assert_eq!(una_vez("Lucía Martín Ortega nueve"), None);
+        assert_eq!(una_vez("Elena 7 Elena 8"), None);
+        assert_eq!(una_vez(""), None);
     }
 
     #[test]

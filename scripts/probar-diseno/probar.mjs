@@ -148,9 +148,17 @@ function simular({carpeta, modelo}) {
         case 'abrir_microfono':
           return 'Micrófono (Realtek(R) Audio)';
         case 'terminar_dictado':
-          // H3a: lo que tarda Whisper, y lo oído.
+          // H3a: lo que tarda Whisper, y lo oído, repetido en bucle (se
+          // enseña una vez).
           await new Promise((r) => setTimeout(r, 600));
-          return {id: String(n++), oido: 'Lucía Castro, nueve y medio', tipo: 'seguro', alumno: '20231', nota: 9.5};
+          return {
+            id: String(n++),
+            oido: 'Lucía Castro, nueve y medio Lucía Castro, nueve y medio Lucía Cas',
+            repetida: 'Lucía Castro, nueve y medio',
+            tipo: 'seguro',
+            alumno: '20231',
+            nota: 9.5,
+          };
         case 'resumen_registro':
           // D8: con casos en la carpeta llena; vacío en las demás.
           return carpeta === 'llena'

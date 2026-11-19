@@ -30,6 +30,7 @@ use crate::commands::clases::leer_plantilla;
 use crate::commands::{en_segundo_plano, registro};
 use crate::registro::{Candidato, Dictado, Que};
 use crate::voz::entender::entender_con_detalle;
+use crate::voz::interprete::una_vez;
 use crate::voz::microfono::{hay_voz, Microfono};
 use crate::voz::modelo::{self, Comprobar};
 use crate::voz::whisper::Whisper;
@@ -228,7 +229,7 @@ pub async fn terminar_dictado(fichero: String, app: AppHandle) -> Result<Option<
             .as_mut()
             .ok_or("Whisper no está cargado")?
             .transcribir(&audio, None)?;
-        if oido.texto.trim().is_empty() {
+        if oido.sin_palabras() {
             return Ok(None);
         }
         entender_y_apuntar(&app, fichero, oido.texto, true).map(Some)
@@ -264,7 +265,8 @@ fn entender_y_apuntar(app: &AppHandle, fichero: String, texto: String, voz: bool
     let clave = |i: usize| plantilla.alumnos[i].clave.clone();
     let (entendido, detalle) = entender_con_detalle(&texto, &nombres);
     let registro = registro(app)?;
-    let dictado = Dictado { id: registro.nuevo_id(), oido: texto, entendido: entendido.con(clave) };
+    let dictado =
+        Dictado { id: registro.nuevo_id(), repetida: una_vez(&texto), oido: texto, entendido: entendido.con(clave) };
     registro.apuntar(Que::Dictado {
         dictado: dictado.clone(),
         fichero,

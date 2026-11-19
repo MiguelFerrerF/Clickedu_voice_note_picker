@@ -15,12 +15,14 @@ export type MotivoDuda =
 /**
  * Una frase dictada, entendida. Cada alumno va por su **clave** de la
  * sesión, no por su posición. `id`: con el que se contesta, para el
- * registro. `oido`: lo que se entendió, tal cual.
+ * registro. `oido`: lo que se entendió, tal cual. `repetida`: si Whisper
+ * repitió la frase en bucle, la primera vez, que es lo que se enseña.
  */
-export type Dictado =
-  | {id: string; oido: string; tipo: 'seguro'; alumno: string; nota: number}
-  | {id: string; oido: string; tipo: 'duda'; alumnos: string[]; notas: number[]; motivos: MotivoDuda[]}
-  | {id: string; oido: string; tipo: 'no_entendido'; motivo: MotivoNoEntendido};
+export type Dictado = {id: string; oido: string; repetida?: string} & (
+  | {tipo: 'seguro'; alumno: string; nota: number}
+  | {tipo: 'duda'; alumnos: string[]; notas: number[]; motivos: MotivoDuda[]}
+  | {tipo: 'no_entendido'; motivo: MotivoNoEntendido}
+);
 
 /** Lo que hizo el profesor con un dictado: la respuesta buena, para el registro. */
 export type Respuesta =
