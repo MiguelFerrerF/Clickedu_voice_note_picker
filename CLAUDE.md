@@ -12,22 +12,13 @@ está en esta rama**: vive en `main` y en el tag `v1.3.4`, que es la última
 publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-19): H3a y H3b cerrados, la voz entera
-> probada a mano.** En la rama `v2`, la única de la v2 (un commit por hito y
-> otro al cerrarlo). **Ahora: HUI**, mejorar la interfaz antes de H4, un
-> bloque cada vez (lista en `docs/01`, «HUI»); hechos la cuadrícula compacta,
-> **el bloque A** (el dictado: lo apuntado grande y los dos de antes, las
-> dudas con 1–4/Esc, el medidor de volumen, el micrófono elegido en
-> Ajustes) y **el bloque B** (encima de la tabla, el avance, «Siguiente sin
-> nota» y un ⓘ con las teclas; Supr borra la nota), con la prueba de diseño
-> y **probados a mano** (2026-11-19). **Hechos los bloques C** (la
-> cabecera de Calificar: el título es el desplegable, «Exportar» gris sin
-> notas, los avisos plegados) **y D** (descargar el modelo, principal; las
-> cifras del registro en 6 o 3×2; Clases con `›` y barra; Estadísticas y
-> Conexión escondidas), **probados a mano**. Hecho también el 18 (las
-> pantallas, a todo el ancho), con la prueba de diseño; **falta probarlo a
-> mano** y cerrar HUI. Después, **H4**: conectar con Clickedu (login,
-> `keyring` por D3, la capa resistente). El audio **no se
+> **Dónde se quedó (2026-11-19): H3a, H3b y HUI cerrados.** En la rama
+> `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
+> **Siguiente: H4**, conectar con Clickedu (login, `keyring` por D3, la
+> capa resistente). **En espera** (`docs/01`, HUI): con lo que traigan
+> H4–H8, volver a mirar la distribución de cada pantalla, que ya ocupa la
+> ventana entera. Estadísticas y Conexión están escondidas en `Sidebar`
+> (`HAY_ESTADISTICAS`, `HAY_CLICKEDU`): se encienden al hacerlas. El audio **no se
 > guarda** (D8); lo dictado se mide en local con `cargo run --example
 > medir_registro` (solo cuenta, sin nombres). El campo «Probar el dictado»
 > se queda, solo en desarrollo. **Pendiente de H2**: importar un exportado en
@@ -39,6 +30,7 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
+| **HUI** | La interfaz, antes de H4: la cuadrícula compacta y de 1 a 4 columnas; el dictado (lo apuntado grande y los dos de antes, dudas con 1–4/Esc, medidor de volumen, micrófono en Ajustes); el avance, «Siguiente sin nota» y las teclas tras un ⓘ; el título que es el desplegable; `BarraAvance`; las pantallas a todo el ancho | sí, a mano (bloques A–D) y con la prueba de diseño |
 | **H3b** | `voz::interprete` (la nota; lo no visto en grabaciones, `NOTA_RARA`, no se interpreta), `voz::emparejar` (fonética, los dos órdenes de «Apellidos, Nombre»), `voz::entender` (cuándo preguntar); `entender_frase`, el panel del dictado y las propuestas en la cuadrícula; `registro.rs` e informe sin nombres (D8), en Ajustes | sí, a mano (clase inventada), con tests de Rust, la prueba de diseño y `probar_entender` sobre las 100 grabaciones: **77 apuntadas, 20 preguntadas, 2 sin entender, 0 mal en silencio** |
 | **H3a** | D2 cerrada con números: Whisper `small` `q5_1` recortado (90–94 % en 1,1 s); micrófono, remuestreo y motor; el banco de pruebas de voz; **el push-to-talk** (`useDictado`, `commands::voz`), la descarga comprobada del modelo (`voz::modelo`) y medir en local (`registro::medir`, sin audio); los bucles de Whisper se enseñan una vez y «[Música]» es silencio | el motor, con voz de verdad (100 grabaciones); el push-to-talk, a mano (clase inventada y descarga), con tests de Rust y la prueba de diseño |
 | **H2** | `sesion.rs` (notas por clave de alumno, al momento), `exportar.rs` (el `.xlsx` de la v1, a `Documentos\Gestor de Notas\notas`); Calificar con campos de nota, Exportar y contador | sí, a mano, con tests de Rust (ida y vuelta) y la prueba de diseño; **falta importarlo en Clickedu** |

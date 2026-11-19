@@ -558,12 +558,18 @@ formato vuelve a abrirse aquí (`exportar.rs`).
       se apuntan, que preguntan y que no se entienden, elegir, deshacer, y
       preparar y abrir el informe.
 
-### HUI · Mejorar la interfaz (antes de H4)
+### HUI · Mejorar la interfaz (antes de H4) — cerrado el 2026-11-19
 
 Pedido por el usuario el 2026-11-19, tras probar la voz: mejorar la
 visibilidad, la interfaz y la experiencia. **Se hacen todas, un bloque cada
 vez**, con la prueba de diseño y sus capturas miradas; un commit por cambio.
-Ninguna rompe D5/D6 ni añade tokens.
+Ninguna rompe D5/D6 ni añade tokens. **Cerrado por el usuario el
+2026-11-19**, con A–D probados a mano.
+
+- [ ] **En espera: la distribución de las pantallas.** Ahora que ocupan la
+      ventana entera (el 18), según vayan saliendo cosas nuevas (H4–H8) se
+      vuelve a mirar cómo se orientan y reparten los elementos de cada
+      pantalla. No se hace nada hasta que haga falta.
 
 - [x] **Compactar la cuadrícula** (2026-11-19): dos columnas desde 760 px,
       filas de 32, sin caja en la nota vacía (era la 7). Ver `docs/02` §3.
