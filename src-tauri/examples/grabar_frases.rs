@@ -36,7 +36,7 @@ fn main() {
     let frases = corpus::frases();
 
     let mut i = frases.iter().position(|f| !corpus::wav(&carpeta, f.n).exists()).unwrap_or(0);
-    let microfono = Microfono::abrir().unwrap_or_else(|e| panic!("{e}"));
+    let microfono = Microfono::abrir(None).unwrap_or_else(|e| panic!("{e}"));
     let mut aviso = format!("Micrófono: «{}»", microfono.nombre);
 
     terminal::enable_raw_mode().expect("no se puede preparar la consola");

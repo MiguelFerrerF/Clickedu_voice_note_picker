@@ -17,8 +17,9 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > otro al cerrarlo). **Ahora: HUI**, mejorar la interfaz antes de H4, un
 > bloque cada vez (lista en `docs/01`, «HUI»); hechos la cuadrícula compacta
 > y **el bloque A** (el dictado: lo apuntado grande y los dos de antes, las
-> dudas con 1–4/Esc, el medidor de volumen), con la prueba de diseño; **falta
-> probarlo a mano** con `tauri:dev`. **Siguiente: el bloque B** (la tabla de
+> dudas con 1–4/Esc, el medidor de volumen, el micrófono elegido en
+> Ajustes), con la prueba de diseño; **falta probar a mano** el micrófono
+> elegido (con unos auriculares) con `tauri:dev`. **Siguiente: el bloque B** (la tabla de
 > notas). Después, **H4**: conectar con
 > Clickedu (login, `keyring` por D3, la capa resistente). El audio **no se
 > guarda** (D8); lo dictado se mide en local con `cargo run --example

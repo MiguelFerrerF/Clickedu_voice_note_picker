@@ -13,6 +13,8 @@
 //!   frase no espere.
 //! - [`entender_frase`] entiende una frase ya escrita: lo que usa Calificar
 //!   en desarrollo para probar sin hablar.
+//! - **El micrófono** se elige en Ajustes (HUI: [`listar_microfonos`],
+//!   [`elegir_microfono`]); si no se elige, el de Windows.
 //!
 //! Cada frase entendida se apunta en el registro (D8), con lo que hizo
 //! falta para decidir.
@@ -26,12 +28,13 @@ use std::time::Duration;
 use serde::Serialize;
 use tauri::{ipc::Channel, AppHandle, Manager};
 
+use crate::ajustes::{self, MicrofonoElegido};
 use crate::commands::clases::leer_plantilla;
-use crate::commands::{en_segundo_plano, registro};
+use crate::commands::{en_segundo_plano, leer_ajustes, registro, ruta_ajustes};
 use crate::registro::{Candidato, Dictado, Que};
 use crate::voz::entender::entender_con_detalle;
 use crate::voz::interprete::una_vez;
-use crate::voz::microfono::{hay_voz, Microfono};
+use crate::voz::microfono::{self, hay_voz, Microfono};
 use crate::voz::modelo::{self, Comprobar};
 use crate::voz::whisper::Whisper;
 
@@ -141,19 +144,71 @@ async fn descargar(app: &AppHandle, avance: &Channel<AvanceDescarga>) -> Result<
     std::fs::rename(&parcial, &destino).map_err(|e| format!("no se puede dejar el modelo en su sitio: {e}"))
 }
 
-/// Abre el micrófono, si no lo está, y devuelve su nombre. Si Whisper no
-/// está cargado, lo carga después, sin esperar: así la primera frase no
-/// tarda más que las otras.
+/// Los micrófonos conectados, cuál es el de Windows y el elegido en Ajustes
+/// (que puede no estar conectado).
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Microfonos {
+    disponibles: Vec<MicrofonoElegido>,
+    de_windows: Option<String>,
+    elegido: Option<MicrofonoElegido>,
+}
+
 #[tauri::command]
-pub async fn abrir_microfono(app: AppHandle) -> Result<String, String> {
+pub async fn listar_microfonos(app: AppHandle) -> Result<Microfonos, String> {
+    en_segundo_plano(app.clone(), "listar_microfonos", move || {
+        let (disponibles, de_windows) = microfono::disponibles()?;
+        Ok(Microfonos {
+            disponibles: disponibles.into_iter().map(|d| MicrofonoElegido { id: d.id, nombre: d.nombre }).collect(),
+            de_windows,
+            elegido: leer_ajustes(&app)?.microfono,
+        })
+    })
+    .await
+}
+
+/// Guarda el micrófono elegido (`None`: el de Windows) y cierra el abierto:
+/// el siguiente dictado lo abre ya con el nuevo.
+#[tauri::command]
+pub async fn elegir_microfono(microfono: Option<MicrofonoElegido>, app: AppHandle) -> Result<(), String> {
+    en_segundo_plano(app.clone(), "elegir_microfono", move || {
+        let mut a = leer_ajustes(&app)?;
+        a.microfono = microfono;
+        ajustes::guardar(&ruta_ajustes(&app)?, &a)?;
+        drop(coger(&voz(&app)?.microfono).take());
+        Ok(())
+    })
+    .await
+}
+
+/// El micrófono elegido en Ajustes, por su id.
+fn elegido(app: &AppHandle) -> Result<Option<String>, String> {
+    Ok(leer_ajustes(app)?.microfono.map(|m| m.id))
+}
+
+/// El micrófono abierto: si el elegido en Ajustes no se ha podido abrir, su
+/// nombre (`falta`), y se escucha por el de Windows.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MicrofonoAbierto {
+    nombre: String,
+    falta: Option<String>,
+}
+
+/// Abre el micrófono, si no lo está. Si Whisper no está cargado, lo carga
+/// después, sin esperar: así la primera frase no tarda más que las otras.
+#[tauri::command]
+pub async fn abrir_microfono(app: AppHandle) -> Result<MicrofonoAbierto, String> {
     en_segundo_plano(app.clone(), "abrir_microfono", move || {
         let voz = voz(&app)?;
-        let nombre = {
+        let pedido = leer_ajustes(&app)?.microfono;
+        let abierto = {
             let mut m = coger(&voz.microfono);
             if m.is_none() {
-                *m = Some(Microfono::abrir()?);
+                *m = Some(Microfono::abrir(pedido.as_ref().map(|p| p.id.clone()))?);
             }
-            m.as_ref().map(|m| m.nombre.clone()).unwrap_or_default()
+            let m = m.as_ref().ok_or("el micrófono no está abierto")?;
+            MicrofonoAbierto { nombre: m.nombre.clone(), falta: pedido.filter(|_| m.falta).map(|p| p.nombre) }
         };
         let carpeta = carpeta_modelos(&app)?;
         if modelo::esta(&carpeta) {
@@ -163,7 +218,7 @@ pub async fn abrir_microfono(app: AppHandle) -> Result<String, String> {
                 }
             });
         }
-        Ok(nombre)
+        Ok(abierto)
     })
     .await
 }
@@ -189,7 +244,7 @@ pub async fn empezar_dictado(app: AppHandle, nivel: Channel<f32>) -> Result<(), 
         let voz = voz(&app)?;
         let mut m = coger(&voz.microfono);
         if m.is_none() {
-            *m = Some(Microfono::abrir()?);
+            *m = Some(Microfono::abrir(elegido(&app)?)?);
         }
         if let Some(m) = m.as_ref() {
             m.empezar(move |n| {

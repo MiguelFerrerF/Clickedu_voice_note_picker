@@ -49,9 +49,10 @@ const TAMANOS = [
  * casos difíciles: nombres largos, letras de fuera (Ș, Ł), una plantilla que
  * no se lee, notas que no son nota, un alumno sin nombre. `carpeta` elige la
  * carpeta de plantillas: `llena`, `vacia` o `no_existe`; `modelo`, si el
- * modelo de voz ya está descargado.
+ * modelo de voz ya está descargado; `auriculares`, si el micrófono elegido
+ * en Ajustes son unos auriculares que no están conectados.
  */
-function simular({carpeta, modelo}) {
+function simular({carpeta, modelo, auriculares}) {
   let n = 1;
   const ruta = 'C:\\Users\\profesora\\Documents\\Gestor de Notas\\plantillas';
   const bien = (alumnos, calificados, avisos = 0) => ({tipo: 'bien', alumnos, calificados, avisos});
@@ -109,6 +110,7 @@ function simular({carpeta, modelo}) {
   // Los callbacks, por id: los `Channel` reciben por aquí (el nivel del micrófono).
   const callbacks = {};
   let midiendo;
+  let microfono = auriculares ? {id: 'wasapi:{0.0.1.00000000}.{sony}', nombre: 'Auriculares (WH-1000XM4)'} : null;
   window.__TAURI_INTERNALS__ = {
     transformCallback: (callback) => {
       callbacks[n] = callback;
@@ -154,8 +156,24 @@ function simular({carpeta, modelo}) {
         case 'descargar_modelo':
           // Se queda descargando: la barra sin porcentaje.
           return new Promise(() => {});
+        case 'listar_microfonos':
+          return {
+            disponibles: [
+              {id: 'wasapi:{0.0.1.00000000}.{realtek}', nombre: 'Micrófono (Realtek(R) Audio)'},
+              {id: 'wasapi:{0.0.1.00000000}.{camara}', nombre: 'Micrófono (Cámara HD integrada)'},
+              {
+                id: 'wasapi:{0.0.1.00000000}.{jabra}',
+                nombre: 'Micrófono de los auriculares (Jabra Evolve2 30 Hands-Free AG Audio)',
+              },
+            ],
+            deWindows: 'wasapi:{0.0.1.00000000}.{realtek}',
+            elegido: microfono,
+          };
+        case 'elegir_microfono':
+          microfono = args.microfono;
+          return null;
         case 'abrir_microfono':
-          return 'Micrófono (Realtek(R) Audio)';
+          return {nombre: 'Micrófono (Realtek(R) Audio)', falta: microfono?.nombre ?? null};
         case 'empezar_dictado': {
           // Una voz que sube y baja, y se queda a media altura para la captura.
           const avisar = callbacks[args.nivel.id];
@@ -376,7 +394,7 @@ const PRUEBAS = [
     nombre: 'voz',
     async probar(page, paso) {
       const main = page.locator('[data-pantalla="calificar"]');
-      await main.getByText('Se escucha por', {exact: false}).waitFor();
+      await main.getByText('di el alumno y la nota', {exact: false}).waitFor();
       await paso('reposo');
       await page.keyboard.down('Space');
       await main.getByText('Escuchando').waitFor();
@@ -457,6 +475,27 @@ const PRUEBAS = [
       await page.waitForTimeout(250);
       await paso('borrar');
       await page.keyboard.press('Escape');
+      // HUI: el micrófono, con la lista abierta y elegidos los auriculares.
+      await main.getByRole('button', {name: 'El de Windows', exact: false}).click();
+      await page.waitForTimeout(150);
+      await paso('microfonos');
+      await page.getByRole('button', {name: 'Jabra', exact: false}).last().click();
+      await main.getByRole('button', {name: 'Jabra', exact: false}).waitFor();
+      await paso('microfono-elegido');
+    },
+  },
+  {
+    // HUI: el micrófono elegido no está conectado. Se dice en Ajustes y al
+    // dictar, que va por el de Windows.
+    nombre: 'microfono-falta',
+    auriculares: true,
+    async probar(page, paso) {
+      const main = page.locator('[data-pantalla="calificar"]');
+      await main.getByText('No está conectado', {exact: false}).waitFor();
+      await paso('calificar');
+      await ir(page, 'Ajustes', 'ajustes');
+      await page.locator('[data-pantalla="ajustes"]').getByText('mientras, se escucha', {exact: false}).waitFor();
+      await paso('ajustes');
     },
   },
   vacia('estadisticas', 'Estadísticas'),
@@ -502,7 +541,11 @@ try {
     for (const [w, h] of TAMANOS) {
       const tam = `${w}x${h}`;
       const page = await navegador.newPage({viewport: {width: w, height: h}});
-      await page.addInitScript(simular, {carpeta: prueba.carpeta ?? 'llena', modelo: prueba.modelo ?? true});
+      await page.addInitScript(simular, {
+        carpeta: prueba.carpeta ?? 'llena',
+        modelo: prueba.modelo ?? true,
+        auriculares: prueba.auriculares ?? false,
+      });
       page.on('pageerror', (e) => fallos.push(`${prueba.nombre} ${tam}: error en la página: ${e.message}`));
       await page.goto(`http://localhost:${PUERTO}/`);
       await page.evaluate(() => document.fonts.ready);

@@ -49,6 +49,8 @@ pub fn run() {
             commands::voz::entender_frase,
             commands::voz::hay_modelo,
             commands::voz::descargar_modelo,
+            commands::voz::listar_microfonos,
+            commands::voz::elegir_microfono,
             commands::voz::abrir_microfono,
             commands::voz::cerrar_microfono,
             commands::voz::empezar_dictado,

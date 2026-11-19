@@ -96,7 +96,7 @@ const es = {
   // ── El push-to-talk (H3a) ──
   'dictado.como': 'Mantén {tecla} pulsado y di el alumno y la nota: «Lucía Martín, siete con cinco».',
   'dictado.tecla_espacio': 'Espacio',
-  'dictado.microfono': 'Se escucha por «{nombre}».',
+  'dictado.falta_microfono': 'No está conectado «{nombre}», el micrófono elegido en Ajustes: se escucha por el de Windows.',
   'dictado.escuchando': 'Escuchando… suelta {tecla} al terminar.',
   'dictado.nivel': 'Cómo se oye',
   'dictado.entendiendo': 'Entendiendo lo dicho…',
@@ -151,6 +151,15 @@ const es = {
   'ajustes.por_defecto': 'la de por defecto',
   'ajustes.cambiar': 'Cambiar de carpeta…',
   'ajustes.volver_por_defecto': 'Volver a la de por defecto',
+  'microfono.titulo': 'Micrófono',
+  'microfono.sub': 'Por el que se dicta. Si conectas unos auriculares con micrófono, elígelos aquí; si no eliges ninguno, se usa el de Windows.',
+  'microfono.elegir': 'Elegir el micrófono',
+  'microfono.de_windows': 'El de Windows',
+  'microfono.de_windows_ahora': 'El de Windows (ahora, «{nombre}»)',
+  'microfono.no_conectado': '{nombre} (no está conectado)',
+  'microfono.falta': '«{nombre}» no está conectado: mientras, se escucha por el de Windows. Conéctalo, o elige otro.',
+  'microfono.ninguno': 'No hay ningún micrófono conectado.',
+  'microfono.no_se_ven': 'No se pueden ver los micrófonos: {error}',
   'ajustes.llegan': 'La cuenta de Clickedu llega con la conexión.',
 
   // ── El registro del dictado (D8), en Ajustes ──

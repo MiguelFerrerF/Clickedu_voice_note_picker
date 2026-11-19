@@ -589,6 +589,12 @@ Ninguna rompe D5/D6 ni añade tokens.
 - [x] 5. **Las dudas con el teclado**: 1–4 eligen la opción, Esc descarta.
 - [x] 6. **Las dudas, sin repetir el nombre**: una fila por alumno con sus
       notas como botones cortos, en vez de un botón por alumno y nota.
+- [x] 17. **El micrófono, en Ajustes** (pedido por el usuario el
+      2026-11-19, en lugar del «Se escucha por…» del panel): elegir por
+      cuál se dicta, por ejemplo unos auriculares; si no, el de Windows. Se
+      guarda su id de `cpal` en `ajustes.json`; si no está conectado, se
+      escucha por el de Windows y se dice, en Ajustes y en el panel. La
+      lista se mira cada 3 s con Ajustes a la vista.
 
 **B · La tabla de notas**
 

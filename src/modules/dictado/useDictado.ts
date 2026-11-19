@@ -5,7 +5,8 @@
  * - **El micrófono** se abre mientras Calificar está a la vista, con una
  *   clase abierta y la ventana delante (`activo`), y se cierra en cuanto no:
  *   así Windows solo enseña que se usa cuando se puede dictar. Abierto,
- *   guarda los últimos 0,3 s, para no perder el principio del nombre.
+ *   guarda los últimos 0,3 s, para no perder el principio del nombre. Es el
+ *   elegido en Ajustes o, si no está conectado, el de Windows, y se dice.
  * - **ESPACIO** se coge antes que nadie (en captura, en `window`): ni hace
  *   bajar la página ni pulsa el botón que tenga el foco. Vale también con el
  *   foco en una celda de nota, donde un espacio no sirve de nada. Lo que lo
@@ -43,8 +44,8 @@ export type AvisoVoz = 'nada_oido' | 'corto';
 
 export interface Dictando {
   modelo: Modelo;
-  /** El nombre del micrófono abierto. */
-  microfono?: string;
+  /** El micrófono elegido en Ajustes, si no está y se escucha por el de Windows. */
+  microfonoFalta?: string;
   escuchando: boolean;
   /** Cómo se oye mientras se escucha, de 0 a 1. */
   nivel: number;
@@ -67,7 +68,7 @@ export interface UseDictadoProps {
 
 export function useDictado({activo, fichero, alDictar}: UseDictadoProps): Dictando {
   const [modelo, setModelo] = useState<Modelo>({tipo: 'comprobando'});
-  const [microfono, setMicrofono] = useState<string>();
+  const [microfonoFalta, setMicrofonoFalta] = useState<string>();
   const [escuchando, setEscuchando] = useState(false);
   const [nivel, setNivel] = useState(0);
   const [entendiendo, setEntendiendo] = useState(0);
@@ -116,8 +117,9 @@ export function useDictado({activo, fichero, alDictar}: UseDictadoProps): Dictan
   useEffect(() => {
     if (!abierto) return;
     setFallo(undefined);
-    enCola(() => invoke<string>('abrir_microfono')).then(setMicrofono, (e) =>
-      setFallo({tipo: 'microfono', error: String(e)}),
+    enCola(() => invoke<{nombre: string; falta: string | null}>('abrir_microfono')).then(
+      (m) => setMicrofonoFalta(m.falta ?? undefined),
+      (e) => setFallo({tipo: 'microfono', error: String(e)}),
     );
     return () => {
       if (pulsado.current) {
@@ -125,7 +127,7 @@ export function useDictado({activo, fichero, alDictar}: UseDictadoProps): Dictan
         setEscuchando(false);
         enCola(() => invoke('cancelar_dictado')).catch(() => {});
       }
-      setMicrofono(undefined);
+      setMicrofonoFalta(undefined);
       enCola(() => invoke('cerrar_microfono')).catch(() => {});
     };
   }, [abierto]);
@@ -205,5 +207,5 @@ export function useDictado({activo, fichero, alDictar}: UseDictadoProps): Dictan
     );
   }
 
-  return {modelo, microfono, escuchando, nivel, entendiendo, aviso, fallo, descargar};
+  return {modelo, microfonoFalta, escuchando, nivel, entendiendo, aviso, fallo, descargar};
 }

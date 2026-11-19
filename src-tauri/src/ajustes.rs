@@ -1,5 +1,6 @@
-//! Los ajustes de la app (H1): por ahora, solo dónde están las plantillas. Y
-//! dónde van las notas exportadas (H2), que no se elige.
+//! Los ajustes de la app (H1): dónde están las plantillas y, desde HUI, por
+//! qué micrófono se dicta. Y dónde van las notas exportadas (H2), que no se
+//! elige.
 //!
 //! Viven en `ajustes.json`, en la carpeta de la app (D4:
 //! `%APPDATA%\es.gestornotas.app\`). **Nunca credenciales** aquí (D3): las de
@@ -21,6 +22,18 @@ pub struct Ajustes {
     /// `None`: la de por defecto.
     #[serde(default)]
     pub carpeta_plantillas: Option<PathBuf>,
+    /// `None`: el micrófono de Windows.
+    #[serde(default)]
+    pub microfono: Option<MicrofonoElegido>,
+}
+
+/// El micrófono elegido en Ajustes: su id de `cpal`, que es con lo que se
+/// abre (dos pueden llamarse igual), y su nombre, para decir cuál falta si
+/// no está conectado.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct MicrofonoElegido {
+    pub id: String,
+    pub nombre: String,
 }
 
 /// Lee los ajustes. Si el fichero no existe, los de por defecto; si existe y
@@ -103,10 +116,21 @@ mod tests {
         let ruta = dir.path().join("app").join("ajustes.json");
         assert_eq!(leer(&ruta).unwrap(), Ajustes::default());
 
-        let a = Ajustes { carpeta_plantillas: Some(PathBuf::from(r"D:\Clase\plantillas")) };
+        let a = Ajustes {
+            carpeta_plantillas: Some(PathBuf::from(r"D:\Clase\plantillas")),
+            microfono: Some(MicrofonoElegido { id: "wasapi:{0.0.1}".into(), nombre: "Auriculares".into() }),
+        };
         guardar(&ruta, &a).unwrap();
         assert_eq!(leer(&ruta).unwrap(), a);
         assert!(!ruta.with_extension("json.tmp").exists());
+    }
+
+    #[test]
+    fn unos_ajustes_de_antes_del_microfono_se_leen() {
+        let dir = tempfile::tempdir().unwrap();
+        let ruta = dir.path().join("ajustes.json");
+        std::fs::write(&ruta, r#"{"carpetaPlantillas": null}"#).unwrap();
+        assert_eq!(leer(&ruta).unwrap(), Ajustes::default());
     }
 
     #[test]
@@ -126,7 +150,10 @@ mod tests {
         assert!(docs.path().join("Gestor de Notas").join("plantillas").is_dir());
 
         let elegida = docs.path().join("no-existe");
-        let c = carpeta_plantillas(&Ajustes { carpeta_plantillas: Some(elegida.clone()) }, docs.path());
+        let c = carpeta_plantillas(
+            &Ajustes { carpeta_plantillas: Some(elegida.clone()), ..Default::default() },
+            docs.path(),
+        );
         assert!(!c.por_defecto && !c.existe);
         assert!(!elegida.exists());
     }

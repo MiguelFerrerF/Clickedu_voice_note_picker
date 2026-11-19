@@ -3,16 +3,20 @@
  * `Documentos\Gestor de Notas\plantillas` (D4); se puede elegir otra, y
  * volver a la de por defecto.
  *
+ * **El micrófono** por el que se dicta (HUI): el de Windows, o el que se
+ * elija, por ejemplo unos auriculares.
+ *
  * Y **mejorar el dictado** (D8): lo guardado en el registro, el informe para
  * mandarlo y borrarlo.
  *
- * El micrófono llega con la voz (H3) y la cuenta de Clickedu con H4.
+ * La cuenta de Clickedu llega con H4.
  */
 
 import {invoke} from '@tauri-apps/api/core';
 import {useState} from 'react';
 
 import {Ruta} from '@components/clases/SinPlantillas';
+import {TarjetaMicrofono} from '@components/dictado/TarjetaMicrofono';
 import {Cabecera} from '@components/layout/Cabecera';
 import {TarjetaRegistro} from '@components/registro/TarjetaRegistro';
 import {Button} from '@components/ui/Button';
@@ -81,6 +85,7 @@ export function Ajustes({visible}: {visible: boolean}) {
           </p>
         )}
       </Card>
+      <TarjetaMicrofono visible={visible} />
       <TarjetaRegistro visible={visible} />
       <p style={{margin: '16px 0 0', fontSize: 12.5, color: 'var(--text-tertiary)'}}>{t('ajustes.llegan')}</p>
     </div>

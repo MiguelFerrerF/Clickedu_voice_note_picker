@@ -15,7 +15,8 @@
  *   que se lee de un vistazo mientras se dicta), con la nota en verde, que
  *   se apaga sola; las de antes, debajo, pequeñas y en gris.
  *
- * Y, encima, **la voz** (H3a): cómo se dicta, el «escuchando» mientras se
+ * Y, encima, **la voz** (H3a): cómo se dicta (el micrófono se elige en
+ * Ajustes; aquí solo se dice si el elegido falta), el «escuchando» mientras se
  * mantiene ESPACIO (en turquesa: está pasando, no ha terminado), el
  * «entendiendo» y lo que no ha ido bien. Si falta el modelo de voz, la
  * oferta de descargarlo, con su avance. En desarrollo, además, un campo
@@ -100,6 +101,11 @@ export function PanelDictado({
         background: 'var(--bg)',
       }}>
       <Voz voz={voz} />
+      {voz.microfonoFalta && (
+        <Linea color="var(--text-primary)" icono={<Punto />}>
+          {t('dictado.falta_microfono', {nombre: voz.microfonoFalta})}
+        </Linea>
+      )}
       {probar && <ProbarFrase probar={probar} />}
       {pendiente?.tipo === 'duda' && (
         <Duda dictado={pendiente} nombreDe={nombreDe} elegir={elegir} descartar={descartar} teclado={teclado} />
@@ -268,7 +274,6 @@ function Voz({voz}: {voz: Dictando}) {
   return (
     <Linea color="var(--text-secondary)" icono={microfono()}>
       {conTecla(t('dictado.como'))}
-      {voz.microfono && ` ${t('dictado.microfono', {nombre: voz.microfono})}`}
     </Linea>
   );
 }

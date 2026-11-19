@@ -9,15 +9,20 @@
 //! Mientras graba, avisa del **nivel** 20 veces por segundo (HUI): la
 //! interfaz enseña que el micrófono oye, y si no se mueve, es que no llega.
 //!
+//! **Cuál**: el elegido en Ajustes (HUI), por ejemplo unos auriculares; si
+//! no está conectado o no se abre, el de Windows, y se dice
+//! ([`Microfono::falta`]).
+//!
 //! El *stream* de `cpal` no se puede pasar entre hilos: vive en un hilo
 //! propio hasta que se suelta el [`Microfono`].
 
+use std::str::FromStr;
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use cpal::{FromSample, Sample, SampleFormat, SizedSample};
+use cpal::{DeviceId, FromSample, Sample, SampleFormat, SizedSample};
 
 use super::remuestreo::remuestrear;
 use super::TASA;
@@ -62,6 +67,32 @@ pub struct Microfono {
     hilo: Option<JoinHandle<()>>,
     /// El nombre del micrófono, para decir cuál se está usando.
     pub nombre: String,
+    /// Se pidió otro, que no está o no se abre, y este es el de Windows.
+    pub falta: bool,
+}
+
+/// Un micrófono conectado, para elegirlo en Ajustes: su id de `cpal` (como
+/// texto, para guardarlo) y su nombre.
+#[derive(Debug, Clone)]
+pub struct Disponible {
+    pub id: String,
+    pub nombre: String,
+}
+
+/// Los micrófonos conectados, y el id del de Windows, si hay.
+pub fn disponibles() -> Result<(Vec<Disponible>, Option<String>), String> {
+    let host = cpal::default_host();
+    let de_windows = host.default_input_device().and_then(|d| d.id().ok()).map(|id| id.to_string());
+    let lista = host
+        .input_devices()
+        .map_err(|e| format!("no se pueden ver los micrófonos: {e}"))?
+        .filter_map(|d| Some(Disponible { id: d.id().ok()?.to_string(), nombre: nombre_de(&d) }))
+        .collect();
+    Ok((lista, de_windows))
+}
+
+fn nombre_de(d: &cpal::Device) -> String {
+    d.description().map(|d| d.to_string()).unwrap_or_else(|_| "micrófono".into())
 }
 
 #[derive(Default)]
@@ -115,17 +146,19 @@ impl Estado {
 }
 
 impl Microfono {
-    /// Abre el micrófono por defecto de Windows. Vuelve cuando ya escucha, o
-    /// con el motivo si no puede (no hay micrófono, Windows no deja usarlo).
-    pub fn abrir() -> Result<Self, String> {
+    /// Abre el micrófono `elegido` (su id), o el de Windows si no se ha
+    /// elegido ninguno o el elegido no se puede abrir. Vuelve cuando ya
+    /// escucha, o con el motivo si no puede (no hay micrófono, Windows no deja
+    /// usarlo).
+    pub fn abrir(elegido: Option<String>) -> Result<Self, String> {
         let estado: Arc<Mutex<Estado>> = Arc::default();
         let (cerrar, al_cerrar) = mpsc::channel::<()>();
-        let (listo, al_listo) = mpsc::channel::<Result<(u32, String), String>>();
+        let (listo, al_listo) = mpsc::channel::<Result<(u32, String, bool), String>>();
 
         let para_el_hilo = estado.clone();
-        let hilo = std::thread::spawn(move || match abrir(para_el_hilo) {
-            Ok((stream, tasa, nombre)) => {
-                let _ = listo.send(Ok((tasa, nombre)));
+        let hilo = std::thread::spawn(move || match abrir(para_el_hilo, elegido) {
+            Ok((stream, tasa, nombre, falta)) => {
+                let _ = listo.send(Ok((tasa, nombre, falta)));
                 // Abierto hasta que se suelte el `Microfono`.
                 let _ = al_cerrar.recv();
                 drop(stream);
@@ -136,7 +169,9 @@ impl Microfono {
         });
 
         match al_listo.recv() {
-            Ok(Ok((tasa, nombre))) => Ok(Self { estado, tasa, cerrar: Some(cerrar), hilo: Some(hilo), nombre }),
+            Ok(Ok((tasa, nombre, falta))) => {
+                Ok(Self { estado, tasa, cerrar: Some(cerrar), hilo: Some(hilo), nombre, falta })
+            }
             Ok(Err(e)) => Err(e),
             Err(_) => Err("el hilo del micrófono se ha caído al abrirlo".into()),
         }
@@ -179,12 +214,29 @@ impl Drop for Microfono {
     }
 }
 
-/// Abre el micrófono por defecto con su formato por defecto: no se le pide
-/// 16 kHz porque muchos no lo dan; se remuestrea después.
-fn abrir(estado: Arc<Mutex<Estado>>) -> Result<(cpal::Stream, u32, String), String> {
+/// Abre el `elegido` y, si no está o no se abre, el de Windows: con el
+/// *stream*, su tasa, su nombre y si el elegido ha faltado.
+fn abrir(estado: Arc<Mutex<Estado>>, elegido: Option<String>) -> Result<(cpal::Stream, u32, String, bool), String> {
     let host = cpal::default_host();
+    if let Some(id) = elegido {
+        let abierto = DeviceId::from_str(&id)
+            .ok()
+            .and_then(|id| host.device_by_id(&id))
+            .and_then(|d| abrir_este(&d, estado.clone()).ok());
+        if let Some((stream, tasa, nombre)) = abierto {
+            return Ok((stream, tasa, nombre, false));
+        }
+        let dispositivo = host.default_input_device().ok_or("no hay ningún micrófono")?;
+        return abrir_este(&dispositivo, estado).map(|(s, t, n)| (s, t, n, true));
+    }
     let dispositivo = host.default_input_device().ok_or("no hay ningún micrófono")?;
-    let nombre = dispositivo.description().map(|d| d.to_string()).unwrap_or_else(|_| "micrófono".into());
+    abrir_este(&dispositivo, estado).map(|(s, t, n)| (s, t, n, false))
+}
+
+/// Abre `dispositivo` con su formato por defecto: no se le pide 16 kHz
+/// porque muchos no lo dan; se remuestrea después.
+fn abrir_este(dispositivo: &cpal::Device, estado: Arc<Mutex<Estado>>) -> Result<(cpal::Stream, u32, String), String> {
+    let nombre = nombre_de(dispositivo);
     let config = dispositivo
         .default_input_config()
         .map_err(|e| format!("no se puede usar el micrófono «{nombre}»: {e}"))?;
@@ -195,10 +247,10 @@ fn abrir(estado: Arc<Mutex<Estado>>) -> Result<(cpal::Stream, u32, String), Stri
     estado.lock().map_err(|e| e.to_string())?.antes = (tasa as f32 * ANTES) as usize;
 
     let stream = match formato {
-        SampleFormat::F32 => construir::<f32>(&dispositivo, &config, canales, estado),
-        SampleFormat::I16 => construir::<i16>(&dispositivo, &config, canales, estado),
-        SampleFormat::I32 => construir::<i32>(&dispositivo, &config, canales, estado),
-        SampleFormat::U16 => construir::<u16>(&dispositivo, &config, canales, estado),
+        SampleFormat::F32 => construir::<f32>(dispositivo, &config, canales, estado),
+        SampleFormat::I16 => construir::<i16>(dispositivo, &config, canales, estado),
+        SampleFormat::I32 => construir::<i32>(dispositivo, &config, canales, estado),
+        SampleFormat::U16 => construir::<u16>(dispositivo, &config, canales, estado),
         otro => return Err(format!("el micrófono «{nombre}» graba en un formato que no se conoce ({otro})")),
     }
     .map_err(|e| format!("no se puede abrir el micrófono «{nombre}»: {e}"))?;
@@ -297,8 +349,22 @@ mod tests {
     /// Necesita un micrófono: `cargo test -- --ignored microfono`.
     #[test]
     #[ignore]
+    fn el_elegido_que_no_esta_es_el_de_windows() {
+        let (lista, de_windows) = disponibles().expect("se ven los micrófonos");
+        assert!(!lista.is_empty() && de_windows.is_some());
+        assert!(lista.iter().any(|d| Some(&d.id) == de_windows.as_ref()), "el de Windows está en la lista");
+        let m = Microfono::abrir(de_windows).expect("se abre el elegido");
+        assert!(!m.falta);
+        drop(m);
+        let m = Microfono::abrir(Some("wasapi:no-existe".into())).expect("se abre el de Windows");
+        assert!(m.falta);
+    }
+
+    /// También necesita un micrófono.
+    #[test]
+    #[ignore]
     fn graba_un_segundo_mas_lo_de_antes() {
-        let m = Microfono::abrir().expect("no se abre el micrófono");
+        let m = Microfono::abrir(None).expect("no se abre el micrófono");
         std::thread::sleep(std::time::Duration::from_millis(500));
         let avisos = Arc::new(Mutex::new(0));
         let contar = avisos.clone();
