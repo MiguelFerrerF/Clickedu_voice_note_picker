@@ -38,7 +38,9 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > dictado») se prepara un informe sin nombres para mandarlo. **Falta
 > probar las dos cosas a mano**, y luego el push-to-talk de H3a. Para
 > ver una carpeta de plantillas reales sin sacar datos de alumnos:
-> `cargo run --example revisar_plantillas -- <carpeta>`.
+> `cargo run --example revisar_plantillas -- <carpeta>`. Para probar
+> el dictado con la clase inventada del corpus:
+> `cargo run --example escribir_clase_inventada` (a la carpeta por defecto).
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
