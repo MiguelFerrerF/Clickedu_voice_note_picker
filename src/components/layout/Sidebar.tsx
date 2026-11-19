@@ -13,6 +13,9 @@
  * - **Aplicación**: Ajustes y, solo en desarrollo, el Muestrario.
  *
  * Al pie, la versión. «Buscar actualizaciones» llega en H7.
+ *
+ * Lo que aún no hace nada no se enseña (HUI): Estadísticas sale en H8 y la
+ * sección de Clickedu en H4. Sus pantallas siguen ahí, vacías.
  */
 
 import logo from '@/assets/logo.png';
@@ -23,6 +26,10 @@ import {VERSION_ACTUAL} from '@modules/app/version';
 import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
 import type {PantallaId} from '@/types/pantalla';
+
+/** A `true` cuando tengan algo: Estadísticas en H8, Clickedu en H4. */
+const HAY_ESTADISTICAS = false;
+const HAY_CLICKEDU = false;
 
 export interface SidebarProps {
   pantalla: PantallaId;
@@ -93,12 +100,14 @@ export function Sidebar({pantalla, setPantalla}: SidebarProps) {
         <SidebarSection id="aula" titulo={t('nav.aula')}>
           {entrada('calificar', ICONOS.calificar, t('nav.calificar'))}
           {entrada('clases', ICONOS.clases, t('nav.clases'))}
-          {entrada('estadisticas', ICONOS.estadisticas, t('nav.estadisticas'))}
+          {HAY_ESTADISTICAS && entrada('estadisticas', ICONOS.estadisticas, t('nav.estadisticas'))}
         </SidebarSection>
 
-        <SidebarSection id="clickedu" titulo={t('nav.clickedu_seccion')}>
-          {entrada('clickedu', ICONOS.clickedu, t('nav.clickedu'))}
-        </SidebarSection>
+        {HAY_CLICKEDU && (
+          <SidebarSection id="clickedu" titulo={t('nav.clickedu_seccion')}>
+            {entrada('clickedu', ICONOS.clickedu, t('nav.clickedu'))}
+          </SidebarSection>
+        )}
 
         <SidebarSection id="aplicacion" titulo={t('nav.aplicacion')}>
           {entrada('ajustes', ICONOS.ajustes, t('nav.ajustes'))}

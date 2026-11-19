@@ -291,14 +291,6 @@ async function ir(page, rotulo, id) {
   await page.locator(`[data-pantalla="${id}"]`).waitFor({state: 'visible'});
 }
 
-const vacia = (nombre, rotulo) => ({
-  nombre,
-  async probar(page, paso) {
-    await ir(page, rotulo, nombre);
-    await paso('reposo');
-  },
-});
-
 const PRUEBAS = [
   {
     nombre: 'calificar',
@@ -521,8 +513,7 @@ const PRUEBAS = [
       await paso('ajustes');
     },
   },
-  vacia('estadisticas', 'Estadísticas'),
-  vacia('clickedu', 'Conexión'),
+  // Estadísticas y Conexión, escondidas hasta H8 y H4 (HUI): sin prueba.
   {
     nombre: 'muestrario',
     async probar(page, paso) {
