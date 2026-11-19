@@ -120,6 +120,10 @@ encima.
   `--text-secondary`; al pasar o con la lista abierta, fondo
   `--bg-hover`, que es lo que dice que se pulsa, y el foco con el anillo
   de `--accent` (`.titulo-desplegable`). Debajo, el fichero en mono.
+- **«Exportar», principal solo con algo que exportar**: sin ninguna nota
+  (ni una mal escrita), el botón fantasma desactivado, que es el gris, con
+  el porqué en el `title`. El turquesa de la pantalla se gasta en lo que
+  toca hacer, no en un botón que no haría nada.
 
 ### Lo apuntado por voz, en el panel del dictado (2026-11-19)
 

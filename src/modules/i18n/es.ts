@@ -42,7 +42,8 @@ const es = {
   // ── Exportar (H2) ──
   'exportar.boton': 'Exportar',
   'exportar.ayuda': 'Deja las notas en un Excel para subirlo a Clickedu, en Documentos\\Gestor de Notas\\notas',
-  'exportar.hecho': 'Exportadas {n} notas de {total} a {fichero}.',
+  'exportar.nada': 'Todavía no hay ninguna nota que exportar',
+  'exportar.hecho':'Exportadas {n} notas de {total} a {fichero}.',
   'exportar.hecho_una': 'Exportada 1 nota de {total} a {fichero}.',
   'exportar.viejo': 'El exportado anterior está en notas_viejas.',
   'exportar.abrir_carpeta': 'Abrir la carpeta',

@@ -146,6 +146,11 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
   const alumnos = abiertaAhora?.plantilla.alumnos ?? [];
   const puestas = abiertaAhora?.puestas ?? {};
   const notas = alumnos.map((a) => notaDe(a, puestas));
+  // «Exportar» es el botón principal solo con algo que exportar (HUI). Sin
+  // ninguna nota, gris y sin pulsarse: el Excel saldría vacío y mandaría el
+  // bueno de antes a `notas_viejas`. Una que no es nota sí cuenta: al
+  // pulsar, se dice cuál.
+  const hayQueExportar = !!abiertaAhora && notas.some((n) => n.tipo !== 'vacia');
 
   const pendienteAqui = pendiente?.fichero === fichero ? pendiente.dictado : undefined;
   const apuntadosAqui = apuntados.filter((a) => a.fichero === fichero);
@@ -327,10 +332,10 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
         intro={<span style={{fontFamily: 'var(--font-mono)', fontSize: 12}}>{fichero}</span>}
         derecha={
           <Button
-            variant="primary"
+            variant={hayQueExportar ? 'primary' : 'ghost'}
             onClick={exportar}
-            disabled={!abiertaAhora || exportando}
-            title={t('exportar.ayuda')}>
+            disabled={!hayQueExportar || exportando}
+            title={hayQueExportar ? t('exportar.ayuda') : t('exportar.nada')}>
             <Icon d={ICONOS.exportar} size={14} />
             {t('exportar.boton')}
           </Button>

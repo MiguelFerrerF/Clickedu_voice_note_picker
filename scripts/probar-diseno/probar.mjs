@@ -306,6 +306,9 @@ const PRUEBAS = [
       // Sin clase elegida enseña la primera; desde el desplegable, otra.
       const main = page.locator('[data-pantalla="calificar"]');
       await main.getByRole('row').first().waitFor();
+      // HUI: sin ninguna nota, «Exportar» en gris y sin pulsarse.
+      if (!(await main.getByRole('button', {name: 'Exportar'}).isDisabled()))
+        throw new Error('«Exportar» se puede pulsar sin ninguna nota');
       await paso('primera');
       // HUI: las teclas, con el ⓘ de encima de la tabla.
       await main.getByRole('button', {name: 'Las teclas'}).click();
@@ -317,6 +320,8 @@ const PRUEBAS = [
       await paso('desplegable');
       await page.getByRole('button', {name: 'Matemáticas 3.º A ESO', exact: true}).last().click();
       await main.getByText('Al leer la plantilla').waitFor();
+      // El galón que gira y «Exportar», que se enciende: ya quietos.
+      await page.waitForTimeout(250);
       await paso('avisos');
     },
   },
@@ -328,6 +333,8 @@ const PRUEBAS = [
       const campo = (nombre) => main.getByRole('textbox', {name: `Nota de ${nombre}`});
       await campo('Castro Molina, Lucía').fill('7,5');
       await page.keyboard.press('Enter');
+      if (await main.getByRole('button', {name: 'Exportar'}).isDisabled())
+        throw new Error('«Exportar» no se puede pulsar con una nota');
       await page.keyboard.type('4');
       await page.keyboard.press('Enter');
       await page.keyboard.type('12');

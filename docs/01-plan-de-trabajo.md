@@ -616,7 +616,10 @@ Ninguna rompe D5/D6 ni añade tokens.
       dos veces (título y desplegable). Hecho (2026-11-19): `Dropdown`
       con `size="titulo"`, sin caja y con la letra de la `Cabecera`; se
       corta con «…» solo si no cabe.
-- [ ] 11. **«Exportar» principal solo si hay algo que exportar**; antes, gris.
+- [x] 11. **«Exportar» principal solo si hay algo que exportar**; antes, gris.
+      Hecho (2026-11-19): sin ninguna nota, fantasma y sin pulsarse (el
+      Excel saldría vacío y mandaría el bueno a `notas_viejas`); una que no
+      es nota cuenta, para que al pulsar se diga cuál.
 - [ ] 12. **Los avisos de la plantilla, plegados** en una línea («● 3 avisos
       al leer la plantilla ›») que se abre al pulsarla.
 
