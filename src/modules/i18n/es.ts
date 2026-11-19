@@ -92,11 +92,12 @@ const es = {
   'dictado.probar': 'Probar el dictado (solo en desarrollo)',
 
   // ── El push-to-talk (H3a) ──
-  'dictado.como': 'Mantén ESPACIO pulsado y di el alumno y la nota: «Lucía Martín, siete con cinco».',
+  'dictado.como': 'Mantén {tecla} pulsado y di el alumno y la nota: «Lucía Martín, siete con cinco».',
+  'dictado.tecla_espacio': 'Espacio',
   'dictado.microfono': 'Se escucha por «{nombre}».',
-  'dictado.escuchando': 'Escuchando… suelta ESPACIO al terminar.',
+  'dictado.escuchando': 'Escuchando… suelta {tecla} al terminar.',
   'dictado.entendiendo': 'Entendiendo lo dicho…',
-  'dictado.corto': 'Mantén ESPACIO pulsado mientras hablas, y suéltalo al terminar.',
+  'dictado.corto': 'Mantén {tecla} pulsado mientras hablas, y suéltalo al terminar.',
   'dictado.nada_oido': 'No se ha oído nada. Si estabas hablando, mira en Windows que el micrófono sea el que usas.',
   'dictado.sin_microfono': 'No se puede usar el micrófono: {error}',
   'dictado.sin_modelo': 'Para dictar, la app necesita su modelo de voz (181 MB). Se descarga una vez y luego funciona sin conexión: la voz no sale de este ordenador.',

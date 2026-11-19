@@ -22,7 +22,7 @@
  * para escribir la frase como si se dictara.
  */
 
-import {useLayoutEffect, useRef, useState} from 'react';
+import {Fragment, useLayoutEffect, useRef, useState} from 'react';
 
 import {Punto} from '@components/clases/Avisos';
 import {Button} from '@components/ui/Button';
@@ -116,10 +116,53 @@ const MB = (bytes: number) => Math.round(bytes / 1e6);
 /** Una línea de la voz: icono y texto, en el color que toque. */
 function Linea({color, icono, children}: {color: string; icono: React.ReactNode; children: React.ReactNode}) {
   return (
-    <div role="status" style={{display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color, minWidth: 0}}>
+    <div
+      role="status"
+      style={{display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, lineHeight: 1.6, color, minWidth: 0}}>
       {icono}
       <span style={{overflowWrap: 'anywhere', minWidth: 0}}>{children}</span>
     </div>
+  );
+}
+
+/** Una tecla, dibujada como tal: se reconoce antes que leída. */
+function Tecla({children}: {children: React.ReactNode}) {
+  return (
+    <kbd
+      style={{
+        display: 'inline-block',
+        minWidth: 20,
+        padding: '0 6px',
+        border: '1px solid var(--border-strong)',
+        borderBottomWidth: 2,
+        borderRadius: 4,
+        background: 'var(--bg-card)',
+        color: 'var(--text-primary)',
+        fontFamily: 'var(--font-mono)',
+        fontSize: 11,
+        fontWeight: 600,
+        lineHeight: '17px',
+        textAlign: 'center',
+        whiteSpace: 'nowrap',
+      }}>
+      {children}
+    </kbd>
+  );
+}
+
+/** Un texto con `{tecla}`: ahí va ESPACIO, dibujado como una tecla. */
+function conTecla(texto: string) {
+  const [antes, ...resto] = texto.split('{tecla}');
+  return (
+    <>
+      {antes}
+      {resto.map((despues, i) => (
+        <Fragment key={i}>
+          <Tecla>{t('dictado.tecla_espacio')}</Tecla>
+          {despues}
+        </Fragment>
+      ))}
+    </>
   );
 }
 
@@ -154,7 +197,7 @@ function Voz({voz}: {voz: Dictando}) {
   if (voz.escuchando) {
     return (
       <Linea color="var(--accent-ink)" icono={microfono({animation: 'pulse 1.2s ease-in-out infinite'})}>
-        {t('dictado.escuchando')}
+        {conTecla(t('dictado.escuchando'))}
       </Linea>
     );
   }
@@ -169,7 +212,7 @@ function Voz({voz}: {voz: Dictando}) {
   }
   if (voz.entendiendo > 0) {
     return (
-      <Linea color="var(--text-tertiary)" icono={microfono()}>
+      <Linea color="var(--text-secondary)" icono={microfono()}>
         {t('dictado.entendiendo')}
       </Linea>
     );
@@ -177,13 +220,13 @@ function Voz({voz}: {voz: Dictando}) {
   if (voz.aviso) {
     return (
       <Linea color="var(--text-primary)" icono={<Punto />}>
-        {voz.aviso === 'corto' ? t('dictado.corto') : t('dictado.nada_oido')}
+        {voz.aviso === 'corto' ? conTecla(t('dictado.corto')) : t('dictado.nada_oido')}
       </Linea>
     );
   }
   return (
-    <Linea color="var(--text-tertiary)" icono={microfono()}>
-      {t('dictado.como')}
+    <Linea color="var(--text-secondary)" icono={microfono()}>
+      {conTecla(t('dictado.como'))}
       {voz.microfono && ` ${t('dictado.microfono', {nombre: voz.microfono})}`}
     </Linea>
   );

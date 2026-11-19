@@ -578,7 +578,7 @@ Ninguna rompe D5/D6 ni añade tokens.
       viejos en gris. Ahora solo se ve el último y, dictando seguido, el de
       antes se va sin comprobarlo. Hechos los dos (2026-11-19): tres, el
       nuevo grande; solo deshace el último dictado a cada alumno.
-- [ ] 3. **Las instrucciones, legibles**: «Mantén ESPACIO pulsado…» va en
+- [x] 3. **Las instrucciones, legibles**: «Mantén ESPACIO pulsado…» va en
       `--text-tertiary` (3,5:1, solo para rótulos según `docs/02`). A
       `--text-secondary`, y ESPACIO dibujado como una tecla.
 - [ ] 4. **Medidor de volumen** mientras se mantiene ESPACIO: se ve que el
