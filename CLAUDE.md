@@ -12,38 +12,27 @@ está en esta rama**: vive en `main` y en el tag `v1.3.4`, que es la última
 publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-18): H2 cerrado.** En la rama `v2`, la única
-> de la v2 (un commit por hito y otro al cerrarlo), probado a mano: notas, cerrar y abrir, exportar. **Queda
-> pendiente importar un exportado en Clickedu** (el usuario lo deja para más
-> adelante; como muy tarde en H6): si lo rechaza, se vuelve a `exportar.rs`.
-> **H3a · Voz: el motor**, en marcha. **D2 cerrada con números**:
-> Whisper `small` `q5_1`, ventana recortada, sin la lista como contexto
-> (90–94 % en 1,1 s; Google 90–92 %; Windows 14–34 %; tabla y
-> experimentos en `docs/01`, H3a); el modelo se descarga al usar la voz.
-> **H3b · Voz: entender la frase**, en marcha (va antes que el
-> push-to-talk). Hecho en Rust (`voz::interprete`, `voz::emparejar`,
-> `voz::entender`): de las 100 grabaciones, **77 se apuntan, 20 se
-> preguntan, 2 no se entienden y 0 mal en silencio**
-> (`cargo run --release --example probar_entender [-- --todos]`). La
-> confianza de Whisper por palabra se midió y **no sirve** para decidir;
-> se pregunta si con dos sonidos sería otro alumno (detalle en `docs/01`,
-> H3b); **el usuario la deja así** (2026-11-19), aunque pregunte por
-> Martín/Martínez sin segundo apellido. **La confirmación en Calificar,
-> hecha** (2026-11-19): `entender_frase` y el panel del dictado (verde
-> que se apaga, con Deshacer; duda con borde discontinuo y opciones; no
-> entendida con el punto ámbar); en desarrollo se escribe la frase.
-> `emparejar` prueba los dos órdenes de «Apellidos, Nombre», que es como
-> vienen las plantillas reales. **El registro de D8, hecho**: cada dictado
-> y lo que haces con él se guarda en local, y en Ajustes («Mejorar el
-> dictado») se prepara un informe sin nombres para mandarlo. **Falta
-> probar las dos cosas a mano**, y luego el push-to-talk de H3a. Para
-> ver una carpeta de plantillas reales sin sacar datos de alumnos:
-> `cargo run --example revisar_plantillas -- <carpeta>`. Para probar
-> el dictado con la clase inventada del corpus:
-> `cargo run --example escribir_clase_inventada` (a la carpeta por defecto).
+> **Dónde se quedó (2026-11-19): H3b cerrado.** En la rama `v2`, la única
+> de la v2 (un commit por hito y otro al cerrarlo). **Siguiente: el
+> push-to-talk de H3a** (mantener ESPACIO, sin congelar nada, con el
+> «escuchando» en el panel del dictado de Calificar, que ya existe): el
+> micrófono (`voz::microfono`, abierto con los últimos 0,3 s), Whisper
+> (`voz::whisper`, `small` `q5_1` recortado, D2), la descarga del modelo
+> con `Progreso` y lo oído a `entender_frase` (o su equivalente desde el
+> audio), que ya apunta en el registro. Con él se decide si se guarda el
+> audio en local y cómo **medir en local** los casos del registro (D8).
+> El campo «Probar el dictado» de Calificar, solo en desarrollo, se queda
+> o se quita entonces. **Pendiente de H2**: importar un exportado en
+> Clickedu (como muy tarde en H6). Para ver plantillas reales sin sacar
+> datos de alumnos: `cargo run --example revisar_plantillas -- <carpeta>`;
+> para probar el dictado sin alumnos reales:
+> `cargo run --example escribir_clase_inventada` (a la carpeta por
+> defecto, **no** a la de la v1, que es la que tiene puesta el usuario).
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
+| **H3b** | `voz::interprete` (la nota; lo no visto en grabaciones, `NOTA_RARA`, no se interpreta), `voz::emparejar` (fonética, los dos órdenes de «Apellidos, Nombre»), `voz::entender` (cuándo preguntar); `entender_frase`, el panel del dictado y las propuestas en la cuadrícula; `registro.rs` e informe sin nombres (D8), en Ajustes | sí, a mano (clase inventada), con tests de Rust, la prueba de diseño y `probar_entender` sobre las 100 grabaciones: **77 apuntadas, 20 preguntadas, 2 sin entender, 0 mal en silencio** |
+| **H3a** (en marcha) | D2 cerrada con números: Whisper `small` `q5_1` recortado (90–94 % en 1,1 s); micrófono, remuestreo y motor; el banco de pruebas de voz | con voz de verdad (100 grabaciones); falta el push-to-talk |
 | **H2** | `sesion.rs` (notas por clave de alumno, al momento), `exportar.rs` (el `.xlsx` de la v1, a `Documentos\Gestor de Notas\notas`); Calificar con campos de nota, Exportar y contador | sí, a mano, con tests de Rust (ida y vuelta) y la prueba de diseño; **falta importarlo en Clickedu** |
 | **H1** | `plantillas.rs` (lee por cabecera, con avisos), `ajustes.json`, vigilante de la carpeta; Calificar en lectura, Clases, Ajustes | sí, a mano (plantillas reales), con tests de Rust y la prueba de diseño |
 | **H0** | Andamiaje Tauri 2 + Vite + React + TS, paleta turquesa en claro con neutros «niebla», primitivas de `components/ui/`, `Sidebar` y cinco pantallas vacías, Muestrario, i18n, IBM Plex con `latin-ext`, prueba de diseño | sí, a mano y con la prueba de diseño |
@@ -140,3 +129,13 @@ Cerradas el 2026-11-17 (D8, el 2026-11-19). No se reabren sin que el usuario lo 
 - Repo **público**: <https://github.com/MiguelFerrerF/Clickedu_voice_note_picker>
   (`origin`, rama `main`; la v2, en `v2`). **El usuario hace el push.**
 - Los commits terminan con la línea `Co-Authored-By` que indique la sesión.
+- **Formato de Rust**: no hay `rustfmt.toml` y el repo no está entero
+  formateado: **nunca `cargo fmt`** (reescribe todo). Lo más parecido es
+  `rustfmt --config max_width=120,use_small_heuristics=Max` sobre los
+  ficheros propios, y ojo, que sigue los `mod` (desde `lib.rs` formatea
+  todo). En TS, `npx prettier --print-width 120 --single-quote
+  --no-bracket-spacing --bracket-same-line`.
+- Con `tauri:dev` abierto, `cargo test` no puede reescribir el `.exe`: pasa
+  `cargo test --lib`. En los heredocs de Bash con Python, las barras
+  invertidas se interpretan (una `\n` escrita acaba en salto de línea):
+  para textos con barras invertidas, usa Edit o Write.

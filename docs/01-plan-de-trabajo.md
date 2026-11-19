@@ -398,7 +398,7 @@ formato vuelve a abrirse aquí (`exportar.rs`).
 - [ ] **Medir en local con el registro** (D8): pasar los casos guardados por
       la versión nueva y contar. Y decidir si se guarda el audio.
 
-### H3b · Voz: entender la frase
+### H3b · Voz: entender la frase ✓ (2026-11-19)
 
 > **Va antes que el push-to-talk de H3a** (el usuario, 2026-11-19): así,
 > al probarlo con la voz, Calificar ya enseña alumno y nota. Se mide con
@@ -497,9 +497,10 @@ formato vuelve a abrirse aquí (`exportar.rs`).
       borrar. Tests: el informe no lleva nombres, claves, clases ni rutas, y
       ninguna de las 50 frases del corpus deja pasar una palabra de un
       nombre.
-- [ ] **Probado a mano** con `npm run tauri:dev`, escribiendo frases en el
-      campo de desarrollo sobre una plantilla real, y preparando y abriendo
-      el informe.
+- [x] **Probado a mano** con `npm run tauri:dev` (2026-11-19), con la clase
+      inventada (`cargo run --example escribir_clase_inventada`): frases que
+      se apuntan, que preguntan y que no se entienden, elegir, deshacer, y
+      preparar y abrir el informe.
 
 ### H4 · Conectar con Clickedu
 
