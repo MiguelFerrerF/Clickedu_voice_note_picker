@@ -9,7 +9,7 @@
  */
 
 import {invoke} from '@tauri-apps/api/core';
-import {useEffect, useState} from 'react';
+import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import {Modal} from '@components/dialogs/Modal';
 import {Button} from '@components/ui/Button';
@@ -19,6 +19,8 @@ import {t} from '@modules/i18n';
 import type {ResumenRegistro} from '@modules/registro/tipos';
 
 const APAGAR_MS = 6000;
+/** Desde aquí, las seis cifras caben en una fila (~100 px cada una). */
+const ANCHO_UNA_FILA = 640;
 
 /** `visible`: la pantalla se está viendo. Al volver a ella, se cuenta otra vez. */
 export function TarjetaRegistro({visible}: {visible: boolean}) {
@@ -65,7 +67,20 @@ export function TarjetaRegistro({visible}: {visible: boolean}) {
     );
   }
 
+  // Las seis cifras en una fila, o en 3×2 si no caben: nunca una sola
+  // abajo. Sin visitar (`display: none`) mide 0; al verla, se vuelve a medir.
+  const caja = useRef<HTMLDivElement>(null);
+  const [columnas, setColumnas] = useState(3);
   const hay = resumen && (resumen.dictados > 0 || resumen.fallos > 0);
+  useLayoutEffect(() => {
+    const el = caja.current;
+    if (!el) return;
+    const medir = () => setColumnas(el.clientWidth >= ANCHO_UNA_FILA ? 6 : 3);
+    medir();
+    const observador = new ResizeObserver(medir);
+    observador.observe(el);
+    return () => observador.disconnect();
+  }, [hay]);
   const cifras: [string, number][] = resumen
     ? [
         [t('registro.dictados'), resumen.dictados],
@@ -83,7 +98,8 @@ export function TarjetaRegistro({visible}: {visible: boolean}) {
       {hay && (
         <>
           <div
-            style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px 16px'}}>
+            ref={caja}
+            style={{display: 'grid', gridTemplateColumns: `repeat(${columnas}, minmax(0, 1fr))`, gap: '10px 16px'}}>
             {cifras.map(([rotulo, n]) => (
               <div key={rotulo} style={{minWidth: 0}}>
                 <div style={{fontFamily: 'var(--font-mono)', fontSize: 18, color: 'var(--text-primary)'}}>{n}</div>
