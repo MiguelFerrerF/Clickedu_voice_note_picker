@@ -92,6 +92,13 @@ alumnos menores a un tercero**.
 tumba: las mismas 50 frases grabadas, pasadas por cada motor, con aciertos y
 latencia medidos. Si Whisper no llega, se vuelve aquí con los números.
 
+**Cerrada con la prueba de H3a (2026-11-18): Whisper `small` (`q5_1`,
+181 MB), con la ventana recortada a la frase (más 2 s) y sin la lista de la
+clase; el modelo se descarga la primera vez que se usa la voz.** Con voz de
+verdad acierta nota y nombre en el 90–94 % de las frases, en 1,1 s de
+mediana, como Google (90–92 %, 0,7 s) y sin que la voz salga del ordenador.
+Windows no llega ni de lejos (14–34 %). El detalle, en H3a.
+
 ### D3 · Las credenciales de Clickedu, fuera de los ficheros
 
 En el **Administrador de credenciales de Windows** (crate `keyring`), nunca en
@@ -246,16 +253,129 @@ formato vuelve a abrirse aquí (`exportar.rs`).
 
 ### H3a · Voz: el motor (cierra D2)
 
-- [ ] Grabar 50 frases de prueba con nombres inventados.
-- [ ] Probar Whisper local y el reconocimiento de Windows (y Google como
-      referencia): aciertos y latencia.
+- [x] **El banco de pruebas** (2026-11-18). El corpus, en
+      `src-tauri/tests/datos/voz/`: una clase inventada de 28 alumnos
+      (`clase.txt`) con las trampas de verdad —Martín/Martínez,
+      García/Gracia, b/v, ll/y, h, catalanes, vascos y de fuera— y 50
+      frases (`frases.tsv`) con el alumno, lo que se dice de su nombre y la
+      nota; servirá también para H3b. Para grabarlas,
+      `cargo run --release --example grabar_frases` (ESPACIO para empezar y
+      para terminar: la consola no distingue soltar una tecla mantenida;
+      a `Documentos\Gestor de Notas\prueba-voz`, fuera del repo). Para
+      medirlas, `cargo run --release --example probar_voz`, que pasa cada
+      modelo `ggml-*.bin` de `%APPDATA%\es.gestornotas.app\modelos` con y sin
+      la lista de la clase, y con la ventana de 30 s o **recortada** a lo
+      que dura la frase; `scripts/probar-voz/windows.ps1` (SAPI: dictado
+      libre y con el vocabulario de la clase) y `google.py` (referencia)
+      dejan sus resultados al lado, y el informe los compara: nota bien,
+      nombre reconocible, mediana y p90 de lo que tarda.
+- [x] `voz::microfono` (abierto todo el rato con los últimos 0,3 s en
+      memoria: abrirlo al pulsar tarda 0,2–0,4 s y se comería el principio
+      del nombre), `voz::remuestreo` (a 16 kHz, con tests) y
+      `voz::whisper` (sin reintentos de temperatura y con 32 tokens como
+      mucho: con ellos, algunas frases tardaban 8 s en bucle).
+- [x] whisper.cpp con MSVC salía **sin `/O2` y sin AVX2**:
+      `src-tauri/.cargo/config.toml` lo fuerza. AVX2 deja fuera algunos
+      Celeron/Pentium baratos: **comprobar el procesador del ordenador del
+      profesor** antes de H7.
+- [x] **Ensayo con voz sintética** (la de Windows), solo para ver que la
+      cadena funciona —no decide nada: es la voz de Microsoft hablándole al
+      reconocedor de Microsoft—. En este Ryzen 5 5600H: Whisper `small`
+      recortado, 80–86 % de notas en 0,6 s (1,6 s con la lista); `base`, peor
+      y en 0,2 s; Windows con vocabulario, 98 % en 0,06 s; Google, 98 % en
+      0,6 s. Muchos fallos de Whisper son de **escritura**, no de oído
+      («Un10», «825», romanos como «V» o «X10»): los arregla el intérprete
+      de H3b o el contexto.
+- [x] Grabar las 50 frases con voz de verdad (el usuario, 2026-11-18). El
+      grabador pasó a ESPACIO para empezar y ESPACIO para terminar: la
+      consola de Windows manda una «soltada» con cada repetición de la tecla
+      mantenida, y cortaba todo a 0 s. Salieron **bajas** (picos del
+      5–9 %): Whisper y Google no lo notan; Windows tampoco mejora
+      normalizándolas.
+- [x] **La prueba, con voz de verdad** (2026-11-18, Ryzen 5 5600H, 6
+      hilos). «Las dos» = nota y nombre bien en la misma frase:
+
+      | Motor | Nota | Nombre | Las dos | Mediana | p90 |
+      |---|---|---|---|---|---|
+      | Google (referencia) | 94 % | 96 % | 90 % | 0,66 s | 0,90 s |
+      | Whisper `small` | 92 % | 96 % | 90 % | 7,1 s | 7,8 s |
+      | Whisper `small` + lista | 92 % | 100 % | 92 % | 7,2 s | 7,5 s |
+      | **Whisper `small` + recorte** | 92 % | 92 % | **88 %** | **0,84 s** | 0,96 s |
+      | ↳ con 2 s de margen (lo que se queda, abajo) | 94 % | 94 % | 90 % | 1,2 s | 1,5 s |
+      | Whisper `small` + lista + recorte | 86 % | 94 % | 84 % | 1,75 s | 1,93 s |
+      | Whisper `base` + recorte | 82 % | 78 % | 72 % | 0,34 s | 0,45 s |
+      | Windows con vocabulario | 30 % | 46 % | 14 % | 0,14 s | 0,22 s |
+      | Windows, dictado | 16 % | 20 % | 4 % | 0,67 s | 0,97 s |
+
+      Lo que se saca:
+      - **Recortar la ventana** cuesta 2 puntos y baja de 7 s a 0,84 s.
+        Sin recorte no se puede usar.
+      - **La lista de la clase como contexto no compensa**: con recorte
+        empeora la nota (escribe «Cundiz», «A5», repite la frase) y dobla
+        el tiempo. Los nombres se arreglan mejor después, emparejando con
+        la clase (H3b).
+      - De los 6 fallos de `small` + recorte, **5 los puede arreglar
+        H3b**: notas mal escritas pero bien oídas («825», «5x25», la frase
+        repetida en bucle hasta cortarse) y nombres que suenan a uno de la
+        clase («Noria Villa SK», «Moncerrat será»). El único fallo de oído
+        de verdad es «Wei diez», dos sílabas con un nombre de fuera; Google
+        tampoco lo saca.
+      - `base` se queda corto, y Windows queda descartado.
+- [x] **Repetida sobre una mesa** (2026-11-19; la primera fue con el
+      portátil sobre una cama). Suben los niveles (pico mediano del 7 % al
+      10 %) y sube Windows (vocabulario 34 %, dictado 14 %), que sigue
+      lejos. **`small` + recorte da otra vez 88 %** (nota 94 %, nombre 90 %,
+      0,82 s); Google, 92 %. Entre variantes de Whisper las diferencias son
+      de una o dos frases (`small` + lista + recorte, 90 % en 1,8 s): ruido
+      de 50 frases, no razón para cambiar D2. Ya no hay bucles ni «825»;
+      los fallos son nombres a medio oír («Sofí el baño», «Muhometino»,
+      «Etxeberria siete» oído como «7»), «siete y medio» como «7.30»,
+      «Ximena nueve y medio» como «Si menos, no hay medio», y otra vez «Wei
+      diez». Todas las grabaciones llevan el clic de ESPACIO a los 0,35 s:
+      a Whisper no le molesta.
+- [x] **Afinar el motor** (2026-11-19), con las 100 grabaciones (cama y
+      mesa), cambiando una cosa cada vez sobre `small` + recorte (88 % y
+      88 %):
+      - **Más margen a la ventana recortada: 2 s en vez de 1 → 90 % y
+        94 %**, por 0,15 s más. Con 3 o 4 s, nada más; añadir 1 s de
+        silencio al final da lo mismo que el margen. **Se queda en 2 s.**
+      - Buscar con haz (5) en vez de lo más probable: 86 % y 90 %, un 30 %
+        más lento. No.
+      - **Obligarle a escribir solo el vocabulario de la clase** (nombres,
+        números y las palabras de dictar), filtrando lo que puede escribir
+        en cada paso: **los nombres caen al 66–70 %**. Whisper escribe a
+        trozos; si quería empezar «Xirau» por «Shi» y no puede, salta a otra
+        palabra permitida («Montserrat, Sánchez»). Más suave (castigar en vez
+        de prohibir), 78–82 %. No: el nombre se empareja con la clase
+        después, en H3b. (La gramática de whisper.cpp no se puede usar desde
+        `whisper-rs` 0.16: se la pasa mal.)
+
+      Con el margen de 2 s quedan **8 fallos de 100**, y **6 son de H3b**:
+      nombres que suenan a uno de la clase («Noria Villa SK», «Moncerrat
+      será», «Sofí el baño», «Muhometino») y notas oídas pero mal escritas
+      («825», «5x25»). El único fallo de oído es «Wei diez» (las dos
+      veces): ahí la app tiene que **preguntar, no adivinar**.
+- [x] **El modelo se descarga la primera vez que se usa la voz** (el
+      usuario, 2026-11-19): el instalador sigue pequeño. La descarga lleva
+      `Progreso` y se comprueba antes de usarla.
+- [ ] **Queda abierto**: la latencia en un ordenador de profesor, que será
+      más lento que este.
 - [ ] Push-to-talk con ESPACIO, sin congelar nada, con indicador de «escuchando».
 
 ### H3b · Voz: entender la frase
 
+> **Va antes que el push-to-talk de H3a** (el usuario, 2026-11-19): así,
+> al probarlo con la voz, Calificar ya enseña alumno y nota. Se mide con
+> las 100 grabaciones de H3a (cama y mesa): el éxito es **cero notas mal
+> puestas en silencio**; lo que no esté claro, se pregunta.
+
 - [ ] Puerto del intérprete a Rust con **tests sobre un corpus de frases**:
       «siete con cinco», «nueve y medio», «ocho coma veinticinco», «un diez».
 - [ ] Puerto del emparejamiento fonético, con el mismo corpus.
+- [ ] La confianza de Whisper por palabra (`token_probability` de
+      `whisper-rs`), junto con lo lejos que queda el nombre oído del de la
+      clase, decide si se apunta, se pregunta o se dice que no se ha
+      entendido.
 - [ ] Confirmación: verde si está seguro; borde discontinuo y elegir entre los
       dos más probables si duda.
 

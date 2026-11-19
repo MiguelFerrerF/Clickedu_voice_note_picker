@@ -1,0 +1,19 @@
+# Cómo se compila whisper.cpp (H3a). `whisper-rs-sys` pasa a CMake las
+# variables `GGML_*` y `CMAKE_*` del entorno.
+#
+# Sin esto, con MSVC sale **sin optimizar y sin AVX**: `GGML_NATIVE` no
+# detecta nada con MSVC y los `CMAKE_*_FLAGS_RELEASE` que pone el crate
+# `cmake` no llevan `/O2`. Así, una frase tardaba más de diez segundos.
+#
+# AVX2 lo tienen los procesadores desde 2013 (Intel Haswell) y 2015 (AMD),
+# pero **no** algunos Celeron y Pentium de portátil baratos: se comprueba en
+# el ordenador del profesor antes de la v2.0.0 (H7).
+
+[env]
+GGML_NATIVE = "OFF"
+GGML_AVX = "ON"
+GGML_AVX2 = "ON"
+GGML_FMA = "ON"
+GGML_F16C = "ON"
+CMAKE_C_FLAGS_RELEASE = "-nologo -MD -O2 -Ob2 -DNDEBUG"
+CMAKE_CXX_FLAGS_RELEASE = "-nologo -MD -O2 -Ob2 -DNDEBUG"

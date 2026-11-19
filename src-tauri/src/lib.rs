@@ -8,9 +8,10 @@
 //! - `vigilante` (H1) — si cambia la carpeta de plantillas, avisar.
 //! - `sesion` (H2) — las notas puestas, guardadas al momento.
 //! - `exportar` (H2) — el Excel que se sube a Clickedu.
+//! - `voz` (H3) — del micrófono al texto, con Whisper local.
 //! - `commands` — lo que la interfaz puede llamar.
 //!
-//! Llegarán `voz` (H3) y `clickedu` (H4–H6).
+//! Llegará `clickedu` (H4–H6).
 //!
 //! Regla heredada de library-app: **ningún comando síncrono hace trabajo**.
 //! Todos `async`, y lo largo con progreso real hacia la interfaz.
@@ -21,6 +22,7 @@ pub mod exportar;
 pub mod plantillas;
 pub mod sesion;
 pub mod vigilante;
+pub mod voz;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

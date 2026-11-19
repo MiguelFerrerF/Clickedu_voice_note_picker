@@ -23,6 +23,8 @@ calamine = "0.36"
 tauri-plugin-dialog = "2.7.3"
 notify-debouncer-mini = "0.7.0"
 rust_xlsxwriter = "0.99.1"
+whisper-rs = "0.16"
+cpal = "0.18"
 
 # Cada dependencia llega con el hito que la usa, con su motivo, como en
 # library-app:
@@ -34,9 +36,19 @@ rust_xlsxwriter = "0.99.1"
 # tocan un fichero varias veces al guardarlo o copiarlo.
 # `rust_xlsxwriter` escribe el Excel exportado (H2); antes solo la usaban los
 # tests para escribir sus plantillas.
+# `whisper-rs` es el motor de voz (H3a, D2): whisper.cpp en local. Cómo se
+# compila, en `.cargo/config.toml`.
+# `cpal` abre el micrófono (H3a). El remuestreo a 16 kHz es propio
+# (`voz::remuestreo`): una grabación corta, mono y de una vez no pide más.
 # Llegarán `reqwest`/`scraper`/`keyring` en H4.
 
 [dev-dependencies]
+# La prueba de voz de H3a (`examples/grabar_frases` y `probar_voz`): `hound`
+# escribe y lee los `.wav`, `crossterm` lee el teclado en la consola y
+# `dirs` encuentra Documentos (la misma versión que ya trae Tauri).
+crossterm = "0.29"
+dirs = "7"
+hound = "3.5"
 # Los tests escriben sus plantillas inventadas al vuelo con `rust_xlsxwriter`:
 # así no hay ningún Excel binario en el repo y cada test dice qué hay en la
 # suya.

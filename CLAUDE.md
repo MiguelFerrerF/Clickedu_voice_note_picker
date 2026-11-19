@@ -16,9 +16,17 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > de la v2 (un commit por hito y otro al cerrarlo), probado a mano: notas, cerrar y abrir, exportar. **Queda
 > pendiente importar un exportado en Clickedu** (el usuario lo deja para más
 > adelante; como muy tarde en H6): si lo rechaza, se vuelve a `exportar.rs`.
-> Lo siguiente es **H3a · Voz: el motor** (cierra D2): 50 frases grabadas con
-> nombres inventados, Whisper local frente al reconocimiento de Windows (y
-> Google de referencia), aciertos y latencia; push-to-talk con ESPACIO. Para
+> **H3a · Voz: el motor**, en marcha. **D2 cerrada con números**:
+> Whisper `small` `q5_1`, ventana recortada, sin la lista como contexto
+> (90–94 % en 1,1 s; Google 90–92 %; Windows 14–34 %; tabla y
+> experimentos en `docs/01`, H3a); el modelo se descarga al usar la voz.
+> **Siguiente (el usuario, 2026-11-19): H3b antes que el push-to-talk.**
+> El intérprete (nota, también «825» y «5x25»), emparejar lo oído con la
+> clase («Noria Villa SK» → Núria Vilaseca) y la confianza de Whisper por
+> palabra, para **preguntar en vez de adivinar**. Se mide con las 100
+> grabaciones (`prueba-voz` y `prueba-voz\mesa`, en Documentos): cuántas
+> acierta, cuántas pregunta y ninguna mal en silencio. Luego el
+> push-to-talk en Calificar, enseñando alumno y nota. Para
 > ver una carpeta de plantillas reales sin sacar datos de alumnos:
 > `cargo run --example revisar_plantillas -- <carpeta>`.
 
@@ -65,7 +73,8 @@ cd src-tauri; cargo test # los tests de Rust
 Cerradas el 2026-11-17. No se reabren sin que el usuario lo pida.
 
 - **D1 · Stack**: Tauri 2 + React + TS, lógica en Rust, como library-app.
-- **D2 · Voz**: Whisper local. Solo se revisa si la prueba de H3a lo tumba.
+- **D2 · Voz**: Whisper local, `small` `q5_1` con la ventana recortada
+  (cerrada con la prueba de H3a, 2026-11-18); se descarga al usar la voz.
   **La voz con nombres de menores no sale del ordenador.**
 - **D3 · Credenciales de Clickedu**: en el Administrador de credenciales de
   Windows (`keyring`), **nunca en un fichero**. Ya se filtraron una vez en
