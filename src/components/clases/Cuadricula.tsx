@@ -2,9 +2,11 @@
  * La cuadrícula de alumnos de una clase, con su nota **para escribir** (H2).
  *
  * - Cada nota es un campo. Se escribe con coma o con punto; **Enter o ↓**
- *   la guardan y pasan al siguiente, **↑** al anterior, **Esc** cancela lo
- *   escrito (la nota guardada se queda como estaba). Salir del campo
- *   también la guarda.
+ *   la guardan y pasan al siguiente, **↑** al anterior. **Supr** vacía la
+ *   celda y quita la nota al momento, se esté escribiendo o no: es la que
+ *   sale en la ayuda. **Esc** devuelve lo que había antes de escribir (si
+ *   se pisa una nota sin querer, es lo único que la recupera). Salir del
+ *   campo también la guarda.
  * - Lo que no es una nota (`12`, `siete`, `7.555`) **no se guarda ni se
  *   corrige**: se queda escrito en rojo, con el motivo al lado del nombre, y
  *   el foco no se mueve.
@@ -268,7 +270,7 @@ function Avance({conNota, total, siguiente}: {conNota: number; total: number; si
           enter: t('cuadricula.tecla_enter'),
           abajo: t('cuadricula.tecla_abajo'),
           arriba: t('cuadricula.tecla_arriba'),
-          esc: t('dictado.tecla_esc'),
+          supr: t('cuadricula.tecla_supr'),
         })}
       </span>
     </div>
@@ -388,6 +390,12 @@ function CampoNota({
           } else if (e.key === 'Escape') {
             setBorrador(null);
             setMotivo(undefined);
+          } else if (e.key === 'Delete') {
+            // Vacía la celda, también lo escrito a medias, y quita la nota.
+            e.preventDefault();
+            setBorrador(null);
+            setMotivo(undefined);
+            if (nota.tipo !== 'vacia') poner(null);
           }
         }}
       />

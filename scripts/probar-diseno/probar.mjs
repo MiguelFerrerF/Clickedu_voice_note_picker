@@ -329,7 +329,8 @@ const PRUEBAS = [
       await page.keyboard.press('Enter');
       await main.getByText('Ha de ir de 0 a 10').waitFor();
       await paso('escritas');
-      await page.keyboard.press('Escape');
+      // Supr vacía la celda: lo escrito a medias, también.
+      await page.keyboard.press('Delete');
       // HUI: al siguiente sin nota, desde el último tocado.
       await main.getByRole('button', {name: 'Siguiente sin nota'}).click();
       await page.waitForTimeout(400);
