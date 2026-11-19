@@ -53,6 +53,8 @@ pub struct DictadoInforme {
     pub dia: String,
     pub version: String,
     pub clase: String,
+    /// Dictada con ESPACIO, o escrita (en desarrollo).
+    pub voz: bool,
     pub oido: String,
     /// Lo entendido, con los alumnos como A, B, C.
     pub entendido: Entendido<String>,
@@ -177,7 +179,7 @@ pub fn generar(casos: &[Caso], tapar: &Tapar, ahora: u64) -> Informe {
     let mut fallos: Vec<FalloInforme> = Vec::new();
     for c in casos {
         match &c.que {
-            Que::Dictado { dictado, fichero, nombre, candidatos } => {
+            Que::Dictado { dictado, fichero, nombre, candidatos, voz } => {
                 let n = clases.len() + 1;
                 let clase = clases.entry(fichero).or_insert_with(|| format!("clase {n}")).clone();
                 // Los alumnos, como A, B, C: los candidatos primero, por orden.
@@ -199,6 +201,7 @@ pub fn generar(casos: &[Caso], tapar: &Tapar, ahora: u64) -> Informe {
                     dia: dia(c.cuando),
                     version: c.version.clone(),
                     clase,
+                    voz: *voz,
                     oido: tapar.frase(&dictado.oido),
                     entendido,
                     nombre_oido: nombre.iter().map(|p| format!("▢{}", p.chars().count())).collect(),

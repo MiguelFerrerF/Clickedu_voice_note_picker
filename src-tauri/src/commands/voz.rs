@@ -231,7 +231,7 @@ pub async fn terminar_dictado(fichero: String, app: AppHandle) -> Result<Option<
         if oido.texto.trim().is_empty() {
             return Ok(None);
         }
-        entender_y_apuntar(&app, fichero, oido.texto).map(Some)
+        entender_y_apuntar(&app, fichero, oido.texto, true).map(Some)
     })
     .await
 }
@@ -254,11 +254,11 @@ fn cargar_whisper<'a>(voz: &'a Voz, carpeta: &std::path::Path) -> Result<MutexGu
 /// la nota.
 #[tauri::command]
 pub async fn entender_frase(fichero: String, texto: String, app: AppHandle) -> Result<Dictado, String> {
-    en_segundo_plano(app.clone(), "entender_frase", move || entender_y_apuntar(&app, fichero, texto)).await
+    en_segundo_plano(app.clone(), "entender_frase", move || entender_y_apuntar(&app, fichero, texto, false)).await
 }
 
-/// Entiende lo oído (o escrito) y lo apunta en el registro (D8).
-fn entender_y_apuntar(app: &AppHandle, fichero: String, texto: String) -> Result<Dictado, String> {
+/// Entiende lo oído (`voz`) o escrito y lo apunta en el registro (D8).
+fn entender_y_apuntar(app: &AppHandle, fichero: String, texto: String, voz: bool) -> Result<Dictado, String> {
     let plantilla = leer_plantilla(app, &fichero)?;
     let nombres: Vec<&str> = plantilla.alumnos.iter().map(|a| a.nombre.as_str()).collect();
     let clave = |i: usize| plantilla.alumnos[i].clave.clone();
@@ -274,6 +274,7 @@ fn entender_y_apuntar(app: &AppHandle, fichero: String, texto: String) -> Result
             .iter()
             .map(|p| Candidato { clave: clave(p.alumno), parecido: p.parecido, distancia: p.distancia })
             .collect(),
+        voz,
     });
     Ok(dictado)
 }

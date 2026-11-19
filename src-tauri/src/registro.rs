@@ -17,6 +17,7 @@
 //! consola y se sigue.
 
 pub mod informe;
+pub mod medir;
 
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
@@ -55,6 +56,10 @@ pub enum Que {
         nombre: Vec<String>,
         /// Los alumnos más parecidos, con sus números.
         candidatos: Vec<Candidato>,
+        /// Dictada con ESPACIO; si no, escrita en el campo de desarrollo.
+        /// Lo de antes del push-to-talk (H3a) no lo lleva: era todo escrito.
+        #[serde(default)]
+        voz: bool,
     },
     /// Lo que hizo el profesor con el dictado `id`.
     Respuesta { id: String, respuesta: Respuesta },
@@ -309,6 +314,7 @@ mod tests {
                 Candidato { clave: "1001".into(), parecido: 1.0, distancia: 0 },
                 Candidato { clave: "1002".into(), parecido: 0.83, distancia: 2 },
             ],
+            voz: true,
         }
     }
 
@@ -372,6 +378,13 @@ mod tests {
         assert!(hace(0).exists() && hace(MESES).exists());
         assert!(!hace(MESES + 1).exists() && !hace(30).exists());
         assert!(dir.path().join("otra.txt").exists());
+    }
+
+    #[test]
+    fn lo_de_antes_del_push_to_talk_era_escrito() {
+        let linea = r#"{"cuando":1,"version":"2.0.0","tipo":"dictado","dictado":{"id":"a","oido":"x","tipo":"no_entendido","motivo":"sin_nota"},"fichero":"m.xlsx","nombre":[],"candidatos":[]}"#;
+        let caso: Caso = serde_json::from_str(linea).unwrap();
+        assert!(matches!(caso.que, Que::Dictado { voz: false, .. }));
     }
 
     #[test]

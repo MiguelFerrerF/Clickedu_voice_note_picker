@@ -177,14 +177,16 @@ nunca su contenido**, como en `revisar_plantillas`:
    `%DOCUMENTOS%` y `~` y se tapan las palabras de los nombres de los
    alumnos. Con los números de los candidatos se ajustan los umbrales de
    `voz::entender` con datos reales.
-3. **Medir en local**, con el push-to-talk (H3a): cada versión nueva vuelve
-   a pasar los casos guardados y solo cuenta (cuántos mal sin preguntar,
-   cuántas preguntas). Así se sabe si un cambio mejora sin mover un nombre.
+3. **Medir en local** (`registro::medir`, `examples/medir_registro`,
+   2026-11-19): cada versión nueva vuelve a pasar los casos guardados y
+   solo cuenta (cuántos mal sin preguntar, cuántas preguntas). Así se sabe
+   si un cambio mejora sin mover un nombre.
 
-**El audio**: el registro no lo guarda. Se decide con el push-to-talk; si
-se guarda, solo si el profesor lo activa, unos días, y nunca sale. Un
-nombre concreto mal oído no se puede reproducir sin el nombre: para eso se
-graban frases parecidas con la clase inventada, como en H3a.
+**El audio no se guarda** (el usuario, 2026-11-19): el registro lleva lo
+oído y la respuesta, y con eso se mide de lo oído en adelante. Un cambio de
+Whisper o del modelo se mide con las grabaciones del corpus (H3a), y un
+nombre concreto mal oído, grabando frases parecidas con la clase
+inventada.
 
 ---
 
@@ -426,8 +428,19 @@ formato vuelve a abrirse aquí (`exportar.rs`).
       clase inventada (apuntadas, dudas, no entendidas, silencio, pulsación
       corta, cambiar de ventana dictando) y descargar el modelo apartando
       antes el que hay.
-- [ ] **Medir en local con el registro** (D8): pasar los casos guardados por
-      la versión nueva y contar. Y decidir si se guarda el audio.
+- [x] **Medir en local con el registro** (D8, 2026-11-19):
+      `cargo run --example medir_registro`. Por cada dictado del registro,
+      lo que había que apuntar sale de lo que hizo el profesor
+      (`registro::medir::verdad`: un seguro que nadie tocó estaba bien; lo
+      elegido o corregido es lo bueno; lo deshecho o descartado, no). Se
+      vuelve a entender lo oído con los alumnos de su clase y se cuenta,
+      entonces y ahora con la misma vara, cuántas apuntadas bien, preguntadas
+      (con la buena o sin ella), no entendidas y **mal en silencio**; las
+      frases que cambian, tapadas como en el informe. Sale con error si
+      ahora hay más mal en silencio que entonces. El registro apunta ahora
+      si la frase llegó **por voz** o escrita en desarrollo (`voz`; lo de
+      antes, escrito): por defecto solo cuentan las dictadas.
+      **El audio no se guarda** (el usuario, 2026-11-19): ver D8.
 
 ### H3b · Voz: entender la frase ✓ (2026-11-19)
 
