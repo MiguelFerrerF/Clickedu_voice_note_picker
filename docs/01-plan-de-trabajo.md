@@ -564,7 +564,7 @@ Pedido por el usuario el 2026-11-19, tras probar la voz: mejorar la
 visibilidad, la interfaz y la experiencia. **Se hacen todas, un bloque cada
 vez**, con la prueba de diseño y sus capturas miradas; un commit por cambio.
 Ninguna rompe D5/D6 ni añade tokens. **Cerrado por el usuario el
-2026-11-19**, con A–D probados a mano.
+2026-11-19**, con todo probado a mano (A–D y el 18).
 
 - [ ] **En espera: la distribución de las pantallas.** Ahora que ocupan la
       ventana entera (el 18), según vayan saliendo cosas nuevas (H4–H8) se
