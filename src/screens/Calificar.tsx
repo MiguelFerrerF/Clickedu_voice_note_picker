@@ -372,6 +372,7 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
             elegir={elegir}
             descartar={descartar}
             deshacer={deshacer}
+            teclado={visible}
             probar={import.meta.env.DEV ? probar : undefined}
           />
           <Cuadricula

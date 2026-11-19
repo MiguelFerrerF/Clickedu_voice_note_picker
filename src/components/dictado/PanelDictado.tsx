@@ -22,7 +22,7 @@
  * para escribir la frase como si se dictara.
  */
 
-import {Fragment, useLayoutEffect, useRef, useState} from 'react';
+import {Fragment, useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import {Punto} from '@components/clases/Avisos';
 import {Button} from '@components/ui/Button';
@@ -47,6 +47,8 @@ export interface PanelDictadoProps {
   descartar: () => void;
   /** Deshace el apuntado del dictado con ese `id`. */
   deshacer: (id: string) => void;
+  /** La pantalla está a la vista: las teclas de las dudas valen. */
+  teclado: boolean;
   /** Solo en desarrollo: entender una frase escrita. */
   probar?: (texto: string) => void;
 }
@@ -67,6 +69,7 @@ export function PanelDictado({
   elegir,
   descartar,
   deshacer,
+  teclado,
   probar,
 }: PanelDictadoProps) {
   const panel = useRef<HTMLDivElement>(null);
@@ -99,7 +102,7 @@ export function PanelDictado({
       <Voz voz={voz} />
       {probar && <ProbarFrase probar={probar} />}
       {pendiente?.tipo === 'duda' && (
-        <Duda dictado={pendiente} nombreDe={nombreDe} elegir={elegir} descartar={descartar} />
+        <Duda dictado={pendiente} nombreDe={nombreDe} elegir={elegir} descartar={descartar} teclado={teclado} />
       )}
       {pendiente?.tipo === 'no_entendido' && <NoEntendido dictado={pendiente} descartar={descartar} />}
       {apuntados.length > 0 && (
@@ -342,18 +345,52 @@ function Apuntados({
   );
 }
 
+/**
+ * Una duda: la pregunta, por qué se duda y **una fila por alumno con sus
+ * notas** como botones cortos (HUI), numerados: con `teclado`, 1–4 eligen y
+ * Esc descarta. Las teclas no valen escribiendo en un campo, donde una cifra
+ * es parte de la nota y Esc deshace lo escrito.
+ */
 function Duda({
   dictado,
   nombreDe,
   elegir,
   descartar,
+  teclado,
 }: {
   dictado: Extract<Dictado, {tipo: 'duda'}>;
   nombreDe: (clave: string) => string;
   elegir: (clave: string, nota: number) => void;
   descartar: () => void;
+  teclado: boolean;
 }) {
+  const lista = opciones(dictado);
   const variosAlumnos = dictado.alumnos.length > 1;
+  // Sin dependencias: con lo de este render (`elegir` guarda la nota de antes).
+  useEffect(() => {
+    if (!teclado) return;
+    const alPulsar = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.repeat || e.ctrlKey || e.altKey || e.metaKey) return;
+      if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable]')) return;
+      const elegida = /^[1-9]$/.test(e.key) ? lista[Number(e.key) - 1] : undefined;
+      if (elegida) {
+        e.preventDefault();
+        elegir(elegida.clave, elegida.nota);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        descartar();
+      }
+    };
+    // En burbuja: el menú y el modal abiertos se quedan su Esc antes.
+    window.addEventListener('keydown', alPulsar);
+    return () => window.removeEventListener('keydown', alPulsar);
+  });
+  // Por alumno, en el orden de las opciones.
+  const filas: {clave: string; notas: {nota: number; tecla: number}[]}[] = [];
+  lista.forEach(({clave, nota: n}, i) => {
+    const fila = filas.find((f) => f.clave === clave) ?? filas[filas.push({clave, notas: []}) - 1];
+    fila.notas.push({nota: n, tecla: i + 1});
+  });
   const variasNotas = dictado.notas.length > 1;
   const pregunta =
     variosAlumnos && variasNotas
@@ -382,23 +419,48 @@ function Duda({
       <div style={{fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.5}}>
         {dictado.motivos.map((m) => t(`dictado.motivo_${m}`)).join(' ')} <Oido dictado={dictado} />
       </div>
-      <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
-        {opciones(dictado).map(({clave, nota: n}) => (
-          <Button
-            key={`${clave}|${n}`}
-            variant="ghost"
-            onClick={() => elegir(clave, n)}
-            style={{maxWidth: '100%', minWidth: 0}}>
-            <span style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0}}>
-              {nombreDe(clave)}
-            </span>
-            <span style={{fontFamily: 'var(--font-mono)', fontWeight: 600, flexShrink: 0}}>{nota(n)}</span>
-          </Button>
-        ))}
-        <Button variant="ghost" onClick={descartar} style={{background: 'transparent', borderColor: 'transparent'}}>
-          {t('dictado.descartar')}
-        </Button>
+      <div
+        style={{
+          display: 'grid',
+          // Con un solo alumno, su nombre ya va en la pregunta.
+          gridTemplateColumns: variosAlumnos ? 'minmax(0, max-content) max-content' : 'max-content',
+          alignItems: 'center',
+          gap: '6px 16px',
+        }}>
+        {filas.map(({clave, notas}) => {
+          const alumno = nombreDe(clave);
+          return (
+            <Fragment key={clave}>
+              {variosAlumnos && (
+                <span style={{...recortado, fontSize: 14, fontWeight: 500, color: 'var(--text-primary)'}} title={alumno}>
+                  {alumno}
+                </span>
+              )}
+              <span style={{display: 'flex', gap: 6}}>
+                {notas.map(({nota: n, tecla}) => (
+                  <Button
+                    key={n}
+                    variant="ghost"
+                    onClick={() => elegir(clave, n)}
+                    aria-label={t('dictado.elegir', {nota: nota(n), alumno})}
+                    title={t('dictado.elegir', {nota: nota(n), alumno})}
+                    style={{padding: '5px 10px 5px 6px'}}>
+                    <Tecla>{tecla}</Tecla>
+                    <span style={{fontFamily: 'var(--font-mono)', fontWeight: 600}}>{nota(n)}</span>
+                  </Button>
+                ))}
+              </span>
+            </Fragment>
+          );
+        })}
       </div>
+      <Button
+        variant="ghost"
+        onClick={descartar}
+        style={{alignSelf: 'flex-start', padding: '5px 6px', background: 'transparent', borderColor: 'transparent'}}>
+        {t('dictado.descartar')}
+        <Tecla>{t('dictado.tecla_esc')}</Tecla>
+      </Button>
     </div>
   );
 }

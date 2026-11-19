@@ -113,6 +113,12 @@ Debajo, en 12 y gris, lo que se oyó. **Las dos de antes**, a 13 y en
 de antes no se va sin comprobarla. Solo tres: el panel va pegado arriba y,
 con más, tapa la lista.
 
+**Las dudas**, una fila por alumno con su nombre y sus notas como botones
+cortos (si es un solo alumno, el nombre va en la pregunta y no se repite).
+Cada nota lleva su tecla dibujada, 1–4, y «Descartar», Esc: se contesta sin
+el ratón. Las teclas no valen escribiendo en un campo, donde una cifra es
+parte de la nota.
+
 ## 4. Lo que queda por decidir
 
 No bloquea H1. Se resuelve cuando la pantalla exista:

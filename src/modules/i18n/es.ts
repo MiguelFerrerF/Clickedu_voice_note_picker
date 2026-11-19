@@ -74,6 +74,8 @@ const es = {
   'dictado.deshacer': 'Deshacer',
   'dictado.deshacer_de': 'Deshacer el {nota} de {alumno}',
   'dictado.descartar': 'Descartar',
+  'dictado.elegir': 'Apuntar un {nota} a {alumno}',
+  'dictado.tecla_esc': 'Esc',
   'dictado.cerrar': 'Cerrar',
   'dictado.duda_quien': '¿Para quién es el {nota}?',
   'dictado.duda_nota': '¿Qué nota le pongo a {alumno}?',

@@ -130,6 +130,8 @@ function simular({carpeta, modelo}) {
           const id = String(n++);
           if (/thiago/i.test(oido)) return {id, oido, tipo: 'seguro', alumno: '20255', nota: 9.5};
           if (/luc[ií]a/i.test(oido)) return {id, oido, tipo: 'seguro', alumno: '20231', nota: 8};
+          if (/hugo/i.test(oido))
+            return {id, oido, tipo: 'duda', alumnos: ['20232'], notas: [6, 6.5], motivos: ['varias_notas']};
           if (/mar[ií]a/i.test(oido))
             return {
               id,
@@ -304,8 +306,9 @@ const PRUEBAS = [
   {
     // H3b: lo dictado, escrito en el campo de desarrollo. Seguro (en verde,
     // abajo del todo, con la fila), deshacerlo, una duda con cuatro opciones
-    // y dos apuntadas debajo, elegir (las últimas tres) y lo que no se
-    // entiende, encima de ellas.
+    // y dos apuntadas debajo, elegir con el teclado (las últimas tres), una
+    // duda de un solo alumno, descartarla con Esc y lo que no se entiende,
+    // encima de las apuntadas.
     nombre: 'dictado',
     async probar(page, paso) {
       const main = page.locator('[data-pantalla="calificar"]');
@@ -330,10 +333,18 @@ const PRUEBAS = [
       await main.getByRole('alertdialog').waitFor();
       await page.waitForTimeout(700);
       await paso('duda');
-      await main.getByRole('alertdialog').getByRole('button').first().click();
+      // Fuera del campo de probar: escribiendo, las cifras son de la nota.
+      await page.evaluate(() => document.activeElement.blur());
+      await page.keyboard.press('1');
       await main.getByRole('button', {name: 'Deshacer el 7.5'}).waitFor();
       await page.waitForTimeout(700);
       await paso('elegida');
+      await dictar('Hugo seis, seis y medio');
+      await main.getByRole('alertdialog').waitFor();
+      await paso('duda-un-alumno');
+      await page.evaluate(() => document.activeElement.blur());
+      await page.keyboard.press('Escape');
+      await main.getByRole('alertdialog').waitFor({state: 'detached'});
       await dictar('Way this');
       await main.getByText('No se ha apuntado nada').waitFor();
       await paso('no-entendida');

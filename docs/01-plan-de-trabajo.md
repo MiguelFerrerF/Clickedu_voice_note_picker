@@ -584,8 +584,8 @@ Ninguna rompe D5/D6 ni añade tokens.
 - [ ] 4. **Medidor de volumen** mientras se mantiene ESPACIO: se ve que el
       micrófono oye (evita casos como «[Música]»). Necesita Rust: mandar el
       nivel por el canal del micrófono.
-- [ ] 5. **Las dudas con el teclado**: 1–4 eligen la opción, Esc descarta.
-- [ ] 6. **Las dudas, sin repetir el nombre**: una fila por alumno con sus
+- [x] 5. **Las dudas con el teclado**: 1–4 eligen la opción, Esc descarta.
+- [x] 6. **Las dudas, sin repetir el nombre**: una fila por alumno con sus
       notas como botones cortos, en vez de un botón por alumno y nota.
 
 **B · La tabla de notas**
