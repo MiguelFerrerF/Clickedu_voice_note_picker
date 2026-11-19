@@ -95,7 +95,9 @@ No bloquea H1. Se resuelve cuando la pantalla exista:
   sistema, y aquí la nota va con punto (es lo que acepta Clickedu). La celda
   de H2 será un campo de texto propio con `inputMode="decimal"`, que convierte
   la coma en punto al teclearla, como hacía la app de Python.
-- **El indicador de «escuchando»** (H3a): cómo se ve mientras se mantiene
-  ESPACIO. Dónde, ya está: en el **panel del dictado** de Calificar (H3b),
-  encima de la cuadrícula y pegado arriba, donde se ve lo apuntado, la duda
-  o lo que no se ha entendido.
+- ~~**El indicador de «escuchando»** (H3a)~~. Resuelto el 2026-11-19: la
+  primera línea del **panel del dictado**, que en reposo dice en gris cómo
+  se dicta; mientras se mantiene ESPACIO, «Escuchando…» en `--accent-ink`
+  con el micrófono latiendo (turquesa: algo está pasando, no es todavía un
+  resultado, que sería verde). Sin fondo ni borde: el discontinuo es solo
+  para lo provisional.

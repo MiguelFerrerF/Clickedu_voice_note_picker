@@ -12,11 +12,11 @@
  *   Notas\notas`. Si hay algo que no es nota, no se exporta y se dice dónde.
  *   Lo que sale bien se dice en verde, que se apaga solo (D6).
  *
- * - **El dictado** (H3b): lo dicho se entiende en el backend
- *   (`entender_frase`). Si está seguro, se apunta, en verde y con
- *   «Deshacer»; si duda, se pregunta en el panel y en las filas, y no se
- *   apunta nada hasta que eliges. El push-to-talk de H3a mandará aquí lo
- *   que oiga; hasta entonces, en desarrollo, se escribe la frase.
+ * - **El dictado** (H3): se mantiene ESPACIO y se dice el alumno y la
+ *   nota (`useDictado`, H3a); lo oído se entiende en el backend. Si está
+ *   seguro, se apunta, en verde y con «Deshacer»; si duda, se pregunta en el
+ *   panel y en las filas, y no se apunta nada hasta que eliges (H3b). En
+ *   desarrollo, además, se puede escribir la frase (`entender_frase`).
  * - **El registro** (D8): lo que haces con cada dictado (elegir, descartar,
  *   deshacer, corregir la nota a mano) se apunta en local con
  *   `responder_dictado`: es la respuesta buena para mejorar el dictado.
@@ -41,11 +41,14 @@ import {alumnosEnPalabras} from '@modules/clases/avisos';
 import type {ClaseAbierta, Exportado} from '@modules/clases/tipos';
 import type {Dictado, Respuesta, UltimoDictado} from '@modules/dictado/tipos';
 import {useClases} from '@modules/clases/useClases';
+import {useDictado} from '@modules/dictado/useDictado';
 import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
 import {notaDe} from '@modules/notas/nota';
 
 export interface CalificarProps {
+  /** La pantalla está a la vista: solo entonces se dicta. */
+  visible: boolean;
   clase: string | null;
   setClase: (fichero: string) => void;
   irAAjustes: () => void;
@@ -57,7 +60,7 @@ type Resultado = {tipo: 'exportado'; exportado: Exportado} | {tipo: 'fallo'; tex
 /** Lo que tarda en apagarse el verde de «exportado» y de lo dictado (D6). */
 const APAGAR_MS = 6000;
 
-export function Calificar({clase, setClase, irAAjustes}: CalificarProps) {
+export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps) {
   useIdioma();
   const {lista, error, cambios} = useClases();
   const clases = lista?.clases ?? [];
@@ -97,6 +100,16 @@ export function Calificar({clase, setClase, irAAjustes}: CalificarProps) {
   const [encendidas, setEncendidas] = useState<Record<string, number>>({});
   const [ver, setVer] = useState<{clave: string; vez: number}>();
   const veces = useRef(0);
+
+  // El push-to-talk (H3a). Lo entendido llega a `alDictar`, si sigue
+  // abierta la clase con la que se entendió: cambiar de clase en el segundo
+  // que tarda Whisper es raro, y la nota sería de la otra.
+  const recibir = useRef<(fichero: string, d: Dictado) => void>(() => {});
+  const dictando = useDictado({
+    activo: visible && !!actual && abierta?.fichero === actual.fichero && !!abierta.clase,
+    fichero: actual?.fichero,
+    alDictar: (f, d) => recibir.current(f, d),
+  });
 
   const contenedor = (hijos: React.ReactNode) => <div style={{padding: '28px 32px', maxWidth: 1040}}>{hijos}</div>;
 
@@ -202,6 +215,9 @@ export function Calificar({clase, setClase, irAAjustes}: CalificarProps) {
     setUltimo({fichero, dictado: d});
     if (d.tipo === 'duda') traerAVista(d.alumnos[0]);
   }
+  recibir.current = (f, d) => {
+    if (f === fichero) alDictar(d);
+  };
 
   /**
    * Apunta en el registro lo que se ha hecho con un dictado. Si no se puede,
@@ -323,6 +339,7 @@ export function Calificar({clase, setClase, irAAjustes}: CalificarProps) {
         <>
           <Avisos avisos={abiertaAhora.plantilla.avisos} />
           <PanelDictado
+            voz={dictando}
             ultimo={ultimoAqui}
             encendido={ultimoAqui?.apuntada ? dictadas.has(ultimoAqui.apuntada.clave) : false}
             nombreDe={nombreDe}

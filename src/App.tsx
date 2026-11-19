@@ -44,7 +44,9 @@ export default function App() {
   function renderizar(id: PantallaId) {
     switch (id) {
       case 'calificar':
-        return <Calificar clase={clase} setClase={setClase} irAAjustes={irAAjustes} />;
+        return (
+          <Calificar visible={pantalla === 'calificar'} clase={clase} setClase={setClase} irAAjustes={irAAjustes} />
+        );
       case 'clases':
         return (
           <Clases

@@ -22,6 +22,18 @@ use super::TASA;
 /// Lo que se guarda de antes de pulsar ESPACIO, en segundos.
 const ANTES: f32 = 0.3;
 
+/// Por debajo de este pico, lo grabado es silencio. En las 100 grabaciones
+/// de H3a, el ruido de antes de hablar llega a 0,0002 de pico (mediana) y la
+/// frase más baja, a 0,045: Whisper, con silencio, se inventa frases
+/// («Subtítulos realizados por…»), y así no se le pasa.
+const SILENCIO: f32 = 0.01;
+
+/// Si en lo grabado hay algo más que silencio: si no, el micrófono no
+/// llega (está apagado, es otro, o no se ha hablado).
+pub fn hay_voz(audio: &[f32]) -> bool {
+    audio.iter().any(|m| m.abs() >= SILENCIO)
+}
+
 /// El micrófono abierto.
 pub struct Microfono {
     estado: Arc<Mutex<Estado>>,
@@ -180,6 +192,13 @@ mod tests {
             e.recibir((0..48).map(|i| i as f32));
         }
         assert!(e.muestras.len() >= 50 * 48, "grabando no se tira nada");
+    }
+
+    #[test]
+    fn el_silencio_no_es_voz() {
+        assert!(!hay_voz(&[]));
+        assert!(!hay_voz(&[0.0002, -0.003, 0.001]));
+        assert!(hay_voz(&[0.0002, -0.045, 0.001]));
     }
 
     /// Necesita un micrófono: `cargo test -- --ignored microfono`.

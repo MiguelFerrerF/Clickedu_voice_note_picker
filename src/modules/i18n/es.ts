@@ -87,6 +87,20 @@ const es = {
   'dictado.no_entendido_nombre_desconocido': 'No se ha apuntado nada: el nombre no se parece a nadie de esta clase.',
   'dictado.fallo': 'No se ha podido entender lo dictado: {error}',
   'dictado.probar': 'Probar el dictado (solo en desarrollo)',
+
+  // ── El push-to-talk (H3a) ──
+  'dictado.como': 'Mantén ESPACIO pulsado y di el alumno y la nota: «Lucía Martín, siete con cinco».',
+  'dictado.microfono': 'Se escucha por «{nombre}».',
+  'dictado.escuchando': 'Escuchando… suelta ESPACIO al terminar.',
+  'dictado.entendiendo': 'Entendiendo lo dicho…',
+  'dictado.corto': 'Mantén ESPACIO pulsado mientras hablas, y suéltalo al terminar.',
+  'dictado.nada_oido': 'No se ha oído nada. Si estabas hablando, mira en Windows que el micrófono sea el que usas.',
+  'dictado.sin_microfono': 'No se puede usar el micrófono: {error}',
+  'dictado.sin_modelo': 'Para dictar, la app necesita su modelo de voz (181 MB). Se descarga una vez y luego funciona sin conexión: la voz no sale de este ordenador.',
+  'dictado.descargar': 'Descargar el modelo de voz',
+  'dictado.reintentar': 'Volver a intentarlo',
+  'dictado.descargando': 'Descargando el modelo de voz (MB)',
+  'dictado.no_descarga': 'No se ha podido descargar: {error}',
   'dictado.probar_ejemplo': 'Escribe lo que dirías y pulsa Enter',
 
   // ── Avisos de una plantilla ──
@@ -130,7 +144,7 @@ const es = {
   'ajustes.por_defecto': 'la de por defecto',
   'ajustes.cambiar': 'Cambiar de carpeta…',
   'ajustes.volver_por_defecto': 'Volver a la de por defecto',
-  'ajustes.llegan': 'El micrófono llega con el dictado y la cuenta de Clickedu con la conexión.',
+  'ajustes.llegan': 'La cuenta de Clickedu llega con la conexión.',
 
   // ── El registro del dictado (D8), en Ajustes ──
   'registro.titulo': 'Mejorar el dictado',

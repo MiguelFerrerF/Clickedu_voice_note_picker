@@ -391,10 +391,41 @@ formato vuelve a abrirse aquí (`exportar.rs`).
       veces): ahí la app tiene que **preguntar, no adivinar**.
 - [x] **El modelo se descarga la primera vez que se usa la voz** (el
       usuario, 2026-11-19): el instalador sigue pequeño. La descarga lleva
-      `Progreso` y se comprueba antes de usarla.
+      `Progreso` y se comprueba antes de usarla. Hecho con el push-to-talk
+      (`voz::modelo`): de Hugging Face, **fijado a un commit** de
+      `ggerganov/whisper.cpp`, a `.parcial`, y solo se deja en su sitio si
+      llegan los 190 085 487 bytes y su SHA-256 es el del modelo de la
+      prueba (comprobado: el de allí y el de aquí coinciden). En Calificar,
+      la oferta de descargarlo («181 MB, una vez, y la voz no sale de este
+      ordenador») y su avance.
 - [ ] **Queda abierto**: la latencia en un ordenador de profesor, que será
       más lento que este.
-- [ ] Push-to-talk con ESPACIO, sin congelar nada, con indicador de «escuchando».
+- [x] **Push-to-talk con ESPACIO** (2026-11-19), sin congelar nada
+      (`useDictado` y los comandos de `commands::voz`):
+      - **El micrófono se abre mientras se puede dictar**: Calificar a la
+        vista, con una clase abierta y la ventana delante. Si no, se cierra,
+        y Windows deja de enseñar que se usa. Abierto guarda los últimos
+        0,3 s, y al abrirlo se carga Whisper, para que la primera frase no
+        espere.
+      - **ESPACIO se coge antes que nadie**: ni baja la página ni pulsa el
+        botón con el foco, y vale con el foco en una celda de nota. Lo que
+        necesita escribir espacios se marca con `data-sin-dictado` (el campo
+        de probar el dictado, que se queda solo en desarrollo).
+      - Una pulsación de menos de 0,3 s no se manda a Whisper y se dice cómo
+        se dicta. **Lo grabado sin voz** (pico por debajo de 0,01; en las
+        100 grabaciones el ruido llega a 0,0002 y la frase más baja a 0,045)
+        tampoco: Whisper, con silencio, se inventa frases. Se dice que no se
+        ha oído nada.
+      - Mientras Whisper entiende una frase se puede decir la siguiente.
+        Si la ventana deja de estar delante con ESPACIO pulsado, lo grabado
+        se tira. La voz no se escribe en disco.
+      - En el panel del dictado: cómo se dicta y por qué micrófono se
+        escucha, «Escuchando…» en turquesa (está pasando), «Entendiendo…»
+        en gris, y los fallos del micrófono en rojo.
+- [ ] **Probado a mano** con `npm run tauri:dev`: dictar de verdad sobre la
+      clase inventada (apuntadas, dudas, no entendidas, silencio, pulsación
+      corta, cambiar de ventana dictando) y descargar el modelo apartando
+      antes el que hay.
 - [ ] **Medir en local con el registro** (D8): pasar los casos guardados por
       la versión nueva y contar. Y decidir si se guarda el audio.
 

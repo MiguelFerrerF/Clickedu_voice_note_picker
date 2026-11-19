@@ -35,6 +35,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(vigilante::Vigilante::default())
         .manage(sesion::Cerrojo::default())
+        .manage(std::sync::Arc::new(commands::voz::Voz::default()))
         .invoke_handler(tauri::generate_handler![
             commands::clases::listar_clases,
             commands::clases::leer_clase,
@@ -46,6 +47,13 @@ pub fn run() {
             commands::notas::exportar_clase,
             commands::notas::abrir_carpeta_notas,
             commands::voz::entender_frase,
+            commands::voz::hay_modelo,
+            commands::voz::descargar_modelo,
+            commands::voz::abrir_microfono,
+            commands::voz::cerrar_microfono,
+            commands::voz::empezar_dictado,
+            commands::voz::cancelar_dictado,
+            commands::voz::terminar_dictado,
             commands::registro::responder_dictado,
             commands::registro::resumen_registro,
             commands::registro::preparar_informe,

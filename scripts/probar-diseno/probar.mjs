@@ -48,9 +48,10 @@ const TAMANOS = [
  * Los datos son **inventados** (nunca alumnos reales en el repo) y buscan los
  * casos difíciles: nombres largos, letras de fuera (Ș, Ł), una plantilla que
  * no se lee, notas que no son nota, un alumno sin nombre. `carpeta` elige la
- * carpeta de plantillas: `llena`, `vacia` o `no_existe`.
+ * carpeta de plantillas: `llena`, `vacia` o `no_existe`; `modelo`, si el
+ * modelo de voz ya está descargado.
  */
-function simular(carpeta) {
+function simular({carpeta, modelo}) {
   let n = 1;
   const ruta = 'C:\\Users\\profesora\\Documents\\Gestor de Notas\\plantillas';
   const bien = (alumnos, calificados, avisos = 0) => ({tipo: 'bien', alumnos, calificados, avisos});
@@ -139,6 +140,17 @@ function simular(carpeta) {
             };
           return {id, oido, tipo: 'no_entendido', motivo: 'sin_nota'};
         }
+        case 'hay_modelo':
+          return modelo;
+        case 'descargar_modelo':
+          // Se queda descargando: la barra sin porcentaje.
+          return new Promise(() => {});
+        case 'abrir_microfono':
+          return 'Micrófono (Realtek(R) Audio)';
+        case 'terminar_dictado':
+          // H3a: lo que tarda Whisper, y lo oído.
+          await new Promise((r) => setTimeout(r, 600));
+          return {id: String(n++), oido: 'Lucía Castro, nueve y medio', tipo: 'seguro', alumno: '20231', nota: 9.5};
         case 'resumen_registro':
           // D8: con casos en la carpeta llena; vacío en las demás.
           return carpeta === 'llena'
@@ -250,7 +262,7 @@ const PRUEBAS = [
       await page.waitForTimeout(150);
       await paso('desplegable');
       await page.getByRole('button', {name: 'Matemáticas 3.º A ESO', exact: true}).last().click();
-      await main.getByRole('status').waitFor();
+      await main.getByText('Al leer la plantilla').waitFor();
       await paso('avisos');
     },
   },
@@ -312,6 +324,43 @@ const PRUEBAS = [
       await dictar('Way this');
       await main.getByText('No se ha apuntado nada').waitFor();
       await paso('no-entendida');
+    },
+  },
+  {
+    // H3a: el push-to-talk con ESPACIO. El reposo, escuchando, entendiendo,
+    // lo apuntado y una pulsación corta.
+    nombre: 'voz',
+    async probar(page, paso) {
+      const main = page.locator('[data-pantalla="calificar"]');
+      await main.getByText('Se escucha por', {exact: false}).waitFor();
+      await paso('reposo');
+      await page.keyboard.down('Space');
+      await main.getByText('Escuchando').waitFor();
+      await page.waitForTimeout(400);
+      await paso('escuchando');
+      await page.keyboard.up('Space');
+      await main.getByText('Entendiendo').waitFor();
+      await paso('entendiendo');
+      await main.getByText('Apuntado un 9.5').waitFor();
+      await page.waitForTimeout(700);
+      await paso('apuntada');
+      await page.keyboard.down('Space');
+      await page.keyboard.up('Space');
+      await main.getByText('mientras hablas').waitFor();
+      await paso('corto');
+    },
+  },
+  {
+    // H3a: sin el modelo de voz, la oferta de descargarlo y su avance.
+    nombre: 'sin-modelo',
+    modelo: false,
+    async probar(page, paso) {
+      const main = page.locator('[data-pantalla="calificar"]');
+      await main.getByRole('button', {name: 'Descargar el modelo de voz'}).waitFor();
+      await paso('falta');
+      await main.getByRole('button', {name: 'Descargar el modelo de voz'}).click();
+      await main.getByRole('progressbar').waitFor();
+      await paso('descargando');
     },
   },
   {
@@ -408,7 +457,7 @@ try {
     for (const [w, h] of TAMANOS) {
       const tam = `${w}x${h}`;
       const page = await navegador.newPage({viewport: {width: w, height: h}});
-      await page.addInitScript(simular, prueba.carpeta ?? 'llena');
+      await page.addInitScript(simular, {carpeta: prueba.carpeta ?? 'llena', modelo: prueba.modelo ?? true});
       page.on('pageerror', (e) => fallos.push(`${prueba.nombre} ${tam}: error en la página: ${e.message}`));
       await page.goto(`http://localhost:${PUERTO}/`);
       await page.evaluate(() => document.fonts.ready);

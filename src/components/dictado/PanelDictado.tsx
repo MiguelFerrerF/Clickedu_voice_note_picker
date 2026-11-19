@@ -13,8 +13,11 @@
  * - **No entendida**: el punto ámbar de «aquí hay algo que mirar», no rojo:
  *   la app no ha fallado, es que no se ha oído bien.
  *
- * El push-to-talk de H3a pondrá aquí el «escuchando». Hasta entonces, en
- * desarrollo, un campo para escribir la frase como si se dictara.
+ * Y, encima, **la voz** (H3a): cómo se dicta, el «escuchando» mientras se
+ * mantiene ESPACIO (en turquesa: está pasando, no ha terminado), el
+ * «entendiendo» y lo que no ha ido bien. Si falta el modelo de voz, la
+ * oferta de descargarlo, con su avance. En desarrollo, además, un campo
+ * para escribir la frase como si se dictara.
  */
 
 import {useLayoutEffect, useRef, useState} from 'react';
@@ -22,11 +25,15 @@ import {useLayoutEffect, useRef, useState} from 'react';
 import {Punto} from '@components/clases/Avisos';
 import {Button} from '@components/ui/Button';
 import {Icon, ICONOS} from '@components/ui/Icon';
+import {Progreso} from '@components/ui/Progreso';
 import {TextInput} from '@components/ui/TextInput';
 import {opciones, type Dictado, type UltimoDictado} from '@modules/dictado/tipos';
+import type {Dictando} from '@modules/dictado/useDictado';
 import {t} from '@modules/i18n';
 
 export interface PanelDictadoProps {
+  /** El push-to-talk: el modelo, el micrófono, si escucha. */
+  voz: Dictando;
   /** Lo último de esta clase, si hay algo. */
   ultimo: UltimoDictado | undefined;
   /** La nota apuntada sigue en verde. */
@@ -46,12 +53,16 @@ export interface PanelDictadoProps {
  */
 export const ALTO_PANEL = '--alto-panel-dictado';
 
-export function PanelDictado(props: PanelDictadoProps) {
-  if (!props.ultimo && !props.probar) return null;
-  return <Pegado {...props} />;
-}
-
-function Pegado({ultimo, encendido, nombreDe, elegir, descartar, deshacer, probar}: PanelDictadoProps) {
+export function PanelDictado({
+  voz,
+  ultimo,
+  encendido,
+  nombreDe,
+  elegir,
+  descartar,
+  deshacer,
+  probar,
+}: PanelDictadoProps) {
   const panel = useRef<HTMLDivElement>(null);
   // Con cada pintado, antes de que la cuadrícula traiga una fila a la vista.
   useLayoutEffect(() => {
@@ -79,6 +90,7 @@ function Pegado({ultimo, encendido, nombreDe, elegir, descartar, deshacer, proba
         padding: '10px 8px 12px',
         background: 'var(--bg)',
       }}>
+      <Voz voz={voz} />
       {probar && <ProbarFrase probar={probar} />}
       {ultimo &&
         (ultimo.apuntada ? (
@@ -99,6 +111,84 @@ function Pegado({ultimo, encendido, nombreDe, elegir, descartar, deshacer, proba
 }
 
 const nota = (n: number) => String(n);
+
+const MB = (bytes: number) => Math.round(bytes / 1e6);
+
+/** Una línea de la voz: icono y texto, en el color que toque. */
+function Linea({color, icono, children}: {color: string; icono: React.ReactNode; children: React.ReactNode}) {
+  return (
+    <div role="status" style={{display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color, minWidth: 0}}>
+      {icono}
+      <span style={{overflowWrap: 'anywhere', minWidth: 0}}>{children}</span>
+    </div>
+  );
+}
+
+const microfono = (estilo?: React.CSSProperties) => (
+  <Icon d={ICONOS.microfono} size={14} style={{flexShrink: 0, ...estilo}} />
+);
+
+/** Cómo está la voz: lo primero del panel. */
+function Voz({voz}: {voz: Dictando}) {
+  const {modelo} = voz;
+  if (modelo.tipo === 'comprobando') return null;
+  if (modelo.tipo === 'falta') {
+    return (
+      <div style={{display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px 16px'}}>
+        <Linea color="var(--text-secondary)" icono={microfono()}>
+          {t('dictado.sin_modelo')}
+        </Linea>
+        <Button variant="ghost" onClick={voz.descargar}>
+          {modelo.fallo ? t('dictado.reintentar') : t('dictado.descargar')}
+        </Button>
+        {modelo.fallo && (
+          <p role="alert" style={{margin: 0, flexBasis: '100%', fontSize: 13, color: 'var(--danger)'}}>
+            {t('dictado.no_descarga', {error: modelo.fallo})}
+          </p>
+        )}
+      </div>
+    );
+  }
+  if (modelo.tipo === 'descargando') {
+    return <Progreso rotulo={t('dictado.descargando')} hecho={MB(modelo.hecho)} total={MB(modelo.total)} />;
+  }
+  if (voz.escuchando) {
+    return (
+      <Linea color="var(--accent-ink)" icono={microfono({animation: 'pulse 1.2s ease-in-out infinite'})}>
+        {t('dictado.escuchando')}
+      </Linea>
+    );
+  }
+  if (voz.fallo) {
+    return (
+      <p role="alert" style={{margin: 0, fontSize: 13, color: 'var(--danger)', overflowWrap: 'anywhere'}}>
+        {voz.fallo.tipo === 'microfono'
+          ? t('dictado.sin_microfono', {error: voz.fallo.error})
+          : t('dictado.fallo', {error: voz.fallo.error})}
+      </p>
+    );
+  }
+  if (voz.entendiendo > 0) {
+    return (
+      <Linea color="var(--text-tertiary)" icono={microfono()}>
+        {t('dictado.entendiendo')}
+      </Linea>
+    );
+  }
+  if (voz.aviso) {
+    return (
+      <Linea color="var(--text-primary)" icono={<Punto />}>
+        {voz.aviso === 'corto' ? t('dictado.corto') : t('dictado.nada_oido')}
+      </Linea>
+    );
+  }
+  return (
+    <Linea color="var(--text-tertiary)" icono={microfono()}>
+      {t('dictado.como')}
+      {voz.microfono && ` ${t('dictado.microfono', {nombre: voz.microfono})}`}
+    </Linea>
+  );
+}
 
 /** Lo que se ha oído, en pequeño y en gris: para saber de dónde sale. */
 function Oido({texto}: {texto: string}) {
@@ -227,11 +317,14 @@ function NoEntendido({dictado, descartar}: {dictado: Extract<Dictado, {tipo: 'no
   );
 }
 
-/** Solo en desarrollo, hasta el push-to-talk: escribir lo que se dictaría. */
+/**
+ * Solo en desarrollo: escribir lo que se dictaría, para probar sin hablar.
+ * Aquí ESPACIO escribe un espacio (`data-sin-dictado`).
+ */
 function ProbarFrase({probar}: {probar: (texto: string) => void}) {
   const [texto, setTexto] = useState('');
   return (
-    <label style={{display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: 'var(--text-tertiary)'}}>
+    <label data-sin-dictado style={{display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: 'var(--text-tertiary)'}}>
       <span style={{flexShrink: 0}}>{t('dictado.probar')}</span>
       <TextInput
         value={texto}

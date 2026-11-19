@@ -2,8 +2,8 @@
 //!
 //! Llegan con la pantalla que los necesita, no antes. Hoy están los de las
 //! **Clases** y la carpeta de plantillas (H1), los de poner notas y
-//! exportarlas (H2), el de entender lo dictado (H3b) y los del registro
-//! (D8).
+//! exportarlas (H2), los del dictado (H3: el push-to-talk y entender lo
+//! dictado) y los del registro (D8).
 //!
 //! Regla que no se relaja (library-app): **ningún comando síncrono hace
 //! trabajo**. Todos son `async` y lo que toca disco pasa por

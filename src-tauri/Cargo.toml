@@ -25,6 +25,8 @@ notify-debouncer-mini = "0.7.0"
 rust_xlsxwriter = "0.99.1"
 whisper-rs = "0.16"
 cpal = "0.18"
+reqwest = "0.12"
+sha2 = "0.10"
 
 # Cada dependencia llega con el hito que la usa, con su motivo, como en
 # library-app:
@@ -40,7 +42,12 @@ cpal = "0.18"
 # compila, en `.cargo/config.toml`.
 # `cpal` abre el micrófono (H3a). El remuestreo a 16 kHz es propio
 # (`voz::remuestreo`): una grabación corta, mono y de una vez no pide más.
-# Llegarán `reqwest`/`scraper`/`keyring` en H4.
+# `reqwest` descarga el modelo de Whisper la primera vez que se usa la voz
+# (H3a), y `sha2` lo comprueba. La 0.12 de `reqwest`, la de library-app: su
+# TLS por defecto en Windows es el del sistema (schannel) y no pide nada más
+# para compilar. Con ella hablará con Clickedu (H4). `sha2`, la que ya trae
+# Tauri.
+# Llegarán `scraper`/`keyring` en H4.
 
 [dev-dependencies]
 # La prueba de voz de H3a (`examples/grabar_frases` y `probar_voz`): `hound`
