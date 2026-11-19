@@ -132,5 +132,9 @@ No bloquea H1. Se resuelve cuando la pantalla exista:
   dicta (en `--text-secondary`, que se lee; ESPACIO, dibujado como una
   tecla con `<kbd>`); mientras se mantiene ESPACIO, «Escuchando…» en `--accent-ink`
   con el micrófono latiendo (turquesa: algo está pasando, no es todavía un
-  resultado, que sería verde). Sin fondo ni borde: el discontinuo es solo
+  resultado, que sería verde), y al lado **el medidor del volumen** (HUI):
+  una barra fina en `--accent`, que es el color del progreso, sobre
+  `--bg-sunk`. Va en decibelios (de −60 a 0 dB): la voz baja pasa de la
+  mitad y el ruido de antes de hablar no se ve. Si no se mueve al hablar, el
+  micrófono no llega. Sin fondo ni borde: el discontinuo es solo
   para lo provisional.

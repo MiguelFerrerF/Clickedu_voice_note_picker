@@ -128,6 +128,41 @@ function Linea({color, icono, children}: {color: string; icono: React.ReactNode;
   );
 }
 
+/**
+ * Cómo se oye mientras se mantiene ESPACIO (HUI): si la barra no se mueve
+ * al hablar, el micrófono no llega, y se ve antes de que Whisper escriba
+ * «[Música]». En turquesa, que es para el progreso: está pasando.
+ */
+function Medidor({nivel}: {nivel: number}) {
+  return (
+    <div
+      role="meter"
+      aria-label={t('dictado.nivel')}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(nivel * 100)}
+      style={{
+        width: 140,
+        height: 6,
+        flexShrink: 0,
+        borderRadius: 3,
+        overflow: 'hidden',
+        background: 'var(--bg-sunk)',
+        boxShadow: 'inset 0 0 0 1px var(--border)',
+      }}>
+      <div
+        style={{
+          height: '100%',
+          background: 'var(--accent)',
+          transformOrigin: 'left',
+          transform: `scaleX(${nivel})`,
+          transition: 'transform 80ms linear',
+        }}
+      />
+    </div>
+  );
+}
+
 /** Una tecla, dibujada como tal: se reconoce antes que leída. */
 function Tecla({children}: {children: React.ReactNode}) {
   return (
@@ -199,9 +234,12 @@ function Voz({voz}: {voz: Dictando}) {
   }
   if (voz.escuchando) {
     return (
-      <Linea color="var(--accent-ink)" icono={microfono({animation: 'pulse 1.2s ease-in-out infinite'})}>
-        {conTecla(t('dictado.escuchando'))}
-      </Linea>
+      <div style={{display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px 16px'}}>
+        <Linea color="var(--accent-ink)" icono={microfono({animation: 'pulse 1.2s ease-in-out infinite'})}>
+          {conTecla(t('dictado.escuchando'))}
+        </Linea>
+        <Medidor nivel={voz.nivel} />
+      </div>
     );
   }
   if (voz.fallo) {

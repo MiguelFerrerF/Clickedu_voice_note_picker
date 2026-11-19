@@ -98,6 +98,7 @@ const es = {
   'dictado.tecla_espacio': 'Espacio',
   'dictado.microfono': 'Se escucha por «{nombre}».',
   'dictado.escuchando': 'Escuchando… suelta {tecla} al terminar.',
+  'dictado.nivel': 'Cómo se oye',
   'dictado.entendiendo': 'Entendiendo lo dicho…',
   'dictado.corto': 'Mantén {tecla} pulsado mientras hablas, y suéltalo al terminar.',
   'dictado.nada_oido': 'No se ha oído nada. Si estabas hablando, mira en Windows que el micrófono sea el que usas.',

@@ -95,7 +95,7 @@ fn pintar(carpeta: &Path, frases: &[corpus::Frase], i: usize, aviso: &str) {
 /// Graba hasta la siguiente pulsación de ESPACIO (o Intro) y guarda el
 /// `.wav`. Devuelve qué ha pasado, para enseñarlo.
 fn grabar(microfono: &Microfono, carpeta: &Path, frase: &corpus::Frase) -> String {
-    microfono.empezar();
+    microfono.empezar(|_| {});
     let empezo = Instant::now();
     let mut s = stdout();
     write!(s, "● grabando… pulsa ESPACIO al terminar\r\n").ok();

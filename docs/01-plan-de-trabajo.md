@@ -581,9 +581,11 @@ Ninguna rompe D5/D6 ni añade tokens.
 - [x] 3. **Las instrucciones, legibles**: «Mantén ESPACIO pulsado…» va en
       `--text-tertiary` (3,5:1, solo para rótulos según `docs/02`). A
       `--text-secondary`, y ESPACIO dibujado como una tecla.
-- [ ] 4. **Medidor de volumen** mientras se mantiene ESPACIO: se ve que el
+- [x] 4. **Medidor de volumen** mientras se mantiene ESPACIO: se ve que el
       micrófono oye (evita casos como «[Música]»). Necesita Rust: mandar el
-      nivel por el canal del micrófono.
+      nivel por el canal del micrófono. Hecho (2026-11-19): el pico de cada
+      50 ms, en decibelios, por un `Channel` de `empezar_dictado`; probado
+      con el micrófono de verdad (`cargo test -- --ignored microfono`).
 - [x] 5. **Las dudas con el teclado**: 1–4 eligen la opción, Esc descarta.
 - [x] 6. **Las dudas, sin repetir el nombre**: una fila por alumno con sus
       notas como botones cortos, en vez de un botón por alumno y nota.

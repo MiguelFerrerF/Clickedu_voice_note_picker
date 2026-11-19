@@ -6,6 +6,9 @@
 //! 0,3 s** en memoria, y [`Microfono::empezar`] empieza la grabación con ese
 //! trocito de antes. Nada se escribe en disco, y lo que no se graba se tira.
 //!
+//! Mientras graba, avisa del **nivel** 20 veces por segundo (HUI): la
+//! interfaz enseña que el micrófono oye, y si no se mueve, es que no llega.
+//!
 //! El *stream* de `cpal` no se puede pasar entre hilos: vive en un hilo
 //! propio hasta que se suelta el [`Microfono`].
 
@@ -34,6 +37,23 @@ pub fn hay_voz(audio: &[f32]) -> bool {
     audio.iter().any(|m| m.abs() >= SILENCIO)
 }
 
+/// Cada cuánto se avisa del nivel mientras se graba, en segundos.
+const CADA: f32 = 0.05;
+
+/// Lo que se hace con cada nivel.
+type Avisar = Arc<dyn Fn(f32) + Send + Sync>;
+
+/// El pico de un trozo, de 0 a 1 **en decibelios**: -60 dB o menos es 0, y
+/// 0 dB es 1. Como se oye: la frase más baja de H3a (0,045 de pico, -27 dB)
+/// pasa de la mitad, el umbral del silencio (-40 dB) se queda en un tercio, y
+/// el ruido de antes de hablar (0,0002, -74 dB) no se ve.
+pub fn nivel(pico: f32) -> f32 {
+    if pico <= 0.0 {
+        return 0.0;
+    }
+    ((20.0 * pico.log10() + 60.0) / 60.0).clamp(0.0, 1.0)
+}
+
 /// El micrófono abierto.
 pub struct Microfono {
     estado: Arc<Mutex<Estado>>,
@@ -51,17 +71,46 @@ struct Estado {
     grabando: bool,
     /// Cuántas muestras de antes se guardan.
     antes: usize,
+    /// Mientras se graba, el medidor del nivel.
+    medidor: Option<Medidor>,
+}
+
+/// El pico de cada `cada` muestras, para avisar del nivel.
+struct Medidor {
+    cada: usize,
+    cuenta: usize,
+    pico: f32,
+    avisar: Avisar,
 }
 
 impl Estado {
-    fn recibir(&mut self, mono: impl Iterator<Item = f32>) {
-        self.muestras.extend(mono);
+    /// Guarda un paquete del micrófono y devuelve el último nivel que se ha
+    /// completado en él, si alguno, con quién avisa: se avisa **fuera del
+    /// cerrojo**, para no hacer esperar al micrófono.
+    fn recibir(&mut self, mono: impl Iterator<Item = f32>) -> Option<(f32, Avisar)> {
+        let mut aviso = None;
+        match self.medidor.as_mut() {
+            None => self.muestras.extend(mono),
+            Some(m) => {
+                for muestra in mono {
+                    self.muestras.push(muestra);
+                    m.pico = m.pico.max(muestra.abs());
+                    m.cuenta += 1;
+                    if m.cuenta >= m.cada {
+                        aviso = Some(nivel(m.pico));
+                        m.cuenta = 0;
+                        m.pico = 0.0;
+                    }
+                }
+            }
+        }
         // Sin grabar, solo lo último; se recorta de vez en cuando, no en cada
         // paquete.
         if !self.grabando && self.muestras.len() > self.antes * 2 {
             let sobra = self.muestras.len() - self.antes;
             self.muestras.drain(..sobra);
         }
+        aviso.zip(self.medidor.as_ref().map(|m| m.avisar.clone()))
     }
 }
 
@@ -93,12 +142,19 @@ impl Microfono {
         }
     }
 
-    /// Empieza a grabar, con los últimos 0,3 s de antes.
-    pub fn empezar(&self) {
+    /// Empieza a grabar, con los últimos 0,3 s de antes. Hasta
+    /// [`terminar`](Self::terminar), `avisar` recibe el [`nivel`] cada 50 ms.
+    pub fn empezar(&self, avisar: impl Fn(f32) + Send + Sync + 'static) {
         let mut e = self.estado.lock().unwrap_or_else(|p| p.into_inner());
         let sobra = e.muestras.len().saturating_sub(e.antes);
         e.muestras.drain(..sobra);
         e.grabando = true;
+        e.medidor = Some(Medidor {
+            cada: ((self.tasa as f32 * CADA) as usize).max(1),
+            cuenta: 0,
+            pico: 0.0,
+            avisar: Arc::new(avisar),
+        });
     }
 
     /// Para y devuelve lo grabado desde [`empezar`](Self::empezar): mono, a
@@ -107,6 +163,7 @@ impl Microfono {
         let grabado = {
             let mut e = self.estado.lock().unwrap_or_else(|p| p.into_inner());
             e.grabando = false;
+            e.medidor = None;
             std::mem::take(&mut e.muestras)
         };
         remuestrear(&grabado, self.tasa, TASA)
@@ -163,12 +220,15 @@ where
     dispositivo.build_input_stream(
         config.clone(),
         move |datos: &[T], _: &_| {
-            if let Ok(mut e) = estado.lock() {
+            let aviso = estado.lock().ok().and_then(|mut e| {
                 e.recibir(
                     datos
                         .chunks(canales)
                         .map(|trama| trama.iter().map(|&m| f32::from_sample(m)).sum::<f32>() / canales as f32),
-                );
+                )
+            });
+            if let Some((n, avisar)) = aviso {
+                avisar(n);
             }
         },
         |e| eprintln!("micrófono: {e}"),
@@ -195,6 +255,39 @@ mod tests {
     }
 
     #[test]
+    fn grabando_avisa_del_ultimo_trozo_completo() {
+        let oidos = Arc::new(Mutex::new(Vec::new()));
+        let apuntar = oidos.clone();
+        let avisar: Avisar = Arc::new(move |n| apuntar.lock().unwrap().push(n));
+        let mut e = Estado { antes: 10, grabando: true, ..Default::default() };
+        e.medidor = Some(Medidor { cada: 4, cuenta: 0, pico: 0.0, avisar });
+        // Un trozo a 0 dB y otro a -40 dB, y medio trozo.
+        let (n, avisar) = e.recibir([0.0, -1.0, 0.5, 0.0, 0.01, 0.0, 0.0, 0.0, 0.5, 0.0].into_iter()).expect("avisa");
+        // Del último completo: el de antes, en un paquete de 10 ms y trozos
+        // de 50 ms, no pasa.
+        assert!((n - 1.0 / 3.0).abs() < 1e-4, "{n}");
+        avisar(n);
+        assert_eq!(oidos.lock().unwrap().len(), 1);
+        // El medio trozo sigue contando: su pico (0,5) no se ha perdido.
+        let (n, _) = e.recibir([0.0, 0.0].into_iter()).expect("completa el trozo");
+        assert!((n - nivel(0.5)).abs() < 1e-6, "{n}");
+        assert_eq!(e.muestras.len(), 12, "grabando no se tira nada");
+        // Sin medidor no hay aviso.
+        e.medidor = None;
+        assert!(e.recibir([1.0; 8].into_iter()).is_none());
+    }
+
+    #[test]
+    fn el_nivel_va_en_decibelios() {
+        assert_eq!(nivel(0.0), 0.0);
+        assert_eq!(nivel(0.0002), 0.0, "el ruido de antes de hablar no se ve");
+        assert!((nivel(SILENCIO) - 1.0 / 3.0).abs() < 1e-4);
+        assert!(nivel(0.045) > 0.5, "la frase más baja de H3a se ve");
+        assert_eq!(nivel(1.0), 1.0);
+        assert_eq!(nivel(3.0), 1.0);
+    }
+
+    #[test]
     fn el_silencio_no_es_voz() {
         assert!(!hay_voz(&[]));
         assert!(!hay_voz(&[0.0002, -0.003, 0.001]));
@@ -207,10 +300,13 @@ mod tests {
     fn graba_un_segundo_mas_lo_de_antes() {
         let m = Microfono::abrir().expect("no se abre el micrófono");
         std::thread::sleep(std::time::Duration::from_millis(500));
-        m.empezar();
+        let avisos = Arc::new(Mutex::new(0));
+        let contar = avisos.clone();
+        m.empezar(move |_| *contar.lock().unwrap() += 1);
         std::thread::sleep(std::time::Duration::from_secs(1));
         let audio = m.terminar();
         // 1 s + 0,3 s de antes, con lo que tarde en llegar el último paquete.
         assert!((19_000..22_500).contains(&audio.len()), "{} muestras", audio.len());
+        assert!((15..=21).contains(&*avisos.lock().unwrap()), "unos 20 niveles por segundo");
     }
 }

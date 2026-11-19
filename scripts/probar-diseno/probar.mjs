@@ -106,8 +106,14 @@ function simular({carpeta, modelo}) {
   });
 
   window.__TAURI_EVENT_PLUGIN_INTERNALS__ = {unregisterListener() {}};
+  // Los callbacks, por id: los `Channel` reciben por aquí (el nivel del micrófono).
+  const callbacks = {};
+  let midiendo;
   window.__TAURI_INTERNALS__ = {
-    transformCallback: () => n++,
+    transformCallback: (callback) => {
+      callbacks[n] = callback;
+      return n++;
+    },
     invoke: async (cmd, args) => {
       switch (cmd) {
         case 'plugin:event|listen':
@@ -150,7 +156,21 @@ function simular({carpeta, modelo}) {
           return new Promise(() => {});
         case 'abrir_microfono':
           return 'Micrófono (Realtek(R) Audio)';
+        case 'empezar_dictado': {
+          // Una voz que sube y baja, y se queda a media altura para la captura.
+          const avisar = callbacks[args.nivel.id];
+          let index = 0;
+          midiendo = setInterval(() => {
+            avisar({index, message: index < 6 ? [0.3, 0.7, 0.85, 0.5, 0.75, 0.6][index] : 0.62});
+            index++;
+          }, 50);
+          return null;
+        }
+        case 'cancelar_dictado':
+          clearInterval(midiendo);
+          return null;
         case 'terminar_dictado':
+          clearInterval(midiendo);
           // H3a: lo que tarda Whisper, y lo oído, repetido en bucle (se
           // enseña una vez).
           await new Promise((r) => setTimeout(r, 600));
@@ -360,6 +380,7 @@ const PRUEBAS = [
       await paso('reposo');
       await page.keyboard.down('Space');
       await main.getByText('Escuchando').waitFor();
+      await main.getByRole('meter').waitFor();
       await page.waitForTimeout(400);
       await paso('escuchando');
       await page.keyboard.up('Space');

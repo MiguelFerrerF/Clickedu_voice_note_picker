@@ -14,6 +14,8 @@
  * - Si la ventana deja de estar delante con ESPACIO pulsado, el `keyup` no
  *   llega: lo grabado se tira.
  * - Mientras Whisper entiende una frase se puede ir diciendo la siguiente.
+ * - Mientras se escucha, el backend manda el **nivel** del micrófono (de 0
+ *   a 1, en decibelios) 20 veces por segundo, para el medidor (HUI).
  *
  * Las llamadas al micrófono (abrir, empezar, cerrar) van **en cola**: si
  * no, un cerrar podría adelantar al abrir y dejarlo abierto.
@@ -44,6 +46,8 @@ export interface Dictando {
   /** El nombre del micrófono abierto. */
   microfono?: string;
   escuchando: boolean;
+  /** Cómo se oye mientras se escucha, de 0 a 1. */
+  nivel: number;
   /** Cuántas frases está entendiendo Whisper. */
   entendiendo: number;
   aviso?: AvisoVoz;
@@ -65,6 +69,7 @@ export function useDictado({activo, fichero, alDictar}: UseDictadoProps): Dictan
   const [modelo, setModelo] = useState<Modelo>({tipo: 'comprobando'});
   const [microfono, setMicrofono] = useState<string>();
   const [escuchando, setEscuchando] = useState(false);
+  const [nivel, setNivel] = useState(0);
   const [entendiendo, setEntendiendo] = useState(0);
   const [aviso, setAviso] = useState<AvisoVoz>();
   const [fallo, setFallo] = useState<Dictando['fallo']>();
@@ -143,9 +148,13 @@ export function useDictado({activo, fichero, alDictar}: UseDictadoProps): Dictan
       if (e.repeat || pulsado.current) return;
       pulsado.current = performance.now();
       setEscuchando(true);
+      setNivel(0);
       setAviso(undefined);
       setFallo(undefined);
-      empezado.current = enCola(() => invoke('empezar_dictado'));
+      // Lo que llegue después de soltar no se pinta.
+      const canal = new Channel<number>();
+      canal.onmessage = (n) => pulsado.current && setNivel(n);
+      empezado.current = enCola(() => invoke('empezar_dictado', {nivel: canal}));
       empezado.current.catch((e) => setFallo({tipo: 'microfono', error: String(e)}));
     };
 
@@ -196,5 +205,5 @@ export function useDictado({activo, fichero, alDictar}: UseDictadoProps): Dictan
     );
   }
 
-  return {modelo, microfono, escuchando, entendiendo, aviso, fallo, descargar};
+  return {modelo, microfono, escuchando, nivel, entendiendo, aviso, fallo, descargar};
 }

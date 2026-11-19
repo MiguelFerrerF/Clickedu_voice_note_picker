@@ -179,11 +179,12 @@ pub async fn cerrar_microfono(app: AppHandle) -> Result<(), String> {
     .await
 }
 
-/// Se ha pulsado ESPACIO: empieza a grabar, con los últimos 0,3 s de antes.
-/// Si el micrófono no estaba abierto, se abre ahora (y se pierde el
-/// principio).
+/// Se ha pulsado ESPACIO: empieza a grabar, con los últimos 0,3 s de antes,
+/// y manda por `nivel` cómo se oye, de 0 a 1, 20 veces por segundo (el
+/// medidor de la interfaz). Si el micrófono no estaba abierto, se abre ahora
+/// (y se pierde el principio).
 #[tauri::command]
-pub async fn empezar_dictado(app: AppHandle) -> Result<(), String> {
+pub async fn empezar_dictado(app: AppHandle, nivel: Channel<f32>) -> Result<(), String> {
     en_segundo_plano(app.clone(), "empezar_dictado", move || {
         let voz = voz(&app)?;
         let mut m = coger(&voz.microfono);
@@ -191,7 +192,9 @@ pub async fn empezar_dictado(app: AppHandle) -> Result<(), String> {
             *m = Some(Microfono::abrir()?);
         }
         if let Some(m) = m.as_ref() {
-            m.empezar();
+            m.empezar(move |n| {
+                let _ = nivel.send(n);
+            });
         }
         Ok(())
     })
