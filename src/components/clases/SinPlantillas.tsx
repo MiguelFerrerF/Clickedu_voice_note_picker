@@ -21,7 +21,6 @@ export function SinPlantillas({carpeta, irAAjustes}: {carpeta: CarpetaPlantillas
         background: 'var(--bg-card)',
         border: '1px solid var(--border)',
         borderRadius: 10,
-        maxWidth: 820,
       }}>
       <span style={{color: carpeta.existe ? 'var(--accent-ink)' : 'var(--danger)', flexShrink: 0, marginTop: 1}}>
         <Icon d={ICONOS.carpeta} size={22} />

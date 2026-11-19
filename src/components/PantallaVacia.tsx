@@ -21,7 +21,7 @@ export interface PantallaVaciaProps {
 
 export function PantallaVacia({titulo, descripcion, icono, hito}: PantallaVaciaProps) {
   return (
-    <div style={{padding: '28px 32px', maxWidth: 880}}>
+    <div style={{padding: '28px 32px'}}>
       <Cabecera titulo={titulo} />
       <div
         style={{

@@ -121,7 +121,7 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
     alDictar: (f, d) => recibir.current(f, d),
   });
 
-  const contenedor = (hijos: React.ReactNode) => <div style={{padding: '28px 32px', maxWidth: 1040}}>{hijos}</div>;
+  const contenedor = (hijos: React.ReactNode) => <div style={{padding: '28px 32px'}}>{hijos}</div>;
 
   if (!lista) {
     return contenedor(

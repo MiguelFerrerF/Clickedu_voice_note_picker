@@ -94,7 +94,9 @@ Para ver la clase entera sin bajar ni usar el ratón:
 - **Dos columnas** desde 760 px de ancho de la cuadrícula (a 1100 ya
   caben), en el orden de la lista: la primera mitad a la izquierda. Enter y
   ↓ siguen al siguiente, también de una columna a otra. Con menos ancho,
-  una.
+  una. **Con más, una columna más por cada 460 px, hasta cuatro** (a 1920,
+  tres): la pantalla ocupa la ventana entera y así el nombre no se queda
+  lejos de su nota.
 - **Filas de 32 px** (`--row-h` es 36) y el campo de nota de 26. La letra
   no cambia: 13 px el nombre, mono la nota.
 - **Sin nota, sin caja**: solo el `—` gris. La caja vuelve al pasar por la

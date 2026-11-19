@@ -36,7 +36,7 @@ export function Muestrario() {
   const [clase, setClase] = useState('mat3a');
 
   return (
-    <div style={{padding: '28px 32px', maxWidth: 1040}}>
+    <div style={{padding: '28px 32px'}}>
       <Cabecera titulo={t('muestrario.titulo')} intro={t('muestrario.subtitulo')} />
 
       <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>

@@ -46,6 +46,16 @@ const COLUMNAS = '36px minmax(0, 1fr) 84px';
  * entera sin bajar. Con menos, una sola.
  */
 const ANCHO_DOS_COLUMNAS = 760;
+/**
+ * Con más ancho (la pantalla ocupa la ventana entera), **una columna más
+ * por cada 460 px**, hasta cuatro: así el nombre más largo cabe sin «…» y
+ * no se queda lejos de su nota. A 1920, tres.
+ */
+const ANCHO_COLUMNA = 460;
+const MAX_COLUMNAS = 4;
+
+const cuantasColumnas = (ancho: number) =>
+  ancho < ANCHO_DOS_COLUMNAS ? 1 : Math.min(MAX_COLUMNAS, Math.max(2, Math.floor(ancho / ANCHO_COLUMNA)));
 
 /** Algo más baja que `--row-h` (36): caben más alumnos sin tocar la letra. */
 const ALTO_FILA = 32;
@@ -96,14 +106,14 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
     campos.current[i]?.select();
   }
 
-  // Una o dos columnas, según el ancho. Pantalla sin visitar (`display:
-  // none`): mide 0, una; al enseñarla, el observador vuelve a medir.
+  // Las columnas que quepan (`cuantasColumnas`). Pantalla sin visitar
+  // (`display: none`): mide 0, una; al enseñarla, el observador vuelve a medir.
   const caja = useRef<HTMLDivElement>(null);
   const [columnas, setColumnas] = useState(1);
   useLayoutEffect(() => {
     const el = caja.current;
     if (!el) return;
-    const medir = () => setColumnas(el.clientWidth >= ANCHO_DOS_COLUMNAS ? 2 : 1);
+    const medir = () => setColumnas(cuantasColumnas(el.clientWidth));
     medir();
     const observador = new ResizeObserver(medir);
     observador.observe(el);

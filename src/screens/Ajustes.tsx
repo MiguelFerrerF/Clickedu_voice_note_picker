@@ -41,7 +41,7 @@ export function Ajustes({visible}: {visible: boolean}) {
   };
 
   return (
-    <div style={{padding: '28px 32px', maxWidth: 880}}>
+    <div style={{padding: '28px 32px'}}>
       <Cabecera titulo={t('ajustes.titulo')} />
       {/* El hueco entre tarjetas lo pone la pantalla, no cada tarjeta. */}
       <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>

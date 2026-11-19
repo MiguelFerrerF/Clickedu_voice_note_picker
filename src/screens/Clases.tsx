@@ -34,7 +34,7 @@ export function Clases({abrir, irAAjustes}: ClasesProps) {
   const hay = (lista?.clases.length ?? 0) > 0;
 
   return (
-    <div style={{padding: '28px 32px', maxWidth: 1040}}>
+    <div style={{padding: '28px 32px'}}>
       <Cabecera
         titulo={t('clases.titulo')}
         intro={t('clases.intro')}
