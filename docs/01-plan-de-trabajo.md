@@ -419,6 +419,10 @@ formato vuelve a abrirse aquí (`exportar.rs`).
       vocabulario de la clase (descartado en H3a), que escribe el apellido
       de otro alumno («y quiroga 5» por «Iker cinco»): un motivo más para
       no usarlo.
+
+      **La regla se queda así** (el usuario, 2026-11-19), aunque pregunte
+      por las parejas que se llaman casi igual si no se dice el segundo
+      apellido.
 - [ ] Confirmación: verde si está seguro; borde discontinuo y elegir entre los
       dos más probables si duda.
 
