@@ -66,7 +66,7 @@ const es = {
   'cuadricula.con_nota': '{n} / {total} con nota',
   'cuadricula.siguiente': 'Siguiente sin nota',
   'cuadricula.siguiente_ayuda': 'Lleva al próximo alumno sin nota, desde el último que has tocado',
-  'cuadricula.ayuda': '{enter} o {abajo} guarda y baja, {arriba} sube, {esc} deshace. Con coma o con punto.',
+  'cuadricula.ayuda': '{enter} o {abajo} guarda y baja, {arriba} sube, {esc} cancela lo que escribes. Con coma o con punto.',
   'cuadricula.tecla_enter': 'Enter',
   'cuadricula.tecla_abajo': '↓',
   'cuadricula.tecla_arriba': '↑',

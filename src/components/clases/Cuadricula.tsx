@@ -2,8 +2,9 @@
  * La cuadrícula de alumnos de una clase, con su nota **para escribir** (H2).
  *
  * - Cada nota es un campo. Se escribe con coma o con punto; **Enter o ↓**
- *   la guardan y pasan al siguiente, **↑** al anterior, **Esc** deshace lo
- *   escrito. Salir del campo también la guarda.
+ *   la guardan y pasan al siguiente, **↑** al anterior, **Esc** cancela lo
+ *   escrito (la nota guardada se queda como estaba). Salir del campo
+ *   también la guarda.
  * - Lo que no es una nota (`12`, `siete`, `7.555`) **no se guarda ni se
  *   corrige**: se queda escrito en rojo, con el motivo al lado del nombre, y
  *   el foco no se mueve.
