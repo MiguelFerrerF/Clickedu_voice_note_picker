@@ -100,6 +100,12 @@ Para ver la clase entera sin bajar ni usar el ratón:
 - **Sin nota, sin caja**: solo el `—` gris. La caja vuelve al pasar por la
   fila (que se oscurece a `--bg-sunk`) o al escribir. Con 30 cajas vacías,
   la lista era ruido.
+- **Encima, el avance** (HUI, bloque B): una barra fina de 120 px en
+  `--accent` (el color del progreso) sobre `--bg-sunk`, «2 / 18 con nota»
+  en `--text-secondary`, el botón fantasma «Siguiente sin nota» (desde el
+  último campo tocado, y del final vuelve al principio) y, a la derecha, la
+  ayuda del teclado con las teclas dibujadas (`ui/Tecla`). Si la ayuda no
+  cabe, baja a la izquierda. Debajo de la tabla, con 30 alumnos, no se veía.
 
 A 1280×800, una clase de 26 se ve entera con los avisos de la plantilla
 encima.

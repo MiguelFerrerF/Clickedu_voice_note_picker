@@ -330,6 +330,10 @@ const PRUEBAS = [
       await main.getByText('Ha de ir de 0 a 10').waitFor();
       await paso('escritas');
       await page.keyboard.press('Escape');
+      // HUI: al siguiente sin nota, desde el último tocado.
+      await main.getByRole('button', {name: 'Siguiente sin nota'}).click();
+      await page.waitForTimeout(400);
+      await paso('siguiente-sin-nota');
       await main.getByRole('button', {name: 'Exportar'}).click();
       await main.getByText('Exportadas 2 notas').waitFor();
       await paso('exportado');

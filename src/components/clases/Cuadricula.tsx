@@ -15,6 +15,10 @@
  *   discontinuo** (provisional) y pulsarla la apunta. La fila dictada se
  *   trae a la vista.
  *
+ * - **Encima** (HUI), cuántos tienen nota, con una barra fina (turquesa:
+ *   es progreso), «Siguiente sin nota» y la ayuda del teclado: debajo de la
+ *   tabla, con 30 alumnos, no se veía.
+ *
  * Lo que se está escribiendo vive en cada campo hasta que se guarda; la nota
  * guardada vive en Calificar, que es quien la manda al backend.
  */
@@ -22,7 +26,9 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import {ALTO_PANEL} from '@components/dictado/PanelDictado';
+import {Button} from '@components/ui/Button';
 import {Icon, ICONOS} from '@components/ui/Icon';
+import {conTeclas} from '@components/ui/Tecla';
 import type {Alumno, Nota, Puestas} from '@modules/clases/tipos';
 import {t} from '@modules/i18n';
 import {leerEscrita, notaComoTexto, notaDe, type MotivoMal} from '@modules/notas/nota';
@@ -70,6 +76,22 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
     campo.select();
   };
 
+  // El último campo tocado: «Siguiente sin nota» sigue desde él.
+  const ultimo = useRef(-1);
+  const notas = alumnos.map((a) => notaDe(a, puestas));
+  const conNota = notas.filter((n) => n.tipo === 'valor').length;
+  const sinNota = notas.map((n, i) => (n.tipo === 'vacia' ? i : -1)).filter((i) => i >= 0);
+
+  /** Al siguiente sin nota tras el último tocado; del final, vuelve al principio. */
+  function irAlSiguienteSinNota() {
+    const i = sinNota.find((i) => i > ultimo.current) ?? sinNota[0];
+    if (i === undefined) return;
+    // La fila, no el campo, a la vista: así respeta el hueco del panel del dictado.
+    filas.current[alumnos[i].clave]?.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+    campos.current[i]?.focus({preventScroll: true});
+    campos.current[i]?.select();
+  }
+
   // Una o dos columnas, según el ancho. Pantalla sin visitar (`display:
   // none`): mide 0, una; al enseñarla, el observador vuelve a medir.
   const caja = useRef<HTMLDivElement>(null);
@@ -90,23 +112,33 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
   );
 
   return (
-    <div
-      ref={caja}
-      style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${grupos.length}, minmax(0, 1fr))`,
-        border: '1px solid var(--border)',
-        borderRadius: 8,
-        overflow: 'hidden',
-        background: 'var(--bg-card)',
-      }}>
-      {grupos.map((desde, k) => (
-        <div key={desde} role="rowgroup" style={{minWidth: 0, borderLeft: k > 0 ? '1px solid var(--border)' : 'none'}}>
-          <Encabezado />
-          {alumnos.slice(desde, desde + porColumna).map((a, j, grupo) => fila(a, desde + j, j === grupo.length - 1))}
-        </div>
-      ))}
-    </div>
+    <>
+      <Avance
+        conNota={conNota}
+        total={alumnos.length}
+        siguiente={sinNota.length > 0 ? irAlSiguienteSinNota : undefined}
+      />
+      <div
+        ref={caja}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${grupos.length}, minmax(0, 1fr))`,
+          border: '1px solid var(--border)',
+          borderRadius: 8,
+          overflow: 'hidden',
+          background: 'var(--bg-card)',
+        }}>
+        {grupos.map((desde, k) => (
+          <div
+            key={desde}
+            role="rowgroup"
+            style={{minWidth: 0, borderLeft: k > 0 ? '1px solid var(--border)' : 'none'}}>
+            <Encabezado />
+            {alumnos.slice(desde, desde + porColumna).map((a, j, grupo) => fila(a, desde + j, j === grupo.length - 1))}
+          </div>
+        ))}
+      </div>
+    </>
   );
 
   function fila(a: Alumno, i: number, ultima: boolean) {
@@ -171,9 +203,10 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
             campos.current[i] = el;
           }}
           nombre={nombre}
-          nota={notaDe(a, puestas)}
+          nota={notas[i]}
           dictada={dictadas?.has(a.clave) ?? false}
           poner={(n) => poner(a.clave, n)}
+          alEnfocar={() => (ultimo.current = i)}
           setMotivo={(m) => setMotivos((antes) => (antes[a.fila] === m ? antes : {...antes, [a.fila]: m}))}
           anterior={() => ir(i - 1)}
           siguiente={() => ir(i + 1)}
@@ -181,6 +214,64 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
       </div>
     );
   }
+}
+
+/**
+ * Encima de la tabla (HUI): cuántos tienen nota, con una barra fina en
+ * `--accent` (el color del progreso, `docs/02`), el botón que lleva al
+ * siguiente sin nota y la ayuda del teclado, que debajo de 30 alumnos no se
+ * veía. Sin `siguiente`, no queda ninguno sin nota.
+ */
+function Avance({conNota, total, siguiente}: {conNota: number; total: number; siguiente?: () => void}) {
+  const fraccion = total > 0 ? conNota / total : 0;
+  return (
+    // Si la ayuda no cabe al lado, baja a la izquierda: `space-between` con
+    // una sola cosa en la línea la pone al principio.
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '8px 16px',
+        marginBottom: 10,
+      }}>
+      <span style={{display: 'inline-flex', alignItems: 'center', gap: 16}}>
+        <span style={{display: 'inline-flex', alignItems: 'center', gap: 10}}>
+          <span
+            aria-hidden
+            style={{width: 120, height: 6, borderRadius: 3, background: 'var(--bg-sunk)', overflow: 'hidden'}}>
+            <span
+              style={{
+                display: 'block',
+                height: '100%',
+                borderRadius: 3,
+                background: 'var(--accent)',
+                transformOrigin: 'left',
+                transform: `scaleX(${fraccion})`,
+                transition: 'transform 150ms ease',
+              }}
+            />
+          </span>
+          <span style={{fontSize: 13, color: 'var(--text-secondary)', whiteSpace: 'nowrap'}}>
+            {t('cuadricula.con_nota', {n: conNota, total})}
+          </span>
+        </span>
+        <Button variant="ghost" onClick={siguiente} disabled={!siguiente} title={t('cuadricula.siguiente_ayuda')}>
+          {t('cuadricula.siguiente')}
+          <Icon d={ICONOS.galonAbajo} size={14} />
+        </Button>
+      </span>
+      <span style={{fontSize: 12, color: 'var(--text-secondary)', lineHeight: '22px'}}>
+        {conTeclas(t('cuadricula.ayuda'), {
+          enter: t('cuadricula.tecla_enter'),
+          abajo: t('cuadricula.tecla_abajo'),
+          arriba: t('cuadricula.tecla_arriba'),
+          esc: t('dictado.tecla_esc'),
+        })}
+      </span>
+    </div>
+  );
 }
 
 /** Los rótulos de una columna de alumnos. */
@@ -218,11 +309,22 @@ interface CampoNotaProps {
   dictada: boolean;
   poner: (nota: number | null) => void;
   setMotivo: (motivo: MotivoMal | undefined) => void;
+  alEnfocar: () => void;
   anterior: () => void;
   siguiente: () => void;
 }
 
-function CampoNota({campoRef, nombre, nota, dictada, poner, setMotivo, anterior, siguiente}: CampoNotaProps) {
+function CampoNota({
+  campoRef,
+  nombre,
+  nota,
+  dictada,
+  poner,
+  setMotivo,
+  alEnfocar,
+  anterior,
+  siguiente,
+}: CampoNotaProps) {
   // `null`: no se está escribiendo y se enseña la nota que vale. Va también
   // en una ref porque Enter guarda y mueve el foco, y el `blur` que eso
   // provoca llega antes de que React pinte: sin la ref se guardaría dos veces.
@@ -266,7 +368,10 @@ function CampoNota({campoRef, nombre, nota, dictada, poner, setMotivo, anterior,
         aria-label={t('cuadricula.nota_de', {nombre})}
         aria-invalid={mal || undefined}
         title={nota.tipo === 'invalida' && borrador === null ? t('cuadricula.no_es_nota') : undefined}
-        onFocus={(e) => e.currentTarget.select()}
+        onFocus={(e) => {
+          alEnfocar();
+          e.currentTarget.select();
+        }}
         onChange={(e) => {
           setBorrador(e.target.value);
           setMotivo(undefined);

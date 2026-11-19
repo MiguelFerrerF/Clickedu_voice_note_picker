@@ -146,7 +146,6 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
   const alumnos = abiertaAhora?.plantilla.alumnos ?? [];
   const puestas = abiertaAhora?.puestas ?? {};
   const notas = alumnos.map((a) => notaDe(a, puestas));
-  const calificados = notas.filter((n) => n.tipo === 'valor').length;
 
   const pendienteAqui = pendiente?.fichero === fichero ? pendiente.dictado : undefined;
   const apuntadosAqui = apuntados.filter((a) => a.fichero === fichero);
@@ -317,19 +316,7 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
     <>
       <Cabecera
         titulo={actual.nombre}
-        intro={
-          <>
-            <span style={{fontFamily: 'var(--font-mono)', fontSize: 12}}>{fichero}</span>
-            {abiertaAhora && (
-              <>
-                {' · '}
-                <span style={{whiteSpace: 'nowrap'}}>
-                  {t('calificar.calificados', {n: calificados, total: alumnos.length})}
-                </span>
-              </>
-            )}
-          </>
-        }
+        intro={<span style={{fontFamily: 'var(--font-mono)', fontSize: 12}}>{fichero}</span>}
         derecha={
           <div style={{display: 'flex', gap: 8, alignItems: 'center'}}>
             <div style={{width: 260}}>
@@ -384,7 +371,6 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
             elegir={elegir}
             ver={ver}
           />
-          <p style={{margin: '10px 0 0', fontSize: 12, color: 'var(--text-tertiary)'}}>{t('cuadricula.ayuda')}</p>
         </>
       )}
     </>,

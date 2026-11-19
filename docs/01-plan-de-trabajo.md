@@ -598,11 +598,13 @@ Ninguna rompe D5/D6 ni añade tokens.
 
 **B · La tabla de notas**
 
-- [ ] 8. **El progreso, visible**: barra fina (turquesa, se permite para
+- [x] 8. **El progreso, visible**: barra fina (turquesa, se permite para
       progreso) en vez de «0 / 18 con nota» en pequeño, y «Ir al siguiente
-      sin nota».
-- [ ] 9. **La ayuda del teclado** («Enter o ↓ guarda…»), arriba o al
+      sin nota». Hecho (2026-11-19): encima de la tabla, «Siguiente sin
+      nota» sigue desde el último campo tocado.
+- [x] 9. **La ayuda del teclado** («Enter o ↓ guarda…»), arriba o al
       enfocar la primera celda: debajo de la tabla no se ve con 30 alumnos.
+      Hecho (2026-11-19): arriba, junto al avance, con las teclas dibujadas.
 
 **C · La cabecera de Calificar**
 

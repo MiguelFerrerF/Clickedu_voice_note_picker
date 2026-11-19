@@ -35,7 +35,6 @@ const es = {
 
   // ── Calificar ──
   'calificar.titulo': 'Calificar',
-  'calificar.calificados': '{n} / {total} con nota',
   'calificar.elegir_clase': 'Elegir la clase',
   'calificar.no_se_lee': 'No se puede leer: {error}',
   'calificar.no_se_guarda': 'No se ha podido guardar la nota: {error}',
@@ -64,7 +63,13 @@ const es = {
   'cuadricula.mal_decimales': 'Dos decimales como mucho',
   'cuadricula.propuesta': '¿{nota}?',
   'cuadricula.apuntar_propuesta': 'Apuntar un {nota} a {nombre}',
-  'cuadricula.ayuda': 'Con coma o con punto. Enter o ↓ guarda y pasa al siguiente, ↑ al anterior, Esc deshace. Cada nota se guarda al momento.',
+  'cuadricula.con_nota': '{n} / {total} con nota',
+  'cuadricula.siguiente': 'Siguiente sin nota',
+  'cuadricula.siguiente_ayuda': 'Lleva al próximo alumno sin nota, desde el último que has tocado',
+  'cuadricula.ayuda': '{enter} o {abajo} guarda y baja, {arriba} sube, {esc} deshace. Con coma o con punto.',
+  'cuadricula.tecla_enter': 'Enter',
+  'cuadricula.tecla_abajo': '↓',
+  'cuadricula.tecla_arriba': '↑',
 
   // ── El dictado (H3b) ──
   'dictado.oido': 'Se ha oído «{oido}».',
