@@ -12,14 +12,13 @@ está en esta rama**: vive en `main` y en el tag `v1.3.4`, que es la última
 publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-19): H3a hecho (push-to-talk y medir en local)
-> y sin probar a mano.** En la rama `v2`, la única de la v2 (un commit por hito y
-> otro al cerrarlo). **Siguiente: probarlo a mano** con `npm run
-> tauri:dev` (dictar de verdad sobre la clase inventada; descargar el
-> modelo apartando antes el de `%APPDATA%\es.gestornotas.app\modelos`).
-> Con eso se cierra H3a. El audio **no se guarda** (D8); lo dictado se
-> mide en local con `cargo run --example medir_registro` (solo cuenta, sin
-> nombres). El campo «Probar el dictado» se queda, solo en desarrollo. **Pendiente de H2**: importar un exportado en
+> **Dónde se quedó (2026-11-19): H3a y H3b cerrados, la voz entera
+> probada a mano.** En la rama `v2`, la única de la v2 (un commit por hito y
+> otro al cerrarlo). **Siguiente: H4**, conectar con Clickedu (login,
+> credenciales en `keyring` por D3, la capa resistente). El audio **no se
+> guarda** (D8); lo dictado se mide en local con `cargo run --example
+> medir_registro` (solo cuenta, sin nombres). El campo «Probar el dictado»
+> se queda, solo en desarrollo. **Pendiente de H2**: importar un exportado en
 > Clickedu (como muy tarde en H6). Para ver plantillas reales sin sacar
 > datos de alumnos: `cargo run --example revisar_plantillas -- <carpeta>`;
 > para probar el dictado sin alumnos reales:
@@ -29,7 +28,7 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 | Hito | Qué dejó | Probado |
 |---|---|---|
 | **H3b** | `voz::interprete` (la nota; lo no visto en grabaciones, `NOTA_RARA`, no se interpreta), `voz::emparejar` (fonética, los dos órdenes de «Apellidos, Nombre»), `voz::entender` (cuándo preguntar); `entender_frase`, el panel del dictado y las propuestas en la cuadrícula; `registro.rs` e informe sin nombres (D8), en Ajustes | sí, a mano (clase inventada), con tests de Rust, la prueba de diseño y `probar_entender` sobre las 100 grabaciones: **77 apuntadas, 20 preguntadas, 2 sin entender, 0 mal en silencio** |
-| **H3a** (en marcha) | D2 cerrada con números: Whisper `small` `q5_1` recortado (90–94 % en 1,1 s); micrófono, remuestreo y motor; el banco de pruebas de voz; **el push-to-talk** (`useDictado`, `commands::voz`), la descarga comprobada del modelo (`voz::modelo`) y medir en local (`registro::medir`, sin audio) | el motor, con voz de verdad (100 grabaciones); el push-to-talk, con tests de Rust y la prueba de diseño; **falta a mano** |
+| **H3a** | D2 cerrada con números: Whisper `small` `q5_1` recortado (90–94 % en 1,1 s); micrófono, remuestreo y motor; el banco de pruebas de voz; **el push-to-talk** (`useDictado`, `commands::voz`), la descarga comprobada del modelo (`voz::modelo`) y medir en local (`registro::medir`, sin audio); los bucles de Whisper se enseñan una vez y «[Música]» es silencio | el motor, con voz de verdad (100 grabaciones); el push-to-talk, a mano (clase inventada y descarga), con tests de Rust y la prueba de diseño |
 | **H2** | `sesion.rs` (notas por clave de alumno, al momento), `exportar.rs` (el `.xlsx` de la v1, a `Documentos\Gestor de Notas\notas`); Calificar con campos de nota, Exportar y contador | sí, a mano, con tests de Rust (ida y vuelta) y la prueba de diseño; **falta importarlo en Clickedu** |
 | **H1** | `plantillas.rs` (lee por cabecera, con avisos), `ajustes.json`, vigilante de la carpeta; Calificar en lectura, Clases, Ajustes | sí, a mano (plantillas reales), con tests de Rust y la prueba de diseño |
 | **H0** | Andamiaje Tauri 2 + Vite + React + TS, paleta turquesa en claro con neutros «niebla», primitivas de `components/ui/`, `Sidebar` y cinco pantallas vacías, Muestrario, i18n, IBM Plex con `latin-ext`, prueba de diseño | sí, a mano y con la prueba de diseño |

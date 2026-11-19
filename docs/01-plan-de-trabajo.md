@@ -287,7 +287,7 @@ Clickedu a mano para confirmar que lo acepta. Se hará más adelante, y como
 muy tarde en H6, cuyo plan B es justo ese Excel. Si Clickedu lo rechaza, el
 formato vuelve a abrirse aquí (`exportar.rs`).
 
-### H3a · Voz: el motor (cierra D2)
+### H3a · Voz: el motor (cierra D2) ✓ (2026-11-19)
 
 - [x] **El banco de pruebas** (2026-11-18). El corpus, en
       `src-tauri/tests/datos/voz/`: una clase inventada de 28 alumnos
@@ -424,10 +424,22 @@ formato vuelve a abrirse aquí (`exportar.rs`).
       - En el panel del dictado: cómo se dicta y por qué micrófono se
         escucha, «Escuchando…» en turquesa (está pasando), «Entendiendo…»
         en gris, y los fallos del micrófono en rojo.
-- [ ] **Probado a mano** con `npm run tauri:dev`: dictar de verdad sobre la
-      clase inventada (apuntadas, dudas, no entendidas, silencio, pulsación
-      corta, cambiar de ventana dictando) y descargar el modelo apartando
-      antes el que hay.
+- [x] **Probado a mano** con `npm run tauri:dev` (2026-11-19): dictar de
+      verdad sobre la clase inventada (apuntadas, dudas, no entendidas,
+      silencio, pulsación corta, cambiar de ventana dictando) y descargar el
+      modelo apartando antes el que hay. Nada mal en silencio. Salieron dos
+      cosas, arregladas:
+      - **Un bucle** («Marta Ortera Lucia, 7 Marta Ortera Lucia, 7 … Mart»,
+        por «Martín Ortega, Lucía, siete»): el intérprete ya se quedaba con
+        la primera vez y apuntó bien, pero el panel enseñaba el texto en
+        bruto y parecía dictado tres veces. Ahora enseña la frase una vez y
+        dice que venía repetida (`interprete::una_vez`, el `repetida` del
+        `Dictado`); el registro guarda lo oído tal cual.
+      - **«[Música]»**: lo que escribe Whisper cuando no oye voz, en una
+        pulsación sin hablar que pasó del umbral de silencio. Salía como
+        frase sin entender; ahora, lo que no tiene letras ni cifras fuera de
+        corchetes o paréntesis es silencio (`Oido::sin_palabras`): «No se ha
+        oído nada», y no se apunta.
 - [x] **Medir en local con el registro** (D8, 2026-11-19):
       `cargo run --example medir_registro`. Por cada dictado del registro,
       lo que había que apuntar sale de lo que hizo el profesor
