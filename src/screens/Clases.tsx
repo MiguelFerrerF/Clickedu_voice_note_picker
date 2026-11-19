@@ -10,6 +10,7 @@
 import {invoke} from '@tauri-apps/api/core';
 
 import {Punto} from '@components/clases/Avisos';
+import {BarraAvance} from '@components/clases/BarraAvance';
 import {Ruta, SinPlantillas} from '@components/clases/SinPlantillas';
 import {Cabecera} from '@components/layout/Cabecera';
 import {Button} from '@components/ui/Button';
@@ -19,7 +20,8 @@ import {useClases} from '@modules/clases/useClases';
 import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
 
-const COLUMNAS = 'minmax(220px, 1fr) 96px 120px minmax(120px, 0.6fr)';
+/** La última, la `›` que dice que la fila se pulsa. */
+const COLUMNAS = 'minmax(220px, 1fr) 96px 120px minmax(120px, 0.6fr) 20px';
 
 export interface ClasesProps {
   abrir: (fichero: string) => void;
@@ -117,8 +119,15 @@ function Tabla({clases, abrir}: {clases: Clase[]; abrir: (fichero: string) => vo
           {c.lectura.tipo === 'bien' ? (
             <>
               <span style={cifra}>{c.lectura.alumnos}</span>
-              <span style={{...cifra, color: c.lectura.calificados ? 'var(--text-primary)' : 'var(--text-tertiary)'}}>
-                {c.lectura.calificados ? `${c.lectura.calificados} / ${c.lectura.alumnos}` : '—'}
+              <span
+                role="img"
+                aria-label={t('clases.con_nota', {n: c.lectura.calificados, total: c.lectura.alumnos})}
+                title={t('clases.con_nota', {n: c.lectura.calificados, total: c.lectura.alumnos})}
+                style={{display: 'flex', justifyContent: 'flex-end'}}>
+                <BarraAvance
+                  fraccion={c.lectura.alumnos > 0 ? c.lectura.calificados / c.lectura.alumnos : 0}
+                  ancho={72}
+                />
               </span>
               <span style={{paddingLeft: 24, fontSize: 12, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 8}}>
                 {c.lectura.avisos > 0 && (
@@ -136,6 +145,7 @@ function Tabla({clases, abrir}: {clases: Clase[]; abrir: (fichero: string) => vo
               {t('clases.no_se_lee', {error: c.lectura.error})}
             </span>
           )}
+          <Icon d={ICONOS.galonDerecha} size={14} style={{justifySelf: 'end', color: 'var(--text-tertiary)'}} />
         </button>
       ))}
     </div>

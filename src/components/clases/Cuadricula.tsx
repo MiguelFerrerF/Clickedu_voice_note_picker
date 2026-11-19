@@ -28,6 +28,7 @@
 
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
+import {BarraAvance} from '@components/clases/BarraAvance';
 import {ID_TECLADO, Teclado} from '@components/clases/Teclado';
 import {ALTO_PANEL} from '@components/dictado/PanelDictado';
 import {Button} from '@components/ui/Button';
@@ -241,21 +242,7 @@ function Avance({conNota, total, siguiente}: {conNota: number; total: number; si
         }}>
         <span style={{display: 'inline-flex', alignItems: 'center', gap: 16}}>
           <span style={{display: 'inline-flex', alignItems: 'center', gap: 10}}>
-            <span
-              aria-hidden
-              style={{width: 120, height: 6, borderRadius: 3, background: 'var(--bg-sunk)', overflow: 'hidden'}}>
-              <span
-                style={{
-                  display: 'block',
-                  height: '100%',
-                  borderRadius: 3,
-                  background: 'var(--accent)',
-                  transformOrigin: 'left',
-                  transform: `scaleX(${fraccion})`,
-                  transition: 'transform 150ms ease',
-                }}
-              />
-            </span>
+            <BarraAvance fraccion={fraccion} ancho={120} />
             <span style={{fontSize: 13, color: 'var(--text-secondary)', whiteSpace: 'nowrap'}}>
               {t('cuadricula.con_nota', {n: conNota, total})}
             </span>

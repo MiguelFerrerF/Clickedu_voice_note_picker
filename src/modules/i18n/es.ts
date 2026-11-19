@@ -156,6 +156,7 @@ const es = {
   'clases.col_alumnos': 'Alumnos',
   'clases.col_calificados': 'Con nota',
   'clases.col_estado': 'Avisos',
+  'clases.con_nota': '{n} de {total} con nota',
   'clases.un_aviso': '1 aviso',
   'clases.n_avisos': '{n} avisos',
   'clases.no_se_lee': 'No se puede leer: {error}',
