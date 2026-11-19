@@ -82,6 +82,7 @@ const es = {
   'dictado.motivo_varias_notas': 'Se ha oído más de una nota.',
   'dictado.motivo_numero_de_mas': 'Además de la nota se ha oído otro número.',
   'dictado.no_entendido_sin_nota': 'No se ha apuntado nada: no se ha oído ninguna nota de 0 a 10.',
+  'dictado.no_entendido_nota_rara': 'No se ha apuntado nada: la nota se ha dicho de una forma que la app no entiende («y cuarto», «menos», «notable»…). Dila con números.',
   'dictado.no_entendido_sin_nombre': 'No se ha apuntado nada: se ha oído la nota, pero no para quién.',
   'dictado.no_entendido_nombre_desconocido': 'No se ha apuntado nada: el nombre no se parece a nadie de esta clase.',
   'dictado.fallo': 'No se ha podido entender lo dictado: {error}',

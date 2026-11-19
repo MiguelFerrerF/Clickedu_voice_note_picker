@@ -6,7 +6,7 @@
  */
 
 /** Por qué no se apunta nada. */
-export type MotivoNoEntendido = 'sin_nota' | 'sin_nombre' | 'nombre_desconocido';
+export type MotivoNoEntendido = 'sin_nota' | 'nota_rara' | 'sin_nombre' | 'nombre_desconocido';
 
 /** Por qué se pregunta. */
 export type MotivoDuda =

@@ -27,6 +27,8 @@ pub struct Frase {
     pub nota: Option<Nota>,
     /// Las palabras que quedan para el nombre, en minúscula y sin acentos.
     pub nombre: Vec<String>,
+    /// La nota se dijo de una forma que no se interpreta ([`NOTA_RARA`]).
+    pub nota_rara: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -49,6 +51,14 @@ pub enum PorQueDudosa {
     NumeroDeMas,
 }
 
+/// Maneras de decir una nota que **no se interpretan**: «siete y cuarto»,
+/// «seis menos», «notable». No salieron en las grabaciones de H3a, así que
+/// no se adivinan (el usuario, 2026-11-19): la frase no se apunta y se dice
+/// por qué. Si salen en casos reales (D8), se verá cómo leerlas. «Mas» no
+/// está: es un apellido catalán.
+pub const NOTA_RARA: &[&str] =
+    &["cuarto", "cuartos", "menos", "notable", "sobresaliente", "aprobado", "suspenso", "suficiente", "insuficiente"];
+
 /// Palabras que no son del nombre cuando están en sus extremos.
 const RELLENO: &[&str] = &[
     "ponle", "ponme", "pon", "poner", "ponerle", "ponedle", "a", "al", "para", "nota", "la", "de", "del", "tiene",
@@ -64,11 +74,13 @@ pub fn es_de_dictar(palabra: &str) -> bool {
     let p = normalizar(palabra);
     numero_dicho(&p).is_some()
         || RELLENO.contains(&p.as_str())
+        || NOTA_RARA.contains(&p.as_str())
         || matches!(p.as_str(), "coma" | "punto" | "medio" | "media" | "cien")
 }
 
 pub fn interpretar(texto: &str) -> Frase {
     let trozos = sin_bucles(trocear(texto));
+    let nota_rara = trozos.iter().any(|t| NOTA_RARA.contains(&t.as_str()));
     let elementos = leer_numeros(&trozos);
     let (notas, usados) = buscar_notas(&elementos);
     let sobra_un_numero = elementos
@@ -97,7 +109,7 @@ pub fn interpretar(texto: &str) -> Frase {
     if let Some(n) = nota.as_mut().filter(|n| n.dudosa.is_none() && sobra_un_numero) {
         n.dudosa = Some(PorQueDudosa::NumeroDeMas);
     }
-    Frase { nota, nombre }
+    Frase { nota, nombre, nota_rara }
 }
 
 // ── Trocear ─────────────────────────────────────────────────────────────

@@ -464,6 +464,12 @@ formato vuelve a abrirse aquí (`exportar.rs`).
       **La regla se queda así** (el usuario, 2026-11-19), aunque pregunte
       por las parejas que se llaman casi igual si no se dice el segundo
       apellido.
+
+      **Lo que no salió en las grabaciones no se interpreta** (el usuario,
+      2026-11-19): «siete y cuarto», «seis menos», «notable», «aprobado»
+      no se apuntan y se dice por qué (`interprete::NOTA_RARA`). Si salen
+      en casos reales (D8), se verá cómo leerlas. Y si solo se duda de la
+      nota («825»), no se ofrece otro alumno.
 - [x] **La confirmación en Calificar** (2026-11-19). El comando
       `entender_frase` entiende una frase con los alumnos de la clase y
       devuelve cada uno por su **clave** (la de la sesión). Un **panel del

@@ -75,6 +75,9 @@ pub struct Detalle {
 pub enum Motivo {
     /// No se oyó ninguna nota (de 0 a 10).
     SinNota,
+    /// La nota se dijo de una forma que no se interpreta («y cuarto»,
+    /// «menos», «notable»): no se adivina.
+    NotaRara,
     /// Se oyó la nota y nada más.
     SinNombre,
     /// Lo oído no se parece a nadie de la clase.
@@ -106,6 +109,9 @@ pub fn entender_con_detalle<S: AsRef<str>>(texto: &str, clase: &[S]) -> (Entendi
 }
 
 fn decidir(frase: super::interprete::Frase, parecidos: &[Parecido]) -> Entendido {
+    if frase.nota_rara {
+        return Entendido::NoEntendido { motivo: Motivo::NotaRara };
+    }
     let Some(nota) = frase.nota else {
         return Entendido::NoEntendido { motivo: Motivo::SinNota };
     };
@@ -137,7 +143,10 @@ fn decidir(frase: super::interprete::Frase, parecidos: &[Parecido]) -> Entendido
     if motivos.is_empty() {
         return Entendido::Seguro { alumno: mejor.alumno, nota: nota.valores[0] };
     }
-    // Se ofrece el más parecido y su rival, si lo tiene.
+    // Se ofrece el más parecido, y su rival si se duda del nombre: si solo
+    // se duda de la nota, otro alumno no pinta nada.
+    let del_nombre = motivos.iter().any(|m| matches!(m, Motivo::NombreParecido | Motivo::NombrePocoClaro));
+    let rival = rival.filter(|_| del_nombre);
     let alumnos = std::iter::once(mejor.alumno).chain(rival.map(|r| r.alumno)).collect();
     Entendido::Duda { alumnos, notas: nota.valores, motivos }
 }
@@ -180,7 +189,8 @@ mod tests {
     #[test]
     fn la_nota_reinterpretada_se_pregunta() {
         let Entendido::Duda { alumnos, notas, motivos } = de("Elena Gómez 825") else { panic!() };
-        assert_eq!(alumnos[0], 5);
+        // Solo ella: de quien se duda es de la nota.
+        assert_eq!(alumnos, vec![5]);
         assert_eq!((notas, motivos), (vec![8.25], vec![Motivo::NotaReinterpretada]));
     }
 
@@ -200,5 +210,9 @@ mod tests {
         assert_eq!(de("Way this."), Entendido::NoEntendido { motivo: Motivo::SinNota });
         assert_eq!(de("un siete"), Entendido::NoEntendido { motivo: Motivo::SinNombre });
         assert_eq!(de("Zacarías Fuster 7"), Entendido::NoEntendido { motivo: Motivo::NombreDesconocido });
+        // Lo que no salió en las grabaciones no se adivina.
+        for frase in ["Elena Gómez siete y cuarto", "Elena Gómez seis menos", "Elena Gómez notable"] {
+            assert_eq!(de(frase), Entendido::NoEntendido { motivo: Motivo::NotaRara }, "{frase}");
+        }
     }
 }
