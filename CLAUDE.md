@@ -20,13 +20,16 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > Whisper `small` `q5_1`, ventana recortada, sin la lista como contexto
 > (90–94 % en 1,1 s; Google 90–92 %; Windows 14–34 %; tabla y
 > experimentos en `docs/01`, H3a); el modelo se descarga al usar la voz.
-> **Siguiente (el usuario, 2026-11-19): H3b antes que el push-to-talk.**
-> El intérprete (nota, también «825» y «5x25»), emparejar lo oído con la
-> clase («Noria Villa SK» → Núria Vilaseca) y la confianza de Whisper por
-> palabra, para **preguntar en vez de adivinar**. Se mide con las 100
-> grabaciones (`prueba-voz` y `prueba-voz\mesa`, en Documentos): cuántas
-> acierta, cuántas pregunta y ninguna mal en silencio. Luego el
-> push-to-talk en Calificar, enseñando alumno y nota. Para
+> **H3b · Voz: entender la frase**, en marcha (va antes que el
+> push-to-talk). Hecho en Rust (`voz::interprete`, `voz::emparejar`,
+> `voz::entender`): de las 100 grabaciones, **77 se apuntan, 20 se
+> preguntan, 2 no se entienden y 0 mal en silencio**
+> (`cargo run --release --example probar_entender [-- --todos]`). La
+> confianza de Whisper por palabra se midió y **no sirve** para decidir;
+> se pregunta si con dos sonidos sería otro alumno (detalle en `docs/01`,
+> H3b). **Falta la confirmación en Calificar** (verde si está seguro;
+> borde discontinuo y elegir entre dos si duda), y luego el push-to-talk
+> de H3a. Para
 > ver una carpeta de plantillas reales sin sacar datos de alumnos:
 > `cargo run --example revisar_plantillas -- <carpeta>`.
 

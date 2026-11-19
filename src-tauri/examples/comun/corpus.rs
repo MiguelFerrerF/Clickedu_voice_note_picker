@@ -69,3 +69,11 @@ pub fn carpeta(argumento: Option<&str>) -> PathBuf {
 pub fn wav(carpeta: &Path, n: u32) -> PathBuf {
     carpeta.join(format!("{n:02}.wav"))
 }
+
+/// Una grabación: mono, a 16 kHz, como las deja `grabar_frases`.
+pub fn leer_wav(ruta: &Path) -> Option<Vec<f32>> {
+    let mut r = hound::WavReader::open(ruta).ok()?;
+    let spec = r.spec();
+    assert_eq!((spec.channels, spec.sample_rate), (1, 16_000), "{}: no es mono a 16 kHz", ruta.display());
+    Some(r.samples::<i16>().filter_map(Result::ok).map(|m| m as f32 / i16::MAX as f32).collect())
+}

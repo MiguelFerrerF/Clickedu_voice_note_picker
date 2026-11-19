@@ -4,10 +4,13 @@
 //! - [`remuestreo`] — pasar lo grabado a 16 kHz, que es lo que pide Whisper.
 //! - [`whisper`] — el motor (D2): Whisper **local**. La voz, que lleva
 //!   nombres de menores, **no sale del ordenador**.
-//!
-//! Entender la frase («Elena Gómez siete con cinco» → alumno y nota) es de
-//! H3b y llegará en su propio módulo.
+//! - [`entender`] — de lo oído a alumno y nota (H3b), con el
+//!   [`interprete`] (la nota y las palabras del nombre) y [`emparejar`]
+//!   (quién de la clase es).
 
+pub mod emparejar;
+pub mod entender;
+pub mod interprete;
 pub mod microfono;
 pub mod remuestreo;
 pub mod whisper;

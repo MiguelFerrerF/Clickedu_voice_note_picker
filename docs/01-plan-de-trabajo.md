@@ -369,13 +369,56 @@ formato vuelve a abrirse aquí (`exportar.rs`).
 > las 100 grabaciones de H3a (cama y mesa): el éxito es **cero notas mal
 > puestas en silencio**; lo que no esté claro, se pregunta.
 
-- [ ] Puerto del intérprete a Rust con **tests sobre un corpus de frases**:
-      «siete con cinco», «nueve y medio», «ocho coma veinticinco», «un diez».
-- [ ] Puerto del emparejamiento fonético, con el mismo corpus.
-- [ ] La confianza de Whisper por palabra (`token_probability` de
-      `whisper-rs`), junto con lo lejos que queda el nombre oído del de la
-      clase, decide si se apunta, se pregunta o se dice que no se ha
-      entendido.
+- [x] **El intérprete** (`voz::interprete`, 2026-11-19), con tests sobre
+      las frases del corpus y sobre lo que escribió Whisper al oírlas: la
+      nota dicha o escrita («siete con cinco», «9 y medio», «8,25», «cinco
+      con 25», «siete coma cero cinco»); «un» y «una» delante de un número
+      son artículo (la v1 los cambiaba por 1 y cogía el último número); los
+      **bucles** («Pablo García, un 10. Pablo García, un 10. Pablo…») se
+      quedan en la primera vez; el relleno («ponle», «para», «tiene») se
+      quita solo en los extremos del nombre («Mohamed **El** Amrani»). **Lo
+      que se lee de dos maneras no se decide**: «825», «5x25» y «75» se
+      entienden pero se preguntan; «7.30» puede ser «siete y media»
+      escrito como hora (pasó una vez en H3a), así que ofrece 7,5 y 7,3; un
+      «con cinco» sin nada delante (se perdió el «cuatro») no es un 5, y un
+      número de más que no es nota («ochenta») hace preguntar.
+- [x] **El emparejamiento** (`voz::emparejar`). Fonética para castellano y
+      catalán (b/v, ll/y/i, h, c/z/s/x, qu/k, g/j, tx/ch, la «ig» de
+      «Puig»), y dos cambios sobre la v1, que comparaba por palabras: **se
+      compara todo junto, sin espacios** (Whisper escribe «Hay tan la
+      Cervera», «Weicheng», «Eche verría»), y **con cada forma de decir el
+      nombre** (cada subsecuencia de sus palabras: «Etxeberria» solo es
+      Iker Etxeberria entero). Una partícula sola («el», «de») no es forma:
+      si no, «el cinco» era de Mohamed El Amrani.
+- [x] **Cuándo se pregunta** (`voz::entender`), medido con las 100
+      grabaciones (`cargo run --release --example probar_entender`, que
+      guarda lo oído en `resultados\oidos.json` y cuenta apuntadas,
+      preguntadas, no entendidas y **mal en silencio**):
+      - **La confianza de Whisper por palabra no sirve**: el único nombre
+        mal oído que podía pasar en silencio, «Lucía Martín» oído «Lucía
+        **Martínez**» (que también está en la clase), tenía un 57 %, y los
+        bien oídos van del 10 % al 95 %. Whisper reparte la probabilidad
+        entre maneras de escribir lo mismo («10»/«diez», «9,5»/«9.5»), no
+        entre cosas oídas. Se guarda (`whisper::Oido`) para volver a
+        mirarlo con otro modelo, pero no decide nada.
+      - Lo que sí: **si con cambiar dos sonidos de lo oído sería otro
+        alumno, se pregunta**, ofreciendo los dos. Pilla Martín/Martínez y
+        García/Gracia; diciendo el nombre entero («Lucía Martín Ortega») ya
+        no pregunta. También se pregunta si lo oído se parece poco (menos
+        del 75 %) al más parecido, y no se apunta nada por debajo del 50 %.
+
+      | `small` + recorte, 100 frases | Apuntadas | Preguntadas | No entendidas | **Mal en silencio** |
+      |---|---|---|---|---|
+      | Cama y mesa | 77 | 20 (+1 sin el bueno entre los dos) | 2 («Wei diez») | **0** |
+
+      De las 20 preguntas, 14 son de las dos parejas trampa del corpus
+      (Martín/Martínez y García/Gracia, dichas sin el segundo apellido) y 2
+      de notas escritas «825» y «5x25». Con `--todos` entiende también lo
+      que dejaron en H3a los demás motores y variantes: **0 mal en
+      silencio** con Google y con cualquier Whisper, salvo el obligado al
+      vocabulario de la clase (descartado en H3a), que escribe el apellido
+      de otro alumno («y quiroga 5» por «Iker cinco»): un motivo más para
+      no usarlo.
 - [ ] Confirmación: verde si está seguro; borde discontinuo y elegir entre los
       dos más probables si duda.
 

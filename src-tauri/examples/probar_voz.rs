@@ -73,10 +73,8 @@ fn carpeta_modelos() -> PathBuf {
 }
 
 fn probar_whisper(carpeta: &Path, resultados: &Path, frases: &[corpus::Frase], solo_recorte: bool) {
-    let audios: Vec<(u32, Vec<f32>)> = frases
-        .iter()
-        .filter_map(|f| leer_wav(&corpus::wav(carpeta, f.n)).map(|a| (f.n, a)))
-        .collect();
+    let audios: Vec<(u32, Vec<f32>)> =
+        frases.iter().filter_map(|f| corpus::leer_wav(&corpus::wav(carpeta, f.n)).map(|a| (f.n, a))).collect();
     if audios.is_empty() {
         println!("No hay grabaciones en {}: primero `cargo run --release --example grabar_frases`.", carpeta.display());
         return;
@@ -132,7 +130,8 @@ fn probar_whisper(carpeta: &Path, resultados: &Path, frases: &[corpus::Frase], s
             let mut oidas = Vec::new();
             for (n, audio) in &audios {
                 let t = Instant::now();
-                let texto = whisper.transcribir(audio, contexto).unwrap_or_else(|e| format!("[error: {e}]"));
+                let texto =
+                    whisper.transcribir(audio, contexto).map(|o| o.texto).unwrap_or_else(|e| format!("[error: {e}]"));
                 oidas.push(Oida { n: *n, texto, ms: t.elapsed().as_millis() as u64 });
                 print!("\r  {motor}: {}/{}", oidas.len(), audios.len());
                 use std::io::Write;
@@ -144,13 +143,6 @@ fn probar_whisper(carpeta: &Path, resultados: &Path, frases: &[corpus::Frase], s
             std::fs::write(resultados.join(format!("{motor}.json")), json).expect("no se puede escribir el resultado");
         }
     }
-}
-
-fn leer_wav(ruta: &Path) -> Option<Vec<f32>> {
-    let mut r = hound::WavReader::open(ruta).ok()?;
-    let spec = r.spec();
-    assert_eq!((spec.channels, spec.sample_rate), (1, 16_000), "{}: no es mono a 16 kHz", ruta.display());
-    Some(r.samples::<i16>().filter_map(Result::ok).map(|m| m as f32 / i16::MAX as f32).collect())
 }
 
 // ── El informe ──────────────────────────────────────────────────────────
