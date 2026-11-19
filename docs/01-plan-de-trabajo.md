@@ -152,6 +152,11 @@ instalador NSIS se sube con el nombre **`Instalador_GestorNotas.exe`**, la
 v1.3.4 lo encuentra, lo descarga y lo instala sola: no hay que avisar a nadie.
 Desde ahí, el actualizador de Tauri.
 
+**Precisada el 2026-11-19** (el usuario): el actualizador es el **oficial
+de Tauri, con firma** (el repo es público, así que no hace falta el propio
+de library-app), y la v2 **desinstala la v1** tras copiar sus plantillas y
+sus notas. Se adelanta a antes de H4 (ver H7).
+
 ### D8 · Aprender de los casos reales, sin que salgan los datos
 
 **Cerrada el 2026-11-19** (el usuario pidió poder registrar y enviar los
@@ -652,6 +657,81 @@ Ninguna rompe D5/D6 ni añade tokens. **Cerrado por el usuario el
       quedan con tope solo los párrafos de texto y el desplegable del
       micrófono.
 
+### H7 · Actualizaciones y la `v2.0.0` (adelantado, antes de H4)
+
+**Adelantado por el usuario el 2026-11-19**, para que la v2 empiece a
+usarse y a reunir casos reales (D8) cuanto antes. Lo que pesaba en contra
+no aplica: la v1.3.4 publicada **no se conecta a Clickedu** (eso solo está
+en `main`, sin publicar, como prueba interna) y **la tiene una sola
+persona** (8 descargas del instalador, casi todas de pruebas). Lo único
+que la v2 pierde frente a la v1.3.4 son las estadísticas (H8). Condición
+del usuario: **antes, el actualizador de Tauri y todo bien asegurado.**
+Un commit por bloque, como en HUI.
+
+**A · El actualizador de la v2** (D7)
+
+- [ ] `tauri-plugin-updater` **oficial, con firma** (no el propio de
+      library-app, que existe porque su repo es privado y no comprueba
+      firmas). Clave pública en `tauri.conf.json`; la privada y su
+      contraseña, **solo** en los secrets de Actions
+      (`TAURI_SIGNING_PRIVATE_KEY`, `…_PASSWORD`) y en una copia del
+      usuario fuera del repo. La genera el usuario: no pasa por la
+      conversación. Endpoint: `latest.json` de la última versión publicada.
+- [ ] `release.yml` como el de library-app por su estructura: un tag
+      `vX.Y.Z` compila en `windows-latest` y deja un **borrador**;
+      «Publish» es a mano. Permisos mínimos, acciones fijadas por SHA, y
+      tres secrets: `GITHUB_TOKEN` y los dos de la firma. Sube el
+      instalador de Tauri con su `.sig`, el `latest.json` y **una copia
+      llamada `Instalador_GestorNotas.exe`** para la v1.3.4.
+- [ ] La versión igual en los cuatro ficheros (`scripts/release.mjs`) y
+      las notas en `docs/releases/vX.Y.Z.md`, como library-app.
+- [ ] El diálogo: busca al arrancar y a mano, nunca instala en silencio,
+      deja saltarse una versión; avance real al descargar.
+
+**B · El paso desde la v1.3.4**
+
+La v1.3.4 está en `%LOCALAPPDATA%\GestorNotasClickedu\` (Inno Setup, por
+usuario; en el registro, `HKCU\…\Uninstall\Gestor de Notas Clickedu_is1`)
+y guarda **dentro** de esa carpeta `plantillas_clickedu_aulas\` y
+`notas\`. Desinstalarla antes de copiarlas las podría borrar.
+
+- [ ] La v1.3.4 instala lo que encuentre sin comprobar nada (solo HTTPS):
+      **verificación en dos pasos en la cuenta de GitHub** y, antes de
+      «Publish», el hash del instalador subido comparado con el de CI.
+- [ ] Al arrancar la v2 la primera vez, si la v1 está: **copiar** sus
+      plantillas y sus notas a `Documentos\Gestor de Notas\` (nunca
+      mover), comprobar que están todas, y solo entonces **desinstalar la
+      v1** (decidido por el usuario el 2026-11-19) con su `unins000.exe`
+      en silencio. Se dice qué se ha traído y que la v1 se ha quitado; si
+      algo falla, la v1 se queda y se dice por qué.
+- [ ] Probado de punta a punta en una máquina con la v1.3.4 instalada
+      (este ordenador lo está).
+
+**C · Asegurar la app**
+
+- [ ] CSP estricta (hoy `csp: null`), con la app entera repasada con ella.
+- [ ] Capacidades: solo `core:default` hoy; revisar que ningún comando
+      acepte una ruta cualquiera desde la interfaz sin validarla.
+- [ ] Sin herramientas de desarrollo en la compilación publicada.
+- [ ] `cargo audit` y `npm audit` en CI.
+- [ ] `gitleaks` sobre todo el historial (las credenciales ya se filtraron
+      una vez, D3) y, en GitHub, el escaneo de secretos con bloqueo al hacer
+      push (lo activa el usuario).
+- No se firma el `.exe` con certificado de Windows: cuesta dinero y no
+  compra nada con una sola persona usándola.
+
+**D · Antes de dársela a esa persona**
+
+- [ ] Su procesador tiene AVX2 (H3a).
+- [ ] Un exportado de la v2 importado en Clickedu (lo pendiente de H2).
+- [ ] La primera publicada es la `v2.0.0`; luego, `v2.0.1`… La prueba de
+      verdad del actualizador de Tauri es la segunda.
+- Antes de pasarla **a más gente**: un informe del registro (D8) de
+  verdad, mirado línea a línea para ver que no lleva nada de nadie.
+
+**Con H7 cerrado, la `v2.0.0` sustituye a la app Python**: la rama `v2`
+pasa a `main`, y la v1 queda en el tag `v1.3.4`.
+
 ### H4 · Conectar con Clickedu
 
 - [ ] Login con usuario, contraseña y archivo de seguridad; credenciales en el
@@ -675,18 +755,6 @@ Ninguna rompe D5/D6 ni añade tokens. **Cerrado por el usuario el
 - [ ] Plan B: si falla, el Excel exportado y la página de importación abierta
       en el navegador. **Antes, confirmar que Clickedu acepta el exportado de
       H2**, que no se ha importado todavía.
-
-### H7 · Actualizaciones y la `v2.0.0`
-
-- [ ] Antes de pasarla a otros profesores: **un informe del registro (D8)
-      de verdad**, mirado línea a línea para ver que no lleva nada de nadie.
-
-- [ ] `release.yml` y el actualizador de Tauri, como en library-app.
-- [ ] El paso desde la v1.3.4 (D7), probado de punta a punta en una máquina
-      con la v1.3.4 instalada.
-
-**Con H7 cerrado, la `v2.0.0` sustituye a la app Python**: la rama `v2`
-pasa a `main`, y la v1 queda en el tag `v1.3.4`.
 
 ### H8 · Estadísticas
 

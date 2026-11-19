@@ -14,8 +14,11 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 
 > **Dónde se quedó (2026-11-19): H3a, H3b y HUI cerrados.** En la rama
 > `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
-> **Siguiente: H4**, conectar con Clickedu (login, `keyring` por D3, la
-> capa resistente). **En espera** (`docs/01`, HUI): con lo que traigan
+> **Siguiente: H7, adelantado** (el usuario, 2026-11-19): el actualizador
+> oficial de Tauri con firma, `release.yml`, el paso desde la v1.3.4 (copiar
+> sus plantillas y notas y desinstalarla) y asegurar la app; luego, la
+> `v2.0.0` a la única persona que tiene la v1. **Después, H4**. **En
+> espera** (`docs/01`, HUI): con lo que traigan
 > H4–H8, volver a mirar la distribución de cada pantalla, que ya ocupa la
 > ventana entera. Estadísticas y Conexión están escondidas en `Sidebar`
 > (`HAY_ESTADISTICAS`, `HAY_CLICKEDU`): se encienden al hacerlas. El audio **no se
@@ -89,7 +92,9 @@ Cerradas el 2026-11-17 (D8, el 2026-11-19). No se reabren sin que el usuario lo 
   discontinuo = provisional; rojo = error de verdad.
 - **D7 · Publicar**: `v2.0.0` en este repo, **que sigue público**. El
   instalador se sube como **`Instalador_GestorNotas.exe`**: con ese nombre lo
-  encuentra el actualizador de la v1.3.4 y lo instala solo.
+  encuentra el actualizador de la v1.3.4 y lo instala solo. Desde ahí,
+  `tauri-plugin-updater` **con firma**; la clave privada, solo en los
+  secrets de Actions. La v2 desinstala la v1 tras copiar sus datos.
 - **D8 · Casos reales**: registro en local (`registro.rs`, seis meses) con
   la respuesta buena del profesor, y un **informe sin nombres ni voz** que
   se manda a mano como fichero. Sale la forma del error, nunca su
