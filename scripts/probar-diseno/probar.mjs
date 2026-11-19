@@ -319,10 +319,16 @@ const PRUEBAS = [
       await page.waitForTimeout(150);
       await paso('desplegable');
       await page.getByRole('button', {name: 'Matemáticas 3.º A ESO', exact: true}).last().click();
-      await main.getByText('Al leer la plantilla').waitFor();
+      // HUI: los avisos, plegados en una línea que se abre al pulsarla.
+      const avisos = main.getByRole('button', {name: '3 avisos al leer la plantilla'});
+      await avisos.waitFor();
       // El galón que gira y «Exportar», que se enciende: ya quietos.
       await page.waitForTimeout(250);
       await paso('avisos');
+      await avisos.click();
+      await main.getByText('Hay alumnos sin nombre').waitFor();
+      await page.waitForTimeout(250);
+      await paso('avisos-abiertos');
     },
   },
   {

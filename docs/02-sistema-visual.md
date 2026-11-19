@@ -124,6 +124,13 @@ encima.
   (ni una mal escrita), el botón fantasma desactivado, que es el gris, con
   el porqué en el `title`. El turquesa de la pantalla se gasta en lo que
   toca hacer, no en un botón que no haría nada.
+- **Los avisos de la plantilla, plegados** en una línea: el punto
+  `--warn`, «3 avisos al leer la plantilla» en `--text-secondary` y el
+  galón `›`, que gira al abrir. Se pulsa toda la línea (fondo
+  `--bg-hover` al pasar, `.linea-plegable`). Abiertos, la lista debajo,
+  sin caja: es la misma información, más cerca. Cada clase empieza
+  plegada. Se dicen siempre (ninguna normalización en silencio), pero
+  abiertos empujaban la clase hacia abajo cada vez que se abría.
 
 ### Lo apuntado por voz, en el panel del dictado (2026-11-19)
 

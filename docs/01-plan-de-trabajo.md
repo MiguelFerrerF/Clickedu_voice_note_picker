@@ -620,8 +620,9 @@ Ninguna rompe D5/D6 ni añade tokens.
       Hecho (2026-11-19): sin ninguna nota, fantasma y sin pulsarse (el
       Excel saldría vacío y mandaría el bueno a `notas_viejas`); una que no
       es nota cuenta, para que al pulsar se diga cuál.
-- [ ] 12. **Los avisos de la plantilla, plegados** en una línea («● 3 avisos
-      al leer la plantilla ›») que se abre al pulsarla.
+- [x] 12. **Los avisos de la plantilla, plegados** en una línea («● 3 avisos
+      al leer la plantilla ›») que se abre al pulsarla. Hecho (2026-11-19):
+      abiertos, la lista debajo, sin caja; otra clase empieza plegada.
 
 **D · El resto**
 

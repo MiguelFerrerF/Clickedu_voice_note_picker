@@ -138,7 +138,8 @@ const es = {
   'dictado.probar_ejemplo': 'Escribe lo que dirías y pulsa Enter',
 
   // ── Avisos de una plantilla ──
-  'avisos.titulo': 'Al leer la plantilla',
+  'avisos.plegados': '{n} avisos al leer la plantilla',
+  'avisos.plegados_uno': '1 aviso al leer la plantilla',
   'aviso.la_fila': 'la fila {fila}',
   'aviso.las_filas': 'las filas {filas} y {ultima}',
   'aviso.las_filas_y_mas': 'las filas {filas}, {ultima} y {mas} más',

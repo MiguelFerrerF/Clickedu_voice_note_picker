@@ -181,10 +181,14 @@ textarea:focus {
   outline-offset: -2px;
 }
 
-/* ── El título que es un desplegable (`Dropdown` con size="titulo") ── */
-.titulo-desplegable { background: transparent; }
-.titulo-desplegable:hover:not(:disabled) { background: var(--bg-hover); }
-.titulo-desplegable:focus-visible {
+/* ── Lo que se pulsa sin parecer un botón: el título que es un desplegable
+   (`Dropdown` con size="titulo") y la línea de los avisos plegados ── */
+.titulo-desplegable,
+.linea-plegable { background: transparent; }
+.titulo-desplegable:hover:not(:disabled),
+.linea-plegable:hover { background: var(--bg-hover); }
+.titulo-desplegable:focus-visible,
+.linea-plegable:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 0;
 }

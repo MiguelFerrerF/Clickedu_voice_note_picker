@@ -352,7 +352,7 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
       )}
       {abiertaAhora && (
         <>
-          <Avisos avisos={abiertaAhora.plantilla.avisos} />
+          <Avisos key={fichero} avisos={abiertaAhora.plantilla.avisos} />
           <PanelDictado
             voz={dictando}
             pendiente={pendienteAqui}
