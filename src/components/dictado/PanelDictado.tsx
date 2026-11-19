@@ -187,7 +187,7 @@ function Voz({voz}: {voz: Dictando}) {
         <Linea color="var(--text-secondary)" icono={microfono()}>
           {t('dictado.sin_modelo')}
         </Linea>
-        <Button variant="ghost" onClick={voz.descargar}>
+        <Button onClick={voz.descargar}>
           {modelo.fallo ? t('dictado.reintentar') : t('dictado.descargar')}
         </Button>
         {modelo.fallo && (
