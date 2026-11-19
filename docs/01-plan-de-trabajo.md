@@ -639,6 +639,12 @@ Ninguna rompe D5/D6 ni añade tokens.
       Estadísticas y Conexión, «próximamente» o escondidas hasta H4/H8.
       Hecho (2026-11-19): escondidas (`HAY_ESTADISTICAS`, `HAY_CLICKEDU` en
       `Sidebar`); el Muestrario ya era solo de desarrollo.
+- [x] 18. **Las pantallas, a todo el ancho** (pedido por el usuario el
+      2026-11-19): tenían un tope de 880 o 1040 px, como library-app, y a
+      1920 sobraba un tercio. Ahora ocupan la ventana entera; la cuadrícula
+      de Calificar pone una columna más por cada 460 px, hasta cuatro. Se
+      quedan con tope solo los párrafos de texto y el desplegable del
+      micrófono.
 
 ### H4 · Conectar con Clickedu
 

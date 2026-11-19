@@ -24,7 +24,8 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > cabecera de Calificar: el título es el desplegable, «Exportar» gris sin
 > notas, los avisos plegados) **y D** (descargar el modelo, principal; las
 > cifras del registro en 6 o 3×2; Clases con `›` y barra; Estadísticas y
-> Conexión escondidas), con la prueba de diseño; **falta probarlos a
+> Conexión escondidas), **probados a mano**. Hecho también el 18 (las
+> pantallas, a todo el ancho), con la prueba de diseño; **falta probarlo a
 > mano** y cerrar HUI. Después, **H4**: conectar con Clickedu (login,
 > `keyring` por D3, la capa resistente). El audio **no se
 > guarda** (D8); lo dictado se mide en local con `cargo run --example
@@ -118,6 +119,9 @@ Cerradas el 2026-11-17 (D8, el 2026-11-19). No se reabren sin que el usuario lo 
   `Progreso` con avance real; **las pantallas visitadas no se desmontan**
   (`display: none`), así que no guardes en el `useState` de una pantalla nada
   que dependa de que se desmonte.
+- **Las pantallas ocupan la ventana entera**, sin `maxWidth` (en esto no
+  se sigue a library-app): lo que crece es lo que lo aprovecha (más
+  columnas, tablas más anchas). Tope solo para párrafos de texto y controles.
 - **Ningún texto visible en un componente**: todo por `t()` y
   `src/modules/i18n/es.ts`.
 - **Nunca datos de alumnos reales en el repo**: las plantillas de prueba son
