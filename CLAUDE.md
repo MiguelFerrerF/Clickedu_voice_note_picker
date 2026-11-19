@@ -14,8 +14,10 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 
 > **Dónde se quedó (2026-11-19): H3a y H3b cerrados, la voz entera
 > probada a mano.** En la rama `v2`, la única de la v2 (un commit por hito y
-> otro al cerrarlo). **Siguiente: H4**, conectar con Clickedu (login,
-> credenciales en `keyring` por D3, la capa resistente). El audio **no se
+> otro al cerrarlo). **Ahora: HUI**, mejorar la interfaz antes de H4, un
+> bloque cada vez (lista en `docs/01`, «HUI»); hecha la cuadrícula compacta.
+> **Siguiente: el bloque A** (el dictado). Después, **H4**: conectar con
+> Clickedu (login, `keyring` por D3, la capa resistente). El audio **no se
 > guarda** (D8); lo dictado se mide en local con `cargo run --example
 > medir_registro` (solo cuenta, sin nombres). El campo «Probar el dictado»
 > se queda, solo en desarrollo. **Pendiente de H2**: importar un exportado en

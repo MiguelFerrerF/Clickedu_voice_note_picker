@@ -558,6 +558,62 @@ formato vuelve a abrirse aquí (`exportar.rs`).
       se apuntan, que preguntan y que no se entienden, elegir, deshacer, y
       preparar y abrir el informe.
 
+### HUI · Mejorar la interfaz (antes de H4)
+
+Pedido por el usuario el 2026-11-19, tras probar la voz: mejorar la
+visibilidad, la interfaz y la experiencia. **Se hacen todas, un bloque cada
+vez**, con la prueba de diseño y sus capturas miradas; un commit por cambio.
+Ninguna rompe D5/D6 ni añade tokens.
+
+- [x] **Compactar la cuadrícula** (2026-11-19): dos columnas desde 760 px,
+      filas de 32, sin caja en la nota vacía (era la 7). Ver `docs/02` §3.
+
+**A · El dictado**
+
+- [ ] 1. **El resultado, más grande**: «Apuntado un 9.5 a …» va a 13 px y
+      es lo que hay que leer de un vistazo mientras se dicta. Nombre y nota a
+      16–18 px (nota en mono), y **la fila entera** del alumno en verde un
+      momento, no solo la celda (la tabla ya baja sola hasta él).
+- [ ] 2. **Los últimos 3–5 dictados**, cada uno con su «Deshacer»; los
+      viejos en gris. Ahora solo se ve el último y, dictando seguido, el de
+      antes se va sin comprobarlo.
+- [ ] 3. **Las instrucciones, legibles**: «Mantén ESPACIO pulsado…» va en
+      `--text-tertiary` (3,5:1, solo para rótulos según `docs/02`). A
+      `--text-secondary`, y ESPACIO dibujado como una tecla.
+- [ ] 4. **Medidor de volumen** mientras se mantiene ESPACIO: se ve que el
+      micrófono oye (evita casos como «[Música]»). Necesita Rust: mandar el
+      nivel por el canal del micrófono.
+- [ ] 5. **Las dudas con el teclado**: 1–4 eligen la opción, Esc descarta.
+- [ ] 6. **Las dudas, sin repetir el nombre**: una fila por alumno con sus
+      notas como botones cortos, en vez de un botón por alumno y nota.
+
+**B · La tabla de notas**
+
+- [ ] 8. **El progreso, visible**: barra fina (turquesa, se permite para
+      progreso) en vez de «0 / 18 con nota» en pequeño, y «Ir al siguiente
+      sin nota».
+- [ ] 9. **La ayuda del teclado** («Enter o ↓ guarda…»), arriba o al
+      enfocar la primera celda: debajo de la tabla no se ve con 30 alumnos.
+
+**C · La cabecera de Calificar**
+
+- [ ] 10. **El título es el desplegable**: ahora el nombre de la clase sale
+      dos veces (título y desplegable).
+- [ ] 11. **«Exportar» principal solo si hay algo que exportar**; antes, gris.
+- [ ] 12. **Los avisos de la plantilla, plegados** en una línea («● 3 avisos
+      al leer la plantilla ›») que se abre al pulsarla.
+
+**D · El resto**
+
+- [ ] 13. **«Descargar el modelo de voz», botón principal**: es lo que hace
+      falta para dictar.
+- [ ] 14. **Ajustes**: las seis cifras del registro, en una fila o en 3×2
+      (a 1280, «Fallos» se queda sola abajo).
+- [ ] 15. **Clases**: que se vea que la fila se pulsa (fondo al pasar, `›` al
+      final) y «Con nota» como mini barra en vez de «12 / 31».
+- [ ] 16. **La barra lateral**: el Muestrario, solo en desarrollo;
+      Estadísticas y Conexión, «próximamente» o escondidas hasta H4/H8.
+
 ### H4 · Conectar con Clickedu
 
 - [ ] Login con usuario, contraseña y archivo de seguridad; credenciales en el
