@@ -29,6 +29,7 @@ import {Punto} from '@components/clases/Avisos';
 import {Button} from '@components/ui/Button';
 import {Icon, ICONOS} from '@components/ui/Icon';
 import {Progreso} from '@components/ui/Progreso';
+import {conTeclas, Tecla} from '@components/ui/Tecla';
 import {TextInput} from '@components/ui/TextInput';
 import {deshacible, opciones, type Apuntado, type Dictado} from '@modules/dictado/tipos';
 import type {Dictando} from '@modules/dictado/useDictado';
@@ -169,46 +170,8 @@ function Medidor({nivel}: {nivel: number}) {
   );
 }
 
-/** Una tecla, dibujada como tal: se reconoce antes que leída. */
-function Tecla({children}: {children: React.ReactNode}) {
-  return (
-    <kbd
-      style={{
-        display: 'inline-block',
-        minWidth: 20,
-        padding: '0 6px',
-        border: '1px solid var(--border-strong)',
-        borderBottomWidth: 2,
-        borderRadius: 4,
-        background: 'var(--bg-card)',
-        color: 'var(--text-primary)',
-        fontFamily: 'var(--font-mono)',
-        fontSize: 11,
-        fontWeight: 600,
-        lineHeight: '17px',
-        textAlign: 'center',
-        whiteSpace: 'nowrap',
-      }}>
-      {children}
-    </kbd>
-  );
-}
-
 /** Un texto con `{tecla}`: ahí va ESPACIO, dibujado como una tecla. */
-function conTecla(texto: string) {
-  const [antes, ...resto] = texto.split('{tecla}');
-  return (
-    <>
-      {antes}
-      {resto.map((despues, i) => (
-        <Fragment key={i}>
-          <Tecla>{t('dictado.tecla_espacio')}</Tecla>
-          {despues}
-        </Fragment>
-      ))}
-    </>
-  );
-}
+const conTecla = (texto: string) => conTeclas(texto, {tecla: t('dictado.tecla_espacio')});
 
 const microfono = (estilo?: React.CSSProperties) => (
   <Icon d={ICONOS.microfono} size={14} style={{flexShrink: 0, ...estilo}} />
