@@ -286,7 +286,7 @@ function CeldaNota({nota, estado}: {nota: string; estado: EstadoNota}) {
     suspenso: {},
     dictada: {
       borderColor: 'var(--success)',
-      background: 'color-mix(in oklch, var(--success) 10%, var(--bg-card))',
+      background: 'color-mix(in oklab, var(--success) 10%, var(--bg-card))',
       color: 'var(--success)',
       fontWeight: 600,
     },

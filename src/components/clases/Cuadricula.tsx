@@ -10,9 +10,10 @@
  * - La regla de color (D6): sin nota en gris, una nota es texto normal
  *   (también un suspenso), y solo lo que no es nota va en rojo.
  * - **El dictado** (H3b): la nota recién dictada, en verde con el
- *   micrófono, y se apaga sola; si el dictado duda, la nota propuesta va
- *   junto al nombre con **borde discontinuo** (provisional) y pulsarla la
- *   apunta. La fila dictada se trae a la vista.
+ *   micrófono, y su fila entera teñida (HUI); se apagan solas. Si el
+ *   dictado duda, la nota propuesta va junto al nombre con **borde
+ *   discontinuo** (provisional) y pulsarla la apunta. La fila dictada se
+ *   trae a la vista.
  *
  * Lo que se está escribiendo vive en cada campo hasta que se guarda; la nota
  * guardada vive en Calificar, que es quien la manda al backend.
@@ -119,7 +120,7 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
           filas.current[a.clave] = el;
         }}
         role="row"
-        className={styles.fila}
+        className={dictadas?.has(a.clave) ? `${styles.fila} ${styles.filaDictada}` : styles.fila}
         style={{
           // Que al traerla a la vista no quede debajo del panel del dictado.
           scrollMarginTop: `calc(var(${ALTO_PANEL}, 0px) + 8px)`,

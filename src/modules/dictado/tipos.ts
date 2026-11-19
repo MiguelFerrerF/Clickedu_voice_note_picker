@@ -32,15 +32,36 @@ export type Respuesta =
   | {tipo: 'corregida'; nota: number | null};
 
 /**
- * Lo último que ha pasado con el dictado en una clase, para enseñarlo en el
- * panel. `apuntada` es la nota que se puso (sin preguntar, o al elegir), con
- * la que había antes para poder deshacerla: `undefined` si el alumno no se
- * había tocado en la sesión, `null` si se había quitado.
+ * Un dictado que espera en el panel: una duda (hasta que eliges) o lo que no
+ * se ha entendido (hasta que lo cierras o se dicta otra cosa).
  */
-export interface UltimoDictado {
+export interface Pendiente {
   fichero: string;
   dictado: Dictado;
-  apuntada?: {clave: string; nota: number; antes: number | null | undefined};
+}
+
+/**
+ * Una nota apuntada por voz (sin preguntar, o al elegir), para enseñarla en
+ * el panel entre las últimas. `antes` es la que había, para poder
+ * deshacerla: `undefined` si el alumno no se había tocado en la sesión,
+ * `null` si se había quitado.
+ */
+export interface Apuntado {
+  fichero: string;
+  dictado: Dictado;
+  clave: string;
+  nota: number;
+  antes: number | null | undefined;
+}
+
+/**
+ * Se puede deshacer el apuntado `i` de `lista` (lo más nuevo primero) si es
+ * lo último dictado a ese alumno: si no, su `antes` es una nota que ya no
+ * está. Al deshacer el nuevo vuelve la del viejo, y el viejo se puede
+ * deshacer otra vez.
+ */
+export function deshacible(lista: Apuntado[], i: number): boolean {
+  return !lista.slice(0, i).some((a) => a.clave === lista[i].clave);
 }
 
 /** Las opciones de una duda: cada alumno con cada nota, lo más probable primero. */

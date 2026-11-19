@@ -14,8 +14,9 @@
  *
  * - **El dictado** (H3): se mantiene ESPACIO y se dice el alumno y la
  *   nota (`useDictado`, H3a); lo oído se entiende en el backend. Si está
- *   seguro, se apunta, en verde y con «Deshacer»; si duda, se pregunta en el
- *   panel y en las filas, y no se apunta nada hasta que eliges (H3b). En
+ *   seguro, se apunta, en verde y con «Deshacer», y el panel enseña los
+ *   últimos tres (HUI); si duda, se pregunta en el panel y en las filas, y
+ *   no se apunta nada hasta que eliges (H3b). En
  *   desarrollo, además, se puede escribir la frase (`entender_frase`).
  * - **El registro** (D8): lo que haces con cada dictado (elegir, descartar,
  *   deshacer, corregir la nota a mano) se apunta en local con
@@ -39,7 +40,7 @@ import {Dropdown} from '@components/ui/Dropdown';
 import {Icon, ICONOS} from '@components/ui/Icon';
 import {alumnosEnPalabras} from '@modules/clases/avisos';
 import type {ClaseAbierta, Exportado} from '@modules/clases/tipos';
-import type {Dictado, Respuesta, UltimoDictado} from '@modules/dictado/tipos';
+import {deshacible, type Apuntado, type Dictado, type Pendiente, type Respuesta} from '@modules/dictado/tipos';
 import {useClases} from '@modules/clases/useClases';
 import {useDictado} from '@modules/dictado/useDictado';
 import {t} from '@modules/i18n';
@@ -59,6 +60,13 @@ type Resultado = {tipo: 'exportado'; exportado: Exportado} | {tipo: 'fallo'; tex
 
 /** Lo que tarda en apagarse el verde de «exportado» y de lo dictado (D6). */
 const APAGAR_MS = 6000;
+
+/**
+ * Los últimos apuntados por voz que enseña el panel, cada uno con su
+ * «Deshacer»: el nuevo grande y dos más. Dictando seguido, así se comprueba
+ * el de antes. Más, y el panel, que va pegado arriba, tapa la lista.
+ */
+const ULTIMOS = 3;
 
 export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps) {
   useIdioma();
@@ -93,10 +101,12 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
     return () => clearTimeout(apagar);
   }, [resultado]);
 
-  // El dictado: lo último que ha pasado, las notas dictadas que siguen en
-  // verde (`fichero|clave` → la vez que se encendieron) y la fila que hay
-  // que traer a la vista.
-  const [ultimo, setUltimo] = useState<UltimoDictado>();
+  // El dictado: lo que espera respuesta, lo último apuntado (lo más nuevo
+  // primero, de todas las clases), las notas dictadas que siguen en verde
+  // (`fichero|clave` → la vez que se encendieron) y la fila que hay que
+  // traer a la vista.
+  const [pendiente, setPendiente] = useState<Pendiente>();
+  const [apuntados, setApuntados] = useState<Apuntado[]>([]);
   const [encendidas, setEncendidas] = useState<Record<string, number>>({});
   const [ver, setVer] = useState<{clave: string; vez: number}>();
   const veces = useRef(0);
@@ -138,11 +148,11 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
   const notas = alumnos.map((a) => notaDe(a, puestas));
   const calificados = notas.filter((n) => n.tipo === 'valor').length;
 
-  const ultimoAqui = ultimo?.fichero === fichero ? ultimo : undefined;
-  const dictadoAqui = ultimoAqui?.dictado;
+  const pendienteAqui = pendiente?.fichero === fichero ? pendiente.dictado : undefined;
+  const apuntadosAqui = apuntados.filter((a) => a.fichero === fichero);
   const propuestas =
-    dictadoAqui?.tipo === 'duda' && !ultimoAqui?.apuntada
-      ? Object.fromEntries(dictadoAqui.alumnos.map((c) => [c, dictadoAqui.notas]))
+    pendienteAqui?.tipo === 'duda'
+      ? Object.fromEntries(pendienteAqui.alumnos.map((c) => [c, pendienteAqui.notas]))
       : undefined;
   const prefijo = `${fichero}|`; // `|` no puede ir en un nombre de fichero
   const dictadas = new Set(
@@ -162,11 +172,15 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
     });
   }
 
-  /** La nota a mano, desde la cuadrícula: si era la recién dictada, ya no se deshace ni va en verde. */
+  /**
+   * La nota a mano, desde la cuadrícula: si era de las últimas dictadas, es
+   * que se ha corregido, y ya no se deshace ni va en verde.
+   */
   function ponerAMano(clave: string, nota: number | null) {
-    if (ultimoAqui?.apuntada?.clave === clave) {
-      responder(ultimoAqui.dictado, {tipo: 'corregida', nota});
-      setUltimo(undefined);
+    const dictada = apuntadosAqui.find((a) => a.clave === clave);
+    if (dictada) {
+      responder(dictada.dictado, {tipo: 'corregida', nota});
+      setApuntados((l) => l.filter((a) => a.fichero !== fichero || a.clave !== clave));
     }
     apagar(clave);
     poner(clave, nota);
@@ -201,18 +215,27 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
     setVer({clave, vez: ++veces.current});
   }
 
-  /** Apunta lo dictado, guardando la nota de antes para poder deshacerlo. */
+  /**
+   * Apunta lo dictado, guardando la nota de antes para poder deshacerlo, y
+   * lo pone el primero de los últimos de esta clase.
+   */
   function apuntar(clave: string, nota: number, dictado: Dictado) {
     const antes = clave in puestas ? puestas[clave] : undefined;
     poner(clave, nota);
-    setUltimo({fichero, dictado, apuntada: {clave, nota, antes}});
+    const nuevo: Apuntado = {fichero, dictado, clave, nota, antes};
+    setApuntados((l) => [
+      ...[nuevo, ...l.filter((a) => a.fichero === fichero)].slice(0, ULTIMOS),
+      ...l.filter((a) => a.fichero !== fichero),
+    ]);
+    setPendiente(undefined);
     encender(clave);
     traerAVista(clave);
   }
 
+  /** Lo nuevo sustituye a lo que esperaba: una duda sin contestar se queda sin respuesta. */
   function alDictar(d: Dictado) {
     if (d.tipo === 'seguro') return apuntar(d.alumno, d.nota, d);
-    setUltimo({fichero, dictado: d});
+    setPendiente({fichero, dictado: d});
     if (d.tipo === 'duda') traerAVista(d.alumnos[0]);
   }
   recibir.current = (f, d) => {
@@ -228,24 +251,26 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
   }
 
   function elegir(clave: string, nota: number) {
-    if (!dictadoAqui) return;
-    responder(dictadoAqui, {tipo: 'elegida', clave, nota});
-    apuntar(clave, nota, dictadoAqui);
+    if (pendienteAqui?.tipo !== 'duda') return;
+    responder(pendienteAqui, {tipo: 'elegida', clave, nota});
+    apuntar(clave, nota, pendienteAqui);
   }
 
   function descartar() {
-    if (dictadoAqui?.tipo === 'duda' && !ultimoAqui?.apuntada) responder(dictadoAqui, {tipo: 'descartada'});
-    setUltimo(undefined);
+    if (pendienteAqui?.tipo === 'duda') responder(pendienteAqui, {tipo: 'descartada'});
+    setPendiente(undefined);
   }
 
-  function deshacer() {
-    const a = ultimoAqui?.apuntada;
-    if (!a || !ultimoAqui) return;
-    responder(ultimoAqui.dictado, {tipo: 'deshecha'});
+  /** Deshace el apuntado del dictado `id`, si es lo último dictado a su alumno. */
+  function deshacer(id: string) {
+    const i = apuntadosAqui.findIndex((a) => a.dictado.id === id);
+    if (i < 0 || !deshacible(apuntadosAqui, i)) return;
+    const a = apuntadosAqui[i];
+    responder(a.dictado, {tipo: 'deshecha'});
     if (a.antes === undefined) devolver(a.clave);
     else poner(a.clave, a.antes);
     apagar(a.clave);
-    setUltimo(undefined);
+    setApuntados((l) => l.filter((x) => x !== a));
     traerAVista(a.clave);
   }
 
@@ -340,8 +365,9 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
           <Avisos avisos={abiertaAhora.plantilla.avisos} />
           <PanelDictado
             voz={dictando}
-            ultimo={ultimoAqui}
-            encendido={ultimoAqui?.apuntada ? dictadas.has(ultimoAqui.apuntada.clave) : false}
+            pendiente={pendienteAqui}
+            apuntados={apuntadosAqui}
+            encendido={apuntadosAqui.length > 0 && dictadas.has(apuntadosAqui[0].clave)}
             nombreDe={nombreDe}
             elegir={elegir}
             descartar={descartar}

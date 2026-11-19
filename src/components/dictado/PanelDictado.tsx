@@ -3,15 +3,17 @@
  * bajar por la lista: lo que se acaba de dictar se ve aunque el alumno esté
  * abajo del todo.
  *
- * Enseña lo último que ha pasado, con la regla de color (D6):
+ * Enseña lo que ha pasado, con la regla de color (D6):
  *
- * - **Apuntada** sin preguntar: en verde, que se apaga sola, con
- *   «Deshacer» por si la app se ha equivocado de alumno.
  * - **Duda**: borde discontinuo y `--accent-wash` (provisional, falta que
  *   lo confirmes), por qué se duda y las opciones, lo más probable primero.
  *   Hasta que eliges no se apunta nada.
  * - **No entendida**: el punto ámbar de «aquí hay algo que mirar», no rojo:
  *   la app no ha fallado, es que no se ha oído bien.
+ * - **Las últimas apuntadas** (HUI), cada una con su «Deshacer» por si la
+ *   app se ha equivocado de alumno. La nueva, grande (nota y nombre es lo
+ *   que se lee de un vistazo mientras se dicta), con la nota en verde, que
+ *   se apaga sola; las de antes, debajo, pequeñas y en gris.
  *
  * Y, encima, **la voz** (H3a): cómo se dicta, el «escuchando» mientras se
  * mantiene ESPACIO (en turquesa: está pasando, no ha terminado), el
@@ -27,21 +29,24 @@ import {Button} from '@components/ui/Button';
 import {Icon, ICONOS} from '@components/ui/Icon';
 import {Progreso} from '@components/ui/Progreso';
 import {TextInput} from '@components/ui/TextInput';
-import {opciones, type Dictado, type UltimoDictado} from '@modules/dictado/tipos';
+import {deshacible, opciones, type Apuntado, type Dictado} from '@modules/dictado/tipos';
 import type {Dictando} from '@modules/dictado/useDictado';
 import {t} from '@modules/i18n';
 
 export interface PanelDictadoProps {
   /** El push-to-talk: el modelo, el micrófono, si escucha. */
   voz: Dictando;
-  /** Lo último de esta clase, si hay algo. */
-  ultimo: UltimoDictado | undefined;
-  /** La nota apuntada sigue en verde. */
+  /** Lo que espera respuesta en esta clase: una duda o algo no entendido. */
+  pendiente: Dictado | undefined;
+  /** Lo último apuntado por voz en esta clase, lo más nuevo primero. */
+  apuntados: Apuntado[];
+  /** La última nota apuntada sigue en verde. */
   encendido: boolean;
   nombreDe: (clave: string) => string;
   elegir: (clave: string, nota: number) => void;
   descartar: () => void;
-  deshacer: () => void;
+  /** Deshace el apuntado del dictado con ese `id`. */
+  deshacer: (id: string) => void;
   /** Solo en desarrollo: entender una frase escrita. */
   probar?: (texto: string) => void;
 }
@@ -55,7 +60,8 @@ export const ALTO_PANEL = '--alto-panel-dictado';
 
 export function PanelDictado({
   voz,
-  ultimo,
+  pendiente,
+  apuntados,
   encendido,
   nombreDe,
   elegir,
@@ -92,20 +98,13 @@ export function PanelDictado({
       }}>
       <Voz voz={voz} />
       {probar && <ProbarFrase probar={probar} />}
-      {ultimo &&
-        (ultimo.apuntada ? (
-          <Apuntada
-            nota={ultimo.apuntada.nota}
-            alumno={nombreDe(ultimo.apuntada.clave)}
-            dictado={ultimo.dictado}
-            encendido={encendido}
-            deshacer={deshacer}
-          />
-        ) : ultimo.dictado.tipo === 'duda' ? (
-          <Duda dictado={ultimo.dictado} nombreDe={nombreDe} elegir={elegir} descartar={descartar} />
-        ) : ultimo.dictado.tipo === 'no_entendido' ? (
-          <NoEntendido dictado={ultimo.dictado} descartar={descartar} />
-        ) : null)}
+      {pendiente?.tipo === 'duda' && (
+        <Duda dictado={pendiente} nombreDe={nombreDe} elegir={elegir} descartar={descartar} />
+      )}
+      {pendiente?.tipo === 'no_entendido' && <NoEntendido dictado={pendiente} descartar={descartar} />}
+      {apuntados.length > 0 && (
+        <Apuntados apuntados={apuntados} encendido={encendido} nombreDe={nombreDe} deshacer={deshacer} />
+      )}
     </div>
   );
 }
@@ -202,39 +201,100 @@ function Oido({dictado: {oido, repetida}}: {dictado: Dictado}) {
   );
 }
 
-function Apuntada({
-  nota: n,
-  alumno,
-  dictado,
+/** Lo que ocupan el micrófono y su hueco: las de antes van debajo de la nota. */
+const SANGRIA = 24;
+
+const recortado: React.CSSProperties = {
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  minWidth: 0,
+};
+
+/**
+ * Las últimas notas apuntadas. Cada «Deshacer» dice de qué nota es (son
+ * varios), y solo lo lleva la última dictada a cada alumno: la de antes,
+ * hasta que se deshaga la nueva, ya no está puesta.
+ */
+function Apuntados({
+  apuntados,
   encendido,
+  nombreDe,
   deshacer,
 }: {
-  nota: number;
-  alumno: string;
-  dictado: Dictado;
+  apuntados: Apuntado[];
   encendido: boolean;
-  deshacer: () => void;
+  nombreDe: (clave: string) => string;
+  deshacer: (id: string) => void;
 }) {
+  const [nuevo, ...antes] = apuntados;
+  const alumno = nombreDe(nuevo.clave);
+  const botonDeshacer = (a: Apuntado, alumno: string, estilo?: React.CSSProperties) => (
+    <Button
+      variant="ghost"
+      onClick={() => deshacer(a.dictado.id)}
+      aria-label={t('dictado.deshacer_de', {nota: nota(a.nota), alumno})}
+      title={t('dictado.deshacer_de', {nota: nota(a.nota), alumno})}
+      style={{marginLeft: 'auto', flexShrink: 0, ...estilo}}>
+      {t('dictado.deshacer')}
+    </Button>
+  );
   return (
-    <div
-      role="status"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '6px 12px',
-        fontSize: 13,
-        color: encendido ? 'var(--success)' : 'var(--text-secondary)',
-        transition: 'color 600ms',
-      }}>
-      <span style={{display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0}}>
-        <Icon d={ICONOS.microfono} size={14} style={{flexShrink: 0}} />
-        <span style={{overflowWrap: 'anywhere'}}>{t('dictado.apuntada', {nota: nota(n), alumno})}</span>
-      </span>
-      <Oido dictado={dictado} />
-      <Button variant="ghost" onClick={deshacer} style={{marginLeft: 'auto'}}>
-        {t('dictado.deshacer')}
-      </Button>
+    <div style={{display: 'flex', flexDirection: 'column', gap: 4}}>
+      <div role="status">
+        <div style={{display: 'flex', alignItems: 'center', gap: 12, minWidth: 0}}>
+          <span
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 8,
+              minWidth: 0,
+              color: encendido ? 'var(--success)' : 'var(--text-primary)',
+              transition: 'color 600ms',
+            }}>
+            <Icon
+              d={ICONOS.microfono}
+              size={16}
+              style={{flexShrink: 0, alignSelf: 'center', color: encendido ? undefined : 'var(--text-tertiary)'}}
+            />
+            <span style={{fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 600, flexShrink: 0}}>
+              {nota(nuevo.nota)}
+            </span>
+            <span
+              style={{...recortado, marginLeft: 4, fontSize: 16, fontWeight: 500, color: 'var(--text-primary)'}}
+              title={alumno}>
+              {alumno}
+            </span>
+          </span>
+          {botonDeshacer(nuevo, alumno)}
+        </div>
+        <div style={{paddingLeft: SANGRIA, fontSize: 12, color: 'var(--text-tertiary)', overflowWrap: 'anywhere'}}>
+          {t('dictado.apuntado')} <Oido dictado={nuevo.dictado} />
+        </div>
+      </div>
+      {antes.length > 0 && (
+        <ol
+          aria-label={t('dictado.anteriores')}
+          style={{listStyle: 'none', margin: 0, padding: `0 0 0 ${SANGRIA}px`, display: 'flex', flexDirection: 'column'}}>
+          {antes.map((a, k) => {
+            const suyo = nombreDe(a.clave);
+            return (
+              <li
+                key={a.dictado.id}
+                style={{display: 'flex', alignItems: 'center', gap: 10, minHeight: 28, fontSize: 13}}>
+                <span
+                  style={{fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', flexShrink: 0, minWidth: '4ch'}}>
+                  {nota(a.nota)}
+                </span>
+                <span style={{...recortado, color: 'var(--text-secondary)'}} title={suyo}>
+                  {suyo}
+                </span>
+                {deshacible(apuntados, k + 1) && botonDeshacer(a, suyo, {padding: '4px 10px', fontSize: 12})}
+              </li>
+            );
+          })}
+        </ol>
+      )}
     </div>
   );
 }

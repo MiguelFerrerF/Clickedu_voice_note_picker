@@ -79,7 +79,7 @@ library-app, aplicada a las notas:
 | Sin nota | `—` en gris (`--text-tertiary`) | Es lo normal al empezar, aunque sea la mayoría |
 | Nota puesta | Texto normal, en mono, a la derecha | Es un dato, no un evento |
 | **Suspenso** | **Igual que cualquier nota** | Una nota baja no es un error: pintarla de rojo gasta el único color que debe quedar para los problemas |
-| Recién dictada | Verde, con el micrófono, **y se apaga sola** | Es un evento: «acaba de entrar por voz» |
+| Recién dictada | Verde, con el micrófono, y su fila teñida de verde (en `oklab`: en `oklch` sale azul), **y se apaga sola** | Es un evento: «acaba de entrar por voz» |
 | Dictado dudoso | La nota no cambia; al lado del nombre, la propuesta con **borde discontinuo** + `--accent-wash` («¿6.8?»), y la pregunta en el panel del dictado | Provisional: espera que elijas |
 | Valor que no es nota | Rojo, con anillo | Error de verdad: `12`, `abc` |
 
@@ -103,6 +103,15 @@ Para ver la clase entera sin bajar ni usar el ratón:
 
 A 1280×800, una clase de 26 se ve entera con los avisos de la plantilla
 encima.
+
+### Lo apuntado por voz, en el panel del dictado (2026-11-19)
+
+Es lo que se lee de un vistazo mientras se dicta, así que va grande: la
+nota en mono a 18 px (en verde mientras está encendida) y el nombre a 16.
+Debajo, en 12 y gris, lo que se oyó. **Las dos de antes**, a 13 y en
+`--text-secondary`, cada una con su «Deshacer» pequeño: dictando seguido, la
+de antes no se va sin comprobarla. Solo tres: el panel va pegado arriba y,
+con más, tapa la lista.
 
 ## 4. Lo que queda por decidir
 

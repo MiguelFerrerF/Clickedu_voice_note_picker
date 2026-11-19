@@ -13,11 +13,22 @@
 /* La fila: al pasar por encima, el fondo hundido guía la vista del nombre a
    la nota, y aparece la caja de la nota si no la tiene. */
 .fila {
-  transition: background-color 120ms;
+  /* Despacio al apagarse el verde del dictado; deprisa al pasar el ratón. */
+  transition: background-color 600ms;
 }
 
 .fila:hover {
   background: var(--bg-sunk);
+  transition-duration: 120ms;
+}
+
+/* La fila recién dictada, entera (HUI): se ve dónde ha caído la nota sin
+   buscar la celda. Un evento, y se apaga sola con la nota. El verde se
+   mezcla en `oklab`: en `oklch` el tono va hacia el 240 del fondo y sale
+   azul. */
+.filaDictada,
+.filaDictada:hover {
+  background: color-mix(in oklab, var(--success) 9%, var(--bg-card));
 }
 
 .nota {
@@ -75,7 +86,7 @@
 .dictada {
   padding-left: 26px;
   border-color: var(--success);
-  background: color-mix(in oklch, var(--success) 10%, var(--bg-card));
+  background: color-mix(in oklab, var(--success) 10%, var(--bg-card));
   color: var(--success);
   font-weight: 600;
 }

@@ -69,8 +69,10 @@ const es = {
   // ── El dictado (H3b) ──
   'dictado.oido': 'Se ha oído «{oido}».',
   'dictado.oido_repetida': 'Se ha oído «{oido}», repetido varias veces; cuenta una.',
-  'dictado.apuntada': 'Apuntado un {nota} a {alumno}.',
+  'dictado.apuntado': 'Apuntado.',
+  'dictado.anteriores': 'Lo dictado antes',
   'dictado.deshacer': 'Deshacer',
+  'dictado.deshacer_de': 'Deshacer el {nota} de {alumno}',
   'dictado.descartar': 'Descartar',
   'dictado.cerrar': 'Cerrar',
   'dictado.duda_quien': '¿Para quién es el {nota}?',

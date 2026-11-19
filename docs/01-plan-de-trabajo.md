@@ -570,13 +570,14 @@ Ninguna rompe D5/D6 ni añade tokens.
 
 **A · El dictado**
 
-- [ ] 1. **El resultado, más grande**: «Apuntado un 9.5 a …» va a 13 px y
+- [x] 1. **El resultado, más grande**: «Apuntado un 9.5 a …» va a 13 px y
       es lo que hay que leer de un vistazo mientras se dicta. Nombre y nota a
       16–18 px (nota en mono), y **la fila entera** del alumno en verde un
       momento, no solo la celda (la tabla ya baja sola hasta él).
-- [ ] 2. **Los últimos 3–5 dictados**, cada uno con su «Deshacer»; los
+- [x] 2. **Los últimos 3–5 dictados**, cada uno con su «Deshacer»; los
       viejos en gris. Ahora solo se ve el último y, dictando seguido, el de
-      antes se va sin comprobarlo.
+      antes se va sin comprobarlo. Hechos los dos (2026-11-19): tres, el
+      nuevo grande; solo deshace el último dictado a cada alumno.
 - [ ] 3. **Las instrucciones, legibles**: «Mantén ESPACIO pulsado…» va en
       `--text-tertiary` (3,5:1, solo para rótulos según `docs/02`). A
       `--text-secondary`, y ESPACIO dibujado como una tecla.

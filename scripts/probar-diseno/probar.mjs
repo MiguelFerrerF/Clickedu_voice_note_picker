@@ -129,6 +129,7 @@ function simular({carpeta, modelo}) {
           const oido = args.texto;
           const id = String(n++);
           if (/thiago/i.test(oido)) return {id, oido, tipo: 'seguro', alumno: '20255', nota: 9.5};
+          if (/luc[ií]a/i.test(oido)) return {id, oido, tipo: 'seguro', alumno: '20231', nota: 8};
           if (/mar[ií]a/i.test(oido))
             return {
               id,
@@ -302,8 +303,9 @@ const PRUEBAS = [
   },
   {
     // H3b: lo dictado, escrito en el campo de desarrollo. Seguro (en verde,
-    // abajo del todo), deshacerlo, una duda con cuatro opciones, elegir y lo
-    // que no se entiende.
+    // abajo del todo, con la fila), deshacerlo, una duda con cuatro opciones
+    // y dos apuntadas debajo, elegir (las últimas tres) y lo que no se
+    // entiende, encima de ellas.
     nombre: 'dictado',
     async probar(page, paso) {
       const main = page.locator('[data-pantalla="calificar"]');
@@ -315,18 +317,21 @@ const PRUEBAS = [
         await page.keyboard.press('Enter');
       };
       await dictar('Thiago nueve y medio');
-      await main.getByText('Apuntado un 9.5').waitFor();
+      await main.getByRole('button', {name: 'Deshacer el 9.5'}).waitFor();
       await page.waitForTimeout(700);
       await paso('apuntada');
-      await main.getByRole('button', {name: 'Deshacer'}).click();
+      await main.getByRole('button', {name: 'Deshacer el 9.5'}).click();
       await page.waitForTimeout(700);
       await paso('deshecha');
+      await dictar('Thiago nueve y medio');
+      await dictar('Lucía ocho');
+      await main.getByRole('button', {name: 'Deshacer el 8'}).waitFor();
       await dictar('María siete con treinta');
       await main.getByRole('alertdialog').waitFor();
       await page.waitForTimeout(700);
       await paso('duda');
       await main.getByRole('alertdialog').getByRole('button').first().click();
-      await main.getByText('Apuntado un 7.5').waitFor();
+      await main.getByRole('button', {name: 'Deshacer el 7.5'}).waitFor();
       await page.waitForTimeout(700);
       await paso('elegida');
       await dictar('Way this');
@@ -349,7 +354,7 @@ const PRUEBAS = [
       await page.keyboard.up('Space');
       await main.getByText('Entendiendo').waitFor();
       await paso('entendiendo');
-      await main.getByText('Apuntado un 9.5').waitFor();
+      await main.getByRole('button', {name: 'Deshacer el 9.5'}).waitFor();
       await page.waitForTimeout(700);
       await paso('apuntada');
       await page.keyboard.down('Space');
