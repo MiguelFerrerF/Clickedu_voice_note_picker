@@ -26,8 +26,10 @@ en `latest.json` y la app lo lee (`src-tauri/src/actualizacion.rs`).
 `node scripts/notas-de-version.mjs 2.0.1 --cuerpo` enseña el cuerpo tal cual
 saldrá.
 
-En el diálogo, cada tipo sale con su insignia, en neutro (D6): `feat`
-«Nuevo», `fix` «Arreglo», `perf` «Más rápido», `chore` «Info». Una línea con
+En el diálogo, cada tipo sale con su insignia y su color, como en
+library-app (una versión nueva es un evento; nunca rojo, D6): `feat`
+«Nuevo» en verde, `fix` «Arreglo» en turquesa, `perf` «Más rápido» en
+ámbar, `chore` «Info» en gris. Una línea con
 otro tipo **se ignora**: revisa la cuenta de entradas que imprime el script.
 
 ## Publicar una versión

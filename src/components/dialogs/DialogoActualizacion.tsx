@@ -11,8 +11,9 @@
  *   casa, se dice y no se instala nada.
  * - Nunca instala sin que se pulse; «Saltar esta versión» hace que no se
  *   ofrezca al arrancar (a mano, sí).
- * - Las insignias de «Cambios» van en neutro: una versión nueva no es un
- *   error ni un evento que se apague (D6).
+ * - Las insignias de «Cambios» llevan color, como en library-app: una
+ *   versión nueva **es un evento** (`docs/02` §3). Nunca rojo, que no es un
+ *   error (D6). El ámbar, oscurecido: `--warn` como texto no se lee.
  */
 
 import {useEffect, useState} from 'react';
@@ -29,9 +30,18 @@ import {
 import {t} from '@modules/i18n';
 import type {TranslationKey} from '@modules/i18n/es';
 
-const TIPOS = ['feat', 'fix', 'perf', 'chore'] as const;
-const insignia = (tipo: string): TranslationKey =>
-  `actualizacion.tipo_${(TIPOS as readonly string[]).includes(tipo) ? tipo : 'chore'}` as TranslationKey;
+/** El color de cada tipo: el del texto y, al 14 %, el del fondo. */
+const COLOR = {
+  feat: 'var(--success)',
+  fix: 'var(--accent-ink)',
+  perf: 'color-mix(in oklch, var(--warn) 65%, black)',
+  chore: 'var(--text-tertiary)',
+} as const;
+type Tipo = keyof typeof COLOR;
+const insignia = (tipo: string) => {
+  const t2 = (tipo in COLOR ? tipo : 'chore') as Tipo;
+  return {rotulo: `actualizacion.tipo_${t2}` as TranslationKey, color: COLOR[t2]};
+};
 
 const FECHA = new Intl.DateTimeFormat('es-ES', {day: 'numeric', month: 'long', year: 'numeric'});
 /** En MB enteros, como la descarga del modelo de voz. */
@@ -125,26 +135,31 @@ export function DialogoActualizacion({nueva, cerrar, saltar}: DialogoActualizaci
         )}
         {v.entradas.length > 0 && (
           <ul style={{listStyle: 'none', margin: '14px 0 0', padding: 0, display: 'grid', gap: 7}}>
-            {v.entradas.map((e, i) => (
-              <li key={i} style={{display: 'flex', alignItems: 'flex-start', gap: 10}}>
-                <span
-                  style={{
-                    flexShrink: 0,
-                    minWidth: 62,
-                    marginTop: 2,
-                    padding: '1px 6px',
-                    borderRadius: 4,
-                    border: '1px solid var(--border)',
-                    fontSize: 10.5,
-                    fontWeight: 600,
-                    textAlign: 'center',
-                    color: 'var(--text-secondary)',
-                  }}>
-                  {t(insignia(e.tipo))}
-                </span>
-                <span style={{fontSize: 13, lineHeight: 1.5, color: 'var(--text-secondary)'}}>{e.texto}</span>
-              </li>
-            ))}
+            {v.entradas.map((e, i) => {
+              const {rotulo, color} = insignia(e.tipo);
+              return (
+                <li key={i} style={{display: 'flex', alignItems: 'flex-start', gap: 10}}>
+                  <span
+                    style={{
+                      flexShrink: 0,
+                      // Lo que mide «Más rápido», la más larga: el texto, alineado.
+                      minWidth: 76,
+                      boxSizing: 'border-box',
+                      marginTop: 2,
+                      padding: '1px 6px',
+                      borderRadius: 4,
+                      background: `color-mix(in oklch, ${color} 14%, transparent)`,
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      textAlign: 'center',
+                      color,
+                    }}>
+                    {t(rotulo)}
+                  </span>
+                  <span style={{fontSize: 13, lineHeight: 1.5, color: 'var(--text-secondary)'}}>{e.texto}</span>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

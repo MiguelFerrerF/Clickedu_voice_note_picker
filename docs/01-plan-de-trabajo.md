@@ -701,7 +701,8 @@ Un commit por bloque, como en HUI.
       library-app. Borrador de las de la `v2.0.0`, por revisar.
 - [x] El diálogo: busca al arrancar y a mano (pie de la barra), nunca
       instala sin pulsar, deja saltarse una versión; avance real al
-      descargar. Insignias en neutro (D6). Con la prueba de diseño.
+      descargar. Insignias con color, como library-app (pedido el
+      2026-11-20; nunca rojo, D6). Con la prueba de diseño.
 
 **B · El paso desde la v1.3.4** — hecho el 2026-11-20, sin probar con la v1 de verdad
 
