@@ -791,7 +791,9 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
    cambió. **Pendiente** (2026-11-20): el usuario no está seguro y la
    cambiará cuando tenga un archivo de seguridad nuevo (el suyo está
    caducado). No frena la `v2.0.0`.
-5. Revisar con el usuario `docs/releases/v2.0.0.md`.
+5. ~~Revisar con el usuario `docs/releases/v2.0.0.md`~~ (hecho el
+   2026-11-20, y además el actualizador probado en local: ver A).
+   **Siguiente: el paso 6.**
 6. `npm run release 2.0.0` y el push del usuario: CI deja el **borrador**
    (sin «Publish» todavía). Si `release.yml` falla, se arregla aquí.
 7. **Con permiso del usuario**, probar en este ordenador el instalador del
