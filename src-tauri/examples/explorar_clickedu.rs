@@ -3,7 +3,8 @@
 //! para hacer el mapa de `docs/03-clickedu.md`.
 //!
 //!     cargo run --example explorar_clickedu [-- --paginas 300 --profundidad 4 --muestras 2
-//!                                              --permitir <verbo> --sesion <minutos>]
+//!                                              --permitir <verbo> --solo <trozo,…>
+//!                                              --sesion <minutos,…>]
 //!
 //! - **Solo leer.** Solo `GET` (el único `POST` es el de entrar) y solo el
 //!   host del colegio. Se siguen los enlaces sin verbo o con un verbo de
@@ -19,8 +20,10 @@
 //! - **Lo crudo, solo en local**, en
 //!   `%APPDATA%\es.gestornotas.app\clickedu\exploracion\`: las páginas tal
 //!   cual (`paginas\`) y los Excel que se bajen (`descargas\`, para
-//!   `revisar_plantillas`). Llevan nombres de alumnos: **se borra la
-//!   carpeta al acabar**. Lo demás que se baja no se guarda.
+//!   `revisar_plantillas`). Llevan nombres de alumnos: al acabar, o se
+//!   borra o se mueve a `clickedu\capturas\<fecha>\` (de ahí salen, ya
+//!   anonimizadas, las páginas de los tests); **nunca dentro del repo**.
+//!   Cada vuelta vacía `exploracion\`. Lo demás que se baja no se guarda.
 //! - **Lo que se lee fuera es `informe.md`**, en esa carpeta, sin nombres:
 //!   las direcciones con los números tapados (`id=▢`), los textos con solo
 //!   las palabras de la interfaz ([`LETREROS`]; lo demás, `▢`, y siempre
@@ -28,8 +31,15 @@
 //!   forma, los formularios, las tablas y las clases CSS.
 //!
 //! `--permitir` añade un verbo de leer que no está en la lista, tras verlo
-//! en un informe. `--sesion` vuelve a comprobar la sesión cada 5 minutos al
-//! acabar, hasta perderla o llegar a esos minutos: cuánto dura.
+//! en un informe. `--solo` abre solo las direcciones con uno de esos trozos
+//! (las semillas también: pon el de la página de materias). `--sesion`, al
+//! acabar, deja la sesión quieta cada una de esas pausas y la comprueba tras
+//! cada una (comprobar la renueva), hasta perderla: cuánto dura parada.
+//!
+//! El informe trae también **los ids**: cuántos valores distintos de cada
+//! clase (`alum=`, las opciones de los `<select>`, los `Id` de las
+//! plantillas…), qué clase cae en cada número de `evalObject_▢_▢_▢` y los
+//! cruces; solo recuentos. Lo que vuelve en JSON, solo su forma.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque};
 use std::fmt::Write as _;
@@ -39,16 +49,10 @@ use std::time::{Duration, Instant};
 use gestor_de_notas_lib::ajustes;
 use gestor_de_notas_lib::clickedu::cliente::{self, Cliente, Leida};
 use gestor_de_notas_lib::clickedu::cuenta::{self, LlaveroWindows};
+use gestor_de_notas_lib::clickedu::tapar::{recortar, trozos, Tapar, PARAMETROS_DE_VERBO};
 use gestor_de_notas_lib::plantillas;
 use reqwest::Url;
 use scraper::{ElementRef, Html, Selector};
-
-/// Los parámetros que llevan el verbo de lo que hace la página.
-#[rustfmt::skip]
-const PARAMETROS_DE_VERBO: &[&str] = &[
-    "do", "accio", "acció", "action", "accion", "acc", "op", "opcio", "opcion", "operacio", "operacion", "task",
-    "cmd", "mode", "modo",
-];
 
 /// Los verbos de leer: un enlace con uno de estos (o sin verbo) se abre.
 #[rustfmt::skip]
@@ -79,6 +83,9 @@ const PROHIBIDAS_PREFIJO: &[&str] = &[
     "comunica",
     // Datos sensibles que no hacen falta para las notas.
     "medica", "incident", "incidenc", "behaviour", "salut", "health",
+    // Abiertas en la primera pasada sin hacer falta, y `substituir` sin poder
+    // asegurar que solo lee: fuera.
+    "substitu", "assistenc", "sessio", "fitxa",
 ];
 /// Parámetros que cambian una preferencia de la cuenta (cómo se ven las
 /// materias, el idioma, el orden): no se abren.
@@ -102,96 +109,6 @@ const DE_LA_V1: &[(&str, &[&str], Option<&str>)] = &[
     ("/assignatures/importar_notes_items.php", &["accio", "assig", "id_aval"], Some("descarregar_plantilla")),
 ];
 
-/// Los parámetros cuyo valor es código (`ctr=Subjects/Subjects`), no un
-/// texto: se enseña tal cual (con los números tapados).
-#[rustfmt::skip]
-const PARAMETROS_DE_CODIGO: &[&str] = &[
-    "ctr", "tab", "seccio", "seccion", "section", "view", "vista", "tipus", "tipo", "type", "lang", "idioma",
-    "menu", "modul", "modulo", "module", "pag", "page",
-];
-
-/// Palabras que no dicen nada de nadie: se dejan siempre.
-#[rustfmt::skip]
-const CORTAS: &[&str] = &[
-    "de", "del", "la", "las", "los", "el", "y", "i", "o", "u", "a", "al", "en", "per", "por", "para", "amb", "con",
-    "sin", "sense", "les", "els", "lo", "un", "una", "uns", "unes", "que", "es", "és", "se", "su", "sus", "seu",
-    "seus", "teu", "tu", "mi", "meu", "mis", "meus", "le", "d", "l", "s", "n", "the", "of", "and", "to", "in", "on",
-    "for", "by", "at", "or", "with", "from", "your", "lar",
-];
-
-/// Los rótulos de la interfaz que se dejan en el informe (en minúscula; se
-/// comparan sin mayúsculas). **Ningún nombre de persona** (ni «rosa»,
-/// «pilar», «abril», «domingo»…): lo que no está aquí sale como `▢`.
-#[rustfmt::skip]
-const LETREROS: &[&str] = &[
-    // Castellano
-    "inicio", "asignatura", "asignaturas", "materia", "materias", "área", "áreas", "area", "areas", "evaluación",
-    "evaluaciones", "evaluacion", "evaluar", "nota", "notas", "calificación", "calificaciones", "calificacion",
-    "curso", "cursos", "grupo", "grupos", "clase", "clases", "alumno", "alumnos", "alumna", "alumnas", "alumnado",
-    "nombre", "apellidos", "apellido", "profesor", "profesora", "profesores", "profesorado", "tutor", "tutora",
-    "tutoría", "tutoria", "familia", "familias", "padres", "ítem", "ítems", "item", "items", "criterio",
-    "criterios", "competencia", "competencias", "estándar", "estándares", "indicador", "indicadores", "media",
-    "medias", "peso", "pesos", "porcentaje", "ponderación", "trimestre", "trimestral", "primera", "primer",
-    "primero", "segunda", "segundo", "tercera", "tercer", "tercero", "final", "finales", "ordinaria",
-    "extraordinaria", "global", "parcial", "recuperación", "observaciones", "observación", "comentario",
-    "comentarios", "fecha", "fechas", "hora", "horas", "día", "días", "semana", "mes", "año", "curso", "escolar",
-    "académico", "académica", "horario", "horarios", "calendario", "agenda", "mensajes", "mensaje",
-    "comunicaciones", "comunicación", "circulares", "noticias", "avisos", "aviso", "faltas", "falta", "asistencia",
-    "retrasos", "incidencias", "incidencia", "expediente", "expedientes", "boletín", "boletines", "informe",
-    "informes", "actas", "acta", "documentos", "documento", "ficheros", "fichero", "archivo", "archivos",
-    "plantilla", "plantillas", "importar", "exportar", "descargar", "subir", "guardar", "editar", "borrar",
-    "eliminar", "ver", "listado", "lista", "buscar", "filtrar", "todos", "todas", "ninguno", "sí", "si", "no",
-    "configuración", "perfil", "usuario", "contraseña", "ayuda", "cerrar", "salir", "enviar", "aceptar", "cancelar",
-    "volver", "anterior", "siguiente", "nuevo", "nueva", "añadir", "total", "totales", "resumen", "estadísticas",
-    "actividades", "actividad", "tareas", "tarea", "exámenes", "examen", "recursos", "seguimiento", "programación",
-    "programaciones", "unidad", "unidades", "didáctica", "didácticas", "aula", "aulas", "etapa", "nivel", "niveles",
-    "secundaria", "primaria", "infantil", "bachillerato", "ciclo", "formativo", "eso", "fp", "matemáticas",
-    "lengua", "castellana", "literatura", "inglés", "francés", "alemán", "euskera", "física", "química", "biología",
-    "geología", "historia", "geografía", "tecnología", "música", "plástica", "visual", "audiovisual", "educación",
-    "religión", "valores", "éticos", "ética", "latín", "griego", "filosofía", "economía", "ciencias", "sociales",
-    "naturales", "dibujo", "técnico", "informática", "digitalización", "robótica", "proyecto", "proyectos",
-    "optativa", "optativas", "deporte", "cultura", "científica", "clásica", "lunes", "martes", "miércoles",
-    "jueves", "viernes", "sábado", "enero", "febrero", "marzo", "mayo", "junio", "julio", "agosto", "septiembre",
-    "octubre", "noviembre", "diciembre", "pendiente", "pendientes", "aprobado", "suspenso", "notable",
-    "sobresaliente", "suficiente", "insuficiente", "bien", "nueva", "mostrar", "ocultar", "seleccionar",
-    "selecciona", "elegir", "opciones", "opción", "acciones", "acción", "datos", "dato", "personales", "centro",
-    "colegio", "error", "correcto", "incorrecto", "sesión", "entrar", "acceso", "seguridad", "importación",
-    "exportación", "cargar", "procesar", "estado", "tipo", "descripción", "título", "código", "valor", "valores",
-    "número", "orden", "posición", "imprimir", "pdf", "excel", "hoja", "cálculo",
-    // Català
-    "inici", "assignatura", "assignatures", "matèria", "matèries", "àrea", "àrees", "avaluació", "avaluacions",
-    "avaluar", "notes", "qualificació", "qualificacions", "curs", "grup", "grups", "classe", "classes", "alumne",
-    "alumnes", "nom", "cognoms", "cognom", "professor", "professora", "professors", "professorat", "tutoria",
-    "famílies", "família", "pares", "criteri", "criteris", "competència", "competències", "mitjana", "mitjanes",
-    "pes", "percentatge", "ponderació", "segon", "segona", "tercera", "ordinària", "extraordinària", "recuperació",
-    "observacions", "observació", "comentari", "comentaris", "data", "dates", "dia", "dies", "setmana", "any",
-    "acadèmic", "acadèmica", "horari", "calendari", "missatges", "missatge", "comunicacions", "comunicació",
-    "notícies", "avisos", "faltes", "assistència", "retards", "incidències", "incidència", "expedient", "butlletí",
-    "butlletins", "informes", "documents", "fitxers", "fitxer", "arxiu", "arxius", "descarregar", "pujar", "desar",
-    "esborrar", "veure", "llistat", "llista", "cercar", "tots", "totes", "cap", "configuració", "usuari",
-    "contrasenya", "ajuda", "tancar", "sortir", "acceptar", "cancel", "tornar", "següent", "nou", "nova", "afegir",
-    "resum", "estadístiques", "activitats", "activitat", "tasques", "tasca", "exàmens", "examen", "recursos",
-    "seguiment", "programació", "programacions", "unitat", "unitats", "didàctica", "aula", "etapa", "nivell",
-    "nivells", "secundària", "primària", "batxillerat", "cicle", "formatiu", "matemàtiques", "llengua",
-    "castellana", "literatura", "anglès", "francès", "alemany", "física", "química", "biologia", "geologia",
-    "història", "geografia", "tecnologia", "música", "plàstica", "educació", "religió", "ètica", "llatí", "grec",
-    "filosofia", "economia", "ciències", "socials", "naturals", "dibuix", "tècnic", "informàtica", "digitalització",
-    "robòtica", "projecte", "projectes", "optativa", "dilluns", "dimarts", "dimecres", "dijous", "divendres",
-    "dissabte", "gener", "febrer", "març", "maig", "juny", "juliol", "agost", "setembre", "novembre", "desembre",
-    "pendent", "pendents", "aprovat", "suspès", "excel·lent", "excel", "lent", "suficient", "insuficient", "bé",
-    "mostra", "amagar", "seleccionar", "selecciona", "triar", "opcions", "opció", "accions", "acció", "dades",
-    "personals", "centre", "escola", "correcte", "incorrecte", "sessió", "entrar", "accés", "seguretat",
-    "importació", "exportació", "carregar", "processar", "estat", "tipus", "descripció", "títol", "codi", "valor",
-    "valors", "número", "ordre", "posició", "imprimir", "full", "càlcul", "trimestre",
-    // English
-    "home", "subject", "subjects", "items", "student", "students", "grade", "grades", "mark", "marks", "evaluation",
-    "evaluations", "term", "terms", "settings", "search", "calendar", "messages", "help", "name", "surname",
-    "group", "course", "average", "comments", "comment", "delete", "import", "export", "download", "upload", "file",
-    "files", "template", "view", "show", "back", "next", "previous", "yes", "cancel", "accept", "submit", "index",
-    "list", "detail", "details", "user", "users", "teacher", "teachers", "class", "level", "date", "type", "status",
-    "description", "title", "code", "value", "loading", "select", "all", "none", "menu", "logout", "login",
-    "password", "error", "ok", "close", "open", "new", "add", "edit", "save", "send", "print",
-];
 
 fn main() {
     let opciones = Opciones::de(std::env::args().skip(1).collect());
@@ -209,7 +126,7 @@ fn main() {
 
     let mut tapar = Tapar::new(nombres_de_las_plantillas(&app));
     tapar.anadir(&guardada.usuario);
-    println!("{} palabras de nombres de las plantillas, siempre tapadas.", tapar.nombres.len());
+    println!("{} palabras de nombres de las plantillas, siempre tapadas.", tapar.cuantos());
 
     let cliente = Cliente::new(cliente::BASE).unwrap_or_else(|e| panic!("{e}"));
     let base = Url::parse(cliente::BASE).expect("BASE es una dirección");
@@ -229,19 +146,25 @@ fn main() {
                 e.encolar(&format!("{}{semilla}", cliente::BASE), 0, "semilla".into());
             }
             e.recorrer();
-            if e.opciones.sesion > 0 {
+            if !e.opciones.sesion.is_empty() {
+                // El informe del recorrido ya, sin esperar a las pausas; al
+                // acabar se reescribe con la sesión.
+                escribir_informe(&e, &exploracion);
                 e.medir_sesion();
             }
         }
         Err(f) => e.parada = Some(format!("**No se ha podido entrar**: {f}.")),
     }
 
-    let informe = e.informe();
-    let ruta = exploracion.join("informe.md");
-    std::fs::write(&ruta, &informe).expect("no se puede escribir el informe");
+    escribir_informe(&e, &exploracion);
+    println!("Lo crudo (CON nombres; bórralo o muévelo a capturas\\, fuera del repo): {}", exploracion.display());
+}
+
+fn escribir_informe(e: &Exploracion, carpeta: &Path) {
+    let ruta = carpeta.join("informe.md");
+    std::fs::write(&ruta, e.informe()).expect("no se puede escribir el informe");
     println!("\n{} páginas abiertas. {}", e.paginas.len(), e.parada.as_deref().unwrap_or("Recorrido acabado."));
     println!("Informe (sin nombres): {}", ruta.display());
-    println!("Lo crudo (CON nombres, bórralo al acabar): {}", exploracion.display());
 }
 
 fn bloquear<F: std::future::Future>(f: F) -> F::Output {
@@ -253,12 +176,23 @@ struct Opciones {
     profundidad: usize,
     muestras: usize,
     permitidos: Vec<String>,
-    sesion: u64,
+    /// Pausas, en minutos, para medir cuánto aguanta la sesión quieta.
+    sesion: Vec<u64>,
+    /// Si no está vacío, solo se abren las direcciones con uno de estos
+    /// trozos.
+    solo: Vec<String>,
 }
 
 impl Opciones {
     fn de(args: Vec<String>) -> Self {
-        let mut o = Opciones { paginas: 300, profundidad: 4, muestras: 2, permitidos: Vec::new(), sesion: 0 };
+        let mut o = Opciones {
+            paginas: 300,
+            profundidad: 4,
+            muestras: 2,
+            permitidos: Vec::new(),
+            sesion: Vec::new(),
+            solo: Vec::new(),
+        };
         let mut it = args.into_iter();
         while let Some(a) = it.next() {
             let mut valor = || it.next().unwrap_or_else(|| panic!("falta el valor de {a}"));
@@ -267,7 +201,11 @@ impl Opciones {
                 "--profundidad" => o.profundidad = valor().parse().expect("--profundidad es un número"),
                 "--muestras" => o.muestras = valor().parse().expect("--muestras es un número"),
                 "--permitir" => o.permitidos.push(valor().to_lowercase()),
-                "--sesion" => o.sesion = valor().parse().expect("--sesion es un número de minutos"),
+                "--sesion" => {
+                    o.sesion =
+                        valor().split(',').map(|m| m.trim().parse().expect("--sesion: minutos con comas")).collect()
+                }
+                "--solo" => o.solo = valor().split(',').map(|t| t.trim().to_string()).collect(),
                 otro => panic!("no conozco {otro}"),
             }
         }
@@ -288,185 +226,6 @@ fn nombres_de_las_plantillas(app: &Path) -> Vec<String> {
         .filter_map(|p| plantillas::leer(&p).ok())
         .flat_map(|p| p.alumnos.into_iter().map(|a| a.nombre))
         .collect()
-}
-
-// ───────────────────────── Tapar ─────────────────────────
-
-/// Pasa textos y direcciones a su forma, sin nombres.
-struct Tapar {
-    nombres: HashSet<String>,
-    letreros: HashSet<&'static str>,
-}
-
-impl Tapar {
-    fn new<S: AsRef<str>>(nombres: impl IntoIterator<Item = S>) -> Self {
-        let mut t = Tapar { nombres: HashSet::new(), letreros: LETREROS.iter().copied().collect() };
-        for n in nombres {
-            t.anadir(n.as_ref());
-        }
-        t
-    }
-
-    fn anadir(&mut self, texto: &str) {
-        for (palabra, letras) in trozos(texto) {
-            if letras && !CORTAS.contains(&palabra.to_lowercase().as_str()) {
-                self.nombres.insert(clave(palabra));
-            }
-        }
-    }
-
-    /// Un texto de la página: se quedan las palabras de [`LETREROS`] y
-    /// [`CORTAS`], las de una o dos letras y los números de hasta cuatro
-    /// cifras (años, notas). Lo demás, `▢`; un nombre de las plantillas,
-    /// siempre `▢`.
-    fn texto(&self, texto: &str) -> String {
-        let junto = texto.split_whitespace().collect::<Vec<_>>().join(" ");
-        let mut forma = String::new();
-        for (trozo, letras) in trozos(&junto) {
-            let minus = trozo.to_lowercase();
-            let numero = trozo.chars().all(|c| c.is_ascii_digit());
-            let queda = if letras {
-                CORTAS.contains(&minus.as_str())
-                    || (!self.nombres.contains(&clave(trozo))
-                        && (trozo.chars().count() <= 2 || self.letreros.contains(minus.as_str())))
-            } else if numero {
-                trozo.len() <= 4
-            } else {
-                // Lo que no es letra ni número: signos y espacios.
-                !trozo.chars().any(char::is_alphanumeric)
-            };
-            forma.push_str(if queda { trozo } else { "▢" });
-        }
-        recortar(&forma, 80)
-    }
-
-    /// Un trozo de código (una ruta, un nombre de campo, una clase CSS): se
-    /// queda todo menos los números (`▢`) y un nombre de las plantillas.
-    fn codigo(&self, codigo: &str) -> String {
-        trozos(codigo)
-            .into_iter()
-            .map(|(t, letras)| {
-                if t.chars().all(|c| c.is_ascii_digit()) || (letras && self.nombres.contains(&clave(t))) {
-                    "▢".to_string()
-                } else if !letras && t.chars().any(|c| c.is_alphanumeric()) {
-                    // Letras y cifras mezcladas que no son una palabra.
-                    "▢".to_string()
-                } else {
-                    t.to_string()
-                }
-            })
-            .collect()
-    }
-
-    /// Una dirección de Clickedu: la ruta como código; los parámetros, con
-    /// su nombre; el valor, como código si es de verbo o de código y como
-    /// texto si no (`id=▢`, `nom=▢`). `exacta` deja los números con sus
-    /// cifras (`id=▢5`); si no, `▢`: es la forma con que se agrupan.
-    fn url(&self, url: &Url, exacta: bool) -> String {
-        let ruta = url.path();
-        // Un fichero subido (`/private/…/upload/…/Nombre_Apellido.pdf`) se
-        // llama como quiera quien lo subió: de él, solo la extensión.
-        let mut forma = match ruta.rsplit_once('/') {
-            Some((carpeta, fichero)) if ruta.contains("/upload/") => {
-                let ext = fichero.rsplit_once('.').map(|(_, e)| format!(".{e}")).unwrap_or_default();
-                format!("{}/▢{}", self.codigo(carpeta), self.codigo(&ext))
-            }
-            _ => self.codigo(ruta),
-        };
-        let pares: Vec<(String, String)> = url.query_pairs().map(|(k, v)| (k.into_owned(), v.into_owned())).collect();
-        for (i, (k, v)) in pares.iter().enumerate() {
-            forma.push(if i == 0 { '?' } else { '&' });
-            forma.push_str(&self.codigo(k));
-            forma.push('=');
-            let kl = k.to_lowercase();
-            let valor = if v.is_empty() {
-                String::new()
-            } else if v.chars().all(|c| c.is_ascii_digit()) {
-                if exacta {
-                    format!("▢{}", v.len())
-                } else {
-                    "▢".into()
-                }
-            } else if v.chars().any(|c| c.is_ascii_digit())
-                && v.chars().all(|c| c.is_ascii_digit() || "/-_:. ".contains(c))
-            {
-                // Una fecha (`2027/03/15_10:00`): cada una sería una forma nueva.
-                "▢fecha".into()
-            } else if PARAMETROS_DE_VERBO.contains(&kl.as_str()) || PARAMETROS_DE_CODIGO.contains(&kl.as_str()) {
-                self.codigo(v)
-            } else {
-                self.texto(v)
-            };
-            forma.push_str(&valor);
-        }
-        forma
-    }
-}
-
-/// Cómo se compara una palabra con los nombres: en minúscula y sin tildes
-/// (`lucia` en una dirección es `Lucía` en la plantilla).
-fn clave(palabra: &str) -> String {
-    palabra
-        .to_lowercase()
-        .chars()
-        .map(|c| match c {
-            'á' | 'à' | 'ä' | 'â' => 'a',
-            'é' | 'è' | 'ë' | 'ê' => 'e',
-            'í' | 'ì' | 'ï' | 'î' => 'i',
-            'ó' | 'ò' | 'ö' | 'ô' => 'o',
-            'ú' | 'ù' | 'ü' | 'û' => 'u',
-            'ñ' => 'n',
-            'ç' => 'c',
-            otra => otra,
-        })
-        .collect()
-}
-
-/// Parte un texto en trozos de letras, de cifras y de lo demás, y dice cuáles
-/// son de letras. `CamelCase` se parte por las mayúsculas: `doLogin` →
-/// `do`, `Login`.
-fn trozos(texto: &str) -> Vec<(&str, bool)> {
-    #[derive(PartialEq, Clone, Copy)]
-    enum Clase {
-        Letra,
-        Cifra,
-        Otro,
-    }
-    let clase = |c: char| {
-        if c.is_alphabetic() {
-            Clase::Letra
-        } else if c.is_ascii_digit() {
-            Clase::Cifra
-        } else {
-            Clase::Otro
-        }
-    };
-    let mut res = Vec::new();
-    let mut inicio = 0;
-    let mut anterior: Option<(Clase, char)> = None;
-    for (i, c) in texto.char_indices() {
-        let k = clase(c);
-        if let Some((ka, ca)) = anterior {
-            let corta = ka != k || (k == Clase::Letra && ca.is_lowercase() && c.is_uppercase());
-            if corta {
-                res.push((&texto[inicio..i], ka == Clase::Letra));
-                inicio = i;
-            }
-        }
-        anterior = Some((k, c));
-    }
-    if let Some((k, _)) = anterior {
-        res.push((&texto[inicio..], k == Clase::Letra));
-    }
-    res
-}
-
-fn recortar(s: &str, max: usize) -> String {
-    if s.chars().count() <= max {
-        s.to_string()
-    } else {
-        format!("{}…", s.chars().take(max).collect::<String>())
-    }
 }
 
 // ───────────────────────── Solo leer ─────────────────────────
@@ -587,6 +346,14 @@ struct Exploracion<'a> {
     parada: Option<String>,
     sesion: Vec<String>,
     descargas: usize,
+    /// Los valores vistos de cada clase de id (`alum=` en un enlace, las
+    /// opciones de un `<select>`, los `Id` de la plantilla…): para saber qué
+    /// es cada número de `evalObject_▢_▢_▢`. Solo en memoria; al informe
+    /// van recuentos.
+    conjuntos: BTreeMap<String, HashSet<String>>,
+    /// De cada cuadrícula de notas: la página, los tres números de cada
+    /// `evalObject_` y cuántos tienen nota.
+    cuadriculas: Vec<(usize, Vec<[String; 3]>, usize)>,
 }
 
 impl<'a> Exploracion<'a> {
@@ -607,6 +374,8 @@ impl<'a> Exploracion<'a> {
             parada: None,
             sesion: Vec::new(),
             descargas: 0,
+            conjuntos: BTreeMap::new(),
+            cuadriculas: Vec::new(),
         }
     }
 
@@ -620,6 +389,10 @@ impl<'a> Exploracion<'a> {
         p.veces += 1;
         if let Err(por_que) = se_puede_abrir(&url, &self.base, &self.opciones.permitidos) {
             p.no.get_or_insert(por_que);
+            return;
+        }
+        if !self.opciones.solo.is_empty() && !self.opciones.solo.iter().any(|t| url.as_str().contains(t.as_str())) {
+            p.no.get_or_insert("fuera de --solo".into());
             return;
         }
         if url.query_pairs().any(|(_, v)| v.is_empty()) && url.as_str().ends_with('=') {
@@ -703,6 +476,11 @@ impl<'a> Exploracion<'a> {
             .expect("índice");
         let _ = std::io::Write::write_all(&mut indice, format!("{n:03}\t{direccion}\t{}\n", final_).as_bytes());
 
+        if let Some(json) = como_json(&cuerpo) {
+            pagina.nota = Some(format!("JSON: {}", forma_json(&json, &self.tapar, 0)));
+            self.paginas.push(pagina);
+            return true;
+        }
         let es_html = tipo.to_lowercase().contains("html") || (tipo.is_empty() && cuerpo.starts_with(b"<"));
         if !es_html || !disposicion.is_empty() {
             pagina.nota = Some(self.descarga(&tipo, &disposicion, &cuerpo));
@@ -740,6 +518,7 @@ impl<'a> Exploracion<'a> {
         }
 
         let enlaces = mirar(&self.tapar, &html, &final_, &mut pagina);
+        self.apuntar_ids(n, &html, &enlaces);
         let origen = format!("enlace de la página {n}");
         for direccion in enlaces {
             if seguir {
@@ -798,6 +577,44 @@ impl<'a> Exploracion<'a> {
         }
     }
 
+    /// Los ids de la página: los de los enlaces, las opciones de los
+    /// `<select>` de ítems y evaluaciones, y los `evalObject_`.
+    fn apuntar_ids(&mut self, n: usize, html: &str, enlaces: &[String]) {
+        for d in enlaces {
+            let Ok(u) = Url::parse(d) else { continue };
+            for (k, v) in u.query_pairs() {
+                if PARAMETROS_DE_ID.contains(&k.as_ref()) && !v.is_empty() {
+                    self.conjuntos.entry(format!("{k}= en un enlace")).or_default().insert(v.into_owned());
+                }
+            }
+        }
+        let doc = Html::parse_document(html);
+        for nombre in ["id_criteri_avaluacio", "trm"] {
+            for o in doc.select(&selector(&format!(r#"select[name="{nombre}"] option[value]"#))) {
+                let v = o.value().attr("value").unwrap_or_default();
+                if !v.is_empty() {
+                    self.conjuntos.entry(format!("opción de <select name={nombre}>")).or_default().insert(v.into());
+                }
+            }
+        }
+        let mut trios = Vec::new();
+        let mut con_nota = 0;
+        for i in doc.select(&selector(r#"input[name^="evalObject_"]"#)) {
+            let partes: Vec<&str> = i.value().attr("name").unwrap_or_default().split('_').collect();
+            if let [_, a, b, c] = partes[..] {
+                if [a, b, c].iter().all(|x| es_numero(x)) {
+                    trios.push([a.to_string(), b.to_string(), c.to_string()]);
+                    if i.value().attr("value").is_some_and(|v| !v.trim().is_empty()) {
+                        con_nota += 1;
+                    }
+                }
+            }
+        }
+        if !trios.is_empty() {
+            self.cuadriculas.push((n, trios, con_nota));
+        }
+    }
+
     fn marcar_abierta(&mut self, url: &Url, n: usize) {
         let patron = self.tapar.url(url, false);
         self.patrones.entry(patron).or_default().abiertas.push(n);
@@ -828,29 +645,31 @@ impl<'a> Exploracion<'a> {
             let ruta = dir.join(format!("descarga-{}.{ext}", self.descargas));
             if std::fs::write(&ruta, cuerpo).is_ok() {
                 let _ = write!(nota, "; guardado en local como descargas\\descarga-{}.{ext}", self.descargas);
+                if let Ok(p) = plantillas::leer(&ruta) {
+                    let ids = self.conjuntos.entry("Id de la plantilla".into()).or_default();
+                    ids.extend(p.alumnos.into_iter().map(|a| a.id).filter(|id| !id.is_empty()));
+                }
             }
         }
         nota
     }
 
-    /// Comprueba la sesión cada 5 minutos hasta perderla o llegar a
-    /// `--sesion` minutos.
+    /// Deja la sesión quieta cada pausa de `--sesion` y comprueba al final
+    /// de cada una (comprobar la renueva: por eso no se comprueba a
+    /// menudo). Para en cuanto se pierde.
     fn medir_sesion(&mut self) {
         let desde = self.dentro_desde.expect("se ha entrado");
-        let tope = Duration::from_secs(self.opciones.sesion * 60);
-        println!("Midiendo cuánto dura la sesión (hasta {} min)…", self.opciones.sesion);
-        loop {
-            std::thread::sleep(Duration::from_secs(300));
-            let min = desde.elapsed().as_secs() / 60;
-            match bloquear(self.cliente.comprobar()) {
-                Ok(()) => self.sesion.push(format!("a los {min} min: sigue")),
-                Err(f) => {
-                    self.sesion.push(format!("a los {min} min: **perdida** ({f})"));
-                    break;
-                }
-            }
-            println!("  {}", self.sesion.last().unwrap());
-            if desde.elapsed() >= tope {
+        for minutos in self.opciones.sesion.clone() {
+            println!("Sesión quieta {minutos} min…");
+            std::thread::sleep(Duration::from_secs(minutos * 60));
+            let total = desde.elapsed().as_secs() / 60;
+            let (linea, perdida) = match bloquear(self.cliente.comprobar()) {
+                Ok(()) => (format!("quieta {minutos} min (a los {total} min de entrar): sigue"), false),
+                Err(f) => (format!("quieta {minutos} min (a los {total} min de entrar): **perdida** ({f})"), true),
+            };
+            println!("  {linea}");
+            self.sesion.push(linea);
+            if perdida {
                 break;
             }
         }
@@ -877,6 +696,10 @@ impl<'a> Exploracion<'a> {
                 let _ = writeln!(s, "- {l}");
             }
             s.push('\n');
+        }
+
+        if !self.cuadriculas.is_empty() || !self.conjuntos.is_empty() {
+            s.push_str(&self.informe_ids());
         }
 
         let _ = writeln!(s, "## Cookies\n");
@@ -970,6 +793,104 @@ impl<'a> Exploracion<'a> {
             s.push('\n');
         }
         s
+    }
+}
+
+impl Exploracion<'_> {
+    /// Qué es cada número de `evalObject_▢_▢_▢`, y los cruces de ids: solo
+    /// recuentos.
+    fn informe_ids(&self) -> String {
+        let mut s = String::new();
+        let _ = writeln!(s, "## Los ids\n");
+        for (nombre, valores) in &self.conjuntos {
+            let _ = writeln!(s, "- {nombre}: {} distintos", valores.len());
+        }
+        for (n, trios, con_nota) in &self.cuadriculas {
+            let _ = writeln!(s, "\n### `evalObject_A_B_C` en la página {n}\n");
+            let _ = writeln!(s, "{} campos, {con_nota} con nota.\n", trios.len());
+            for (i, letra) in ["A", "B", "C"].iter().enumerate() {
+                let valores: HashSet<&String> = trios.iter().map(|t| &t[i]).collect();
+                let _ = write!(s, "- {letra}: {} distintos", valores.len());
+                for (nombre, conjunto) in &self.conjuntos {
+                    let dentro = valores.iter().filter(|v| conjunto.contains(v.as_str())).count();
+                    if dentro > 0 {
+                        let _ = write!(s, "; {dentro} están en «{nombre}»");
+                    }
+                }
+                s.push('\n');
+            }
+        }
+        let _ = writeln!(s, "\n### Cruces\n");
+        let nombres: Vec<&String> = self.conjuntos.keys().collect();
+        for a in &nombres {
+            for b in &nombres {
+                if a >= b {
+                    continue;
+                }
+                let (ca, cb) = (&self.conjuntos[*a], &self.conjuntos[*b]);
+                let comunes = ca.intersection(cb).count();
+                if comunes > 0 {
+                    let _ = writeln!(s, "- «{a}» ({}) y «{b}» ({}): {comunes} en común", ca.len(), cb.len());
+                }
+            }
+        }
+        s.push('\n');
+        s
+    }
+}
+
+/// Los parámetros de los enlaces que son ids de algo: sus valores se
+/// juntan para cruzarlos.
+const PARAMETROS_DE_ID: &[&str] = &["alum", "alu", "it", "trm", "id_aval", "assig", "id", "criteri", "cgap", "av"];
+
+/// El cuerpo, si es JSON (aunque diga que es HTML).
+fn como_json(cuerpo: &[u8]) -> Option<serde_json::Value> {
+    let primero = cuerpo.iter().find(|b| !b.is_ascii_whitespace())?;
+    if !matches!(primero, b'{' | b'[') {
+        return None;
+    }
+    serde_json::from_slice(cuerpo).ok()
+}
+
+/// La forma de un JSON: claves, tipos y cuántos; los textos, tapados.
+fn forma_json(v: &serde_json::Value, tapar: &Tapar, hondo: usize) -> String {
+    use serde_json::Value;
+    if hondo > 5 {
+        return "…".into();
+    }
+    match v {
+        Value::Null => "null".into(),
+        Value::Bool(_) => "bool".into(),
+        Value::Number(_) => "núm".into(),
+        Value::String(t) if t.trim().replace(',', ".").parse::<f64>().is_ok() => "\"núm\"".into(),
+        Value::String(t) => format!("\"{}\"", recortar(&tapar.texto(t), 30)),
+        Value::Array(a) => match a.first() {
+            None => "[]".into(),
+            Some(x) => format!("[{} × {}]", a.len(), forma_json(x, tapar, hondo + 1)),
+        },
+        Value::Object(o) => {
+            if o.keys().all(|k| es_numero(k)) {
+                return match o.values().next() {
+                    None => "{}".into(),
+                    Some(x) => format!("{{▢ ×{}: {}}}", o.len(), forma_json(x, tapar, hondo + 1)),
+                };
+            }
+            let mut partes: Vec<String> = o
+                .iter()
+                .take(15)
+                .map(|(k, x)| {
+                    // Una clave que parece un identificador se deja; si no, se
+                    // tapa como un texto (podría ser un nombre).
+                    let es_id = k.contains('_') || k.chars().next().is_some_and(|c| c.is_ascii_lowercase());
+                    let k = if es_id { tapar.codigo(k) } else { tapar.texto(k) };
+                    format!("{k}: {}", forma_json(x, tapar, hondo + 1))
+                })
+                .collect();
+            if o.len() > 15 {
+                partes.push(format!("…+{}", o.len() - 15));
+            }
+            format!("{{{}}}", partes.join(", "))
+        }
     }
 }
 
@@ -1281,7 +1202,7 @@ mod tests {
         );
         assert_eq!(abrir("/sumari/index.php"), Ok(()));
         assert_eq!(abrir("/go/Index.php?ctr=Evaluate/EvaluateTermly&id=5"), Ok(()));
-        assert_eq!(abrir("/assignatures/sessions.php?assig=5"), Ok(()));
+        assert_eq!(abrir("/go/Index.php?ctr=Evaluate/EvaluateTermly&id=5&trm=331"), Ok(()));
     }
 
     #[test]
@@ -1318,6 +1239,9 @@ mod tests {
             "/assignatures/medicacions.php",
             "/behaviour/incidents.php",
             "/user.php?action=triarArxiuPas",
+            "/assignatures/substituir.php?assig=1&sessio=2",
+            "/assistencia/index.php?cgap=1&sessio=2&n=3",
+            "/assignatures/fitxa_alumne.php?alum=1",
         ] {
             assert!(abrir(d).is_err(), "{d} se abriría");
         }
@@ -1333,44 +1257,26 @@ mod tests {
     }
 
     #[test]
-    fn tapa_los_nombres() {
-        let t = Tapar::new(["GARCÍA LÓPEZ, Lucía", "Rosa de la Fuente"]);
-        assert_eq!(t.texto("Notas de Lucía García"), "Notas de ▢ ▢");
-        assert_eq!(t.texto("Matemáticas 3ºA - 1a Avaluació 2025-2026"), "Matemáticas 3ºA - 1a Avaluació 2025-2026");
-        // Un nombre que no está en las plantillas también se tapa.
-        assert_eq!(t.texto("Hola, Miguel Ferrer"), "▢, ▢ ▢");
-        // «Rosa» es un nombre de la plantilla: tapado aunque fuera letrero.
-        assert_eq!(t.texto("rosa"), "▢");
-        // Una letra sola no dice de quién es.
-        assert_eq!(t.texto("DNI 12345678Z, tel 948123456"), "▢ ▢Z, ▢ ▢");
-        assert_eq!(t.texto("mferrer@colegio.es"), "▢@colegio.es");
-        assert_eq!(t.texto("LUCIA GARCIA"), "▢ ▢");
-    }
-
-    #[test]
-    fn la_forma_de_una_direccion() {
-        let t = Tapar::new(["Lucía García"]);
-        let u = base().join("/go/Index.php?ctr=Subject/Items&do=Index&id=1234&nom=Lucia&trm=").unwrap();
-        assert_eq!(t.url(&u, true), "/go/Index.php?ctr=Subject/Items&do=Index&id=▢4&nom=▢&trm=");
-        assert_eq!(t.url(&u, false), "/go/Index.php?ctr=Subject/Items&do=Index&id=▢&nom=▢&trm=");
-        let u = base().join("/alumnes/fitxa_lucia_3.php?accio=veure").unwrap();
-        assert_eq!(t.url(&u, false), "/alumnes/fitxa_▢_▢.php?accio=veure");
-        let u = base().join("/private/colegio/upload/noticies/arxius/12_Juan_Perez_trabajo.pdf").unwrap();
-        assert_eq!(t.url(&u, false), "/private/colegio/upload/noticies/arxius/▢.pdf");
-        let u = base().join("/assignatures/sessio.php?assig=12&data_hora_sessio=2027/03/15_10:00").unwrap();
-        assert_eq!(t.url(&u, false), "/assignatures/sessio.php?assig=▢&data_hora_sessio=▢fecha");
-    }
-
-    #[test]
     fn avisos_de_los_scripts() {
         let js = "alert('No ha iniciado sesión');\nif (x) alert( \"Otro\" ); alert(variable);";
         assert_eq!(avisos_en_js(js), ["No ha iniciado sesión", "Otro"]);
     }
 
     #[test]
-    fn trozos_parte_camel_case() {
-        assert_eq!(trozos("doLogin"), [("do", true), ("Login", true)]);
-        assert_eq!(trozos("ab12_c"), [("ab", true), ("12", false), ("_", false), ("c", true)]);
+    fn la_forma_de_un_json() {
+        let t = Tapar::new(["Lucía García"]);
+        let j: serde_json::Value = serde_json::from_str(
+            r#"{"grades": {"4321": {"nota": "7,5", "name": "García, Lucía"}, "4322": {"nota": 8, "name": "Pérez, Juan"}},
+                "Lucía": 1, "ok": true, "items": [1, 2, 3]}"#,
+        )
+        .unwrap();
+        let f = forma_json(&j, &t, 0);
+        assert!(f.contains("grades: {▢ ×2: {"), "{f}");
+        assert!(f.contains(r#"name: "▢, ▢""#), "{f}");
+        assert!(f.contains("items: [3 × núm]"), "{f}");
+        for nombre in ["Lucía", "García", "Juan", "4321"] {
+            assert!(!f.contains(nombre), "{nombre} en {f}");
+        }
     }
 
     #[test]

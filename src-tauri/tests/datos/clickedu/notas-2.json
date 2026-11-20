@@ -1,0 +1,242 @@
+[
+  {
+    "id_alumne": 905,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "1.8",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 906,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "5.5",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 907,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "9.2",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 908,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "2.8",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 909,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "6.5",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 910,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "0.1",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 911,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "3.8",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9011,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "7.5",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9012,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "1.1",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9013,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "4.8",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9014,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "8.5",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9015,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "2.1",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9016,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "5.8",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9017,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "9.5",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9018,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "3.1",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9019,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "6.8",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9020,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "0.4",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9021,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "4.1",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9022,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "7.8",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9023,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "1.4",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9024,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "5.1",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9025,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "8.8",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9026,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "2.4",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9027,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "6.1",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9028,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "9.8",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9029,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "3.4",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9030,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "7.1",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9031,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "0.7",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9032,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "4.4",
+    "nota_mod": null,
+    "type": 120
+  },
+  {
+    "id_alumne": 9033,
+    "id_avaluacio": 902,
+    "id_criteri": 9001,
+    "nota": "8.1",
+    "nota_mod": null,
+    "type": 120
+  }
+]

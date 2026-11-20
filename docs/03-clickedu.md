@@ -4,8 +4,11 @@ El mapa de la web de Clickedu del colegio para H4–H6, hecho **solo
 leyendo** el 2026-11-20 con `cargo run --example explorar_clickedu` y la
 cuenta del usuario. Fueron 300 páginas, todas con `GET`, una por segundo,
 con dos muestras de cada forma de dirección. Lo crudo (con nombres) se
-miró solo en local y se borró; aquí solo hay formas: `▢` es un número o
-un texto tapado.
+miró solo en local: el de esa pasada se borró; el de la segunda («La
+segunda pasada») se guarda en
+`%APPDATA%\es.gestornotas.app\clickedu\capturas\2026-11-20\`, **fuera del
+repo**, para sacar de ahí, anonimizadas, las páginas de los tests de H4.
+Aquí solo hay formas: `▢` es un número o un texto tapado.
 
 Lo que **no** se abrió: todo lo que lleva un verbo que no es de leer
 (`do=Save`, `do=Edit`, `accio=crear`…), cualquier palabra de escribir en
@@ -44,7 +47,15 @@ preferencia (`layout=`, el idioma), los datos de salud y de conducta,
 - **`/` cierra la sesión**: lleva a la página de entrar, y esa la tira.
   Dentro, nunca se piden `/` ni `user.php`.
 - **Duración**: aguantó el recorrido entero (unos 6 minutos de peticiones
-  seguidas). Sin medir: cuánto dura parada (`--sesion 60`).
+  seguidas). **Quieta** (2026-11-21, `--sesion "10,20,30,45"`, cada pausa
+  sin pedir nada y una página al acabar): a los 10 min, **sigue**; a los
+  20 min (35 desde que se entró), **sigue**; 30 y 45, midiéndose.
+- **Caducada no se distingue de incorrecta**: la sesión caducada contesta
+  lo mismo que sin entrar (el `alert`). `Cliente::abrir` lo ve
+  (`es_pagina_de_entrar`), entra otra vez con lo de la última vez (solo en
+  memoria, nunca en un fichero) y vuelve a pedir la página; si aun así
+  sale la de entrar, es `NoEntiendo`. Probado contra el Clickedu falso
+  con una sesión que caduca a mitad.
 
 ## La navegación
 
@@ -67,6 +78,10 @@ dos: la importación de notas sigue en lo antiguo.
 `assignatures/sessions.php?assig=N`: **el mismo `N` es `id` en lo nuevo y
 `assig` en lo antiguo**, como en la v1.
 
+- **Los cursos** («Tercero de ESO», «Primero de Bachillerato»…) son
+  encabezados `div.panel-separador` entre los bloques: cada materia es del
+  último que hay antes. El `sub-title` lleva curso y grupo
+  («3º E.S.O.-A»).
 - La misma materia en dos grupos son dos materias con dos `id`. Hay
   también **pendientes** de cursos anteriores («‹materia› 1º -
   PENDIENTE…») y de Bachillerato: H5 tiene que enseñarlas tal cual o
@@ -126,12 +141,30 @@ alumnos × 11), con `evalObjectCalc_…` (las calculadas),
 `evalObjectQuantifier_…` (un `<select>`: «---», «No ▢», «En ▢»…) y
 `associatedText_…` (comentarios).
 
-- Para que H6 compruebe que entró: leer aquí el `value` de cada
-  `evalObject_`. Falta saber qué es cada `▢` del nombre (alumno, ítem…):
-  se mira en local, con un alumno y solo números.
-- Por JS hay `do=GetGrades&id=N&trm=T` y `do=GetInfoEvalObjects`, que no
-  se abrieron (no son verbos de la lista). Por el nombre, leen: se pueden
-  probar con `--permitir getgrades`.
+- **`evalObject_A_B_C`** (segunda pasada, 2026-11-20, cruzando solo
+  recuentos de ids en 8 cuadrículas): **A es el alumno** (los 30 son los
+  `Id` de la plantilla y los `alum=` de los enlaces); **B es el ítem**
+  (los `it=` y las opciones de `id_criteri_avaluacio`), más uno que es el
+  `id` de la materia: la «Nota final»; C tiene dos valores (uno solo
+  donde solo está la nota final) y no es ni la evaluación ni la materia:
+  parece el tipo (ítem o final), como el `type` de `GetGrades`.
+- **El HTML llega sin notas** (0 de 360 campos con `value`): las pone el
+  JS después, con **`do=GetGrades&id=N&trm=T`**, que lee y devuelve JSON:
+  una lista de `{id_alumne, id_criteri, nota, nota_mod, id_quantifier,
+  text, type}` (266 en una 1ª evaluación; en otra, 30 con `id_avaluacio`
+  y `nota` como texto). Los mismos ids que la plantilla y el `<select>`
+  de ítems. **Para que H6 compruebe que entró: `GetGrades`**, filtrando
+  `id_criteri` = el ítem y cruzando `id_alumne` con el `Id` de la
+  plantilla. Es JSON con nombres de campo: más resistente que el HTML.
+  **`type`** dice qué es cada fila: `0`, la nota de un ítem; `114`, la
+  nota final de la evaluación (con el id de la materia como `id_criteri`);
+  la otra forma trae `120`. **Las notas de los ítems van sobre todo en
+  `nota_mod`** (177 filas, frente a 30 con `nota`; en la final, las dos):
+  parece que `nota` es la calculada y `nota_mod` la puesta. Falta
+  confirmarlo con la primera subida (H6). Contado en las páginas
+  anonimizadas, sin nombres.
+- `do=GetInfoEvalObjects` (también JSON): `{id_alumne, quantitat_ok,
+  type}` por alumno; no hace falta.
 - La misma página es un formulario `POST …do=Save` (`#FormEvaluate`):
   **otra forma de poner notas**, sin Excel. Más frágil y más peligrosa
   (manda la cuadrícula entera): no es el plan, pero conviene saberlo.
@@ -140,9 +173,10 @@ alumnos × 11), con `evalObjectCalc_…` (las calculadas),
 
 - La interfaz sale **en castellano** (hay un `selector_idioma` es/en, que
   es un formulario y cambia la preferencia: no se toca).
-- **Latin-1**: 270 de 288 páginas no son UTF-8 (15 sí). Al leer nombres de
+- **ISO-8859-15**: 270 de 288 páginas no son UTF-8 (15 sí), y la
+  cabecera no lo dice; lo dice el pie de la página. Al leer nombres de
   materias e ítems del HTML hay que decodificar bien, o «Evaluación» sale
-  rota. El Excel no tiene ese problema.
+  rota (`cliente::decodificar`). El Excel no tiene ese problema.
 - **Lo resistente**: los parámetros (`ctr`, `do`, `id`, `assig`,
   `id_aval`, `trm`, `it`), los nombres de los campos
   (`id_criteri_avaluacio`, `v_arxiu_importar`, `evalObject_`) y de los
@@ -172,10 +206,74 @@ alumnos × 11), con `evalObjectCalc_…` (las calculadas),
    `<select name="trm">` de Ítems, con fechas; la plantilla, como la v1.
 4. **H6**: los ítems, del `<select>` de la página de importar (no de los
    *popups* de la v1, que ya no existen); subir como la v1; **el paso de
-   después (la lista de subidos e importar) está sin ver**. Comprobar, en
-   la cuadrícula de `EvaluateTermly`.
-5. **Latin-1** al leer el HTML.
+   después (la lista de subidos e importar) está sin ver**. Comprobar, con
+   `GetGrades` (JSON), no con el HTML de la cuadrícula, que llega vacío.
+   `id_aval` es el `trm` de Ítems (los dos de la pasada están entre sus
+   opciones), y el `Id` de la plantilla, el alumno de todo lo demás.
+5. **ISO-8859-15** al leer el HTML.
 
-**Sin mirar todavía**, para decidir con el usuario: cuánto dura la sesión
-parada (`--sesion 60`), la forma de `GetGrades`, qué es cada número de
-`evalObject_▢_▢_▢`, y la página de importar con un fichero subido.
+**La segunda pasada** (2026-11-20, 27 páginas, con `--solo` para no
+salir de materias, Ítems, `EvaluateTermly`, importar y `GetGrades`, y
+`--permitir getgrades,getinfoevalobjects`; fuera del filtro ya
+`substitu`, `assistenc`, `sessio`, `fitxa`): `evalObject_` y `GetGrades`,
+arriba.
+
+**Sin mirar todavía**: la página de importar con un fichero subido y
+confirmar que la nota subida va en `nota_mod` (las dos, en H6, con el
+usuario: es escribir). **Dónde probarlo** (2026-11-20): desde la cuenta no se crean
+materias, solo ítems («Nuevo ítem», `Subject/Item/ItemDefault&do=New`, y
+`do=Delete`). El usuario lo habla con la propietaria de la cuenta: qué
+materia y grupo usar; un ítem «PRUEBA – borrar» con ponderación 0 y sin
+que lo vean las familias, o una materia de pruebas del administrador.
+
+## Cuando Clickedu cambie
+
+La capa resistente (`docs/01`, H4) está en `src-tauri/src/clickedu/`:
+**las fichas** (`fichas.rs`: cada dato, cómo se busca y qué tiene que
+cumplir; bien, degradado o roto) y **la huella** (`huella.rs`: la forma de
+la página, sin nombres, comparada con la última buena, en
+`%APPDATA%\es.gestornotas.app\clickedu\huellas\`). Una página que no se
+entiende se guarda entera en local (`clickedu\paginas\`). Para arreglarlo:
+
+1. **Capturar la página nueva**, solo leyendo:
+   `cargo run --example explorar_clickedu -- --solo "<trozo de la dirección>"`.
+   Lo crudo (con nombres) queda en `clickedu\exploracion\`: se mira solo en
+   local y se mueve a `clickedu\capturas\<fecha>\`, **nunca al repo**.
+2. **Anonimizarla** para los tests:
+   `cargo run --example anonimizar_clickedu -- <carpeta de la captura>`
+   escribe en `src-tauri/tests/datos/clickedu/` solo lo que pasa la lista
+   blanca (rótulos, estructura, ids inventados) y no escribe nada si queda
+   una palabra de un nombre de las plantillas. **Se mira antes del
+   commit**: el repo es público.
+3. **Arreglar la ficha** hasta que su test pase con la página nueva (y
+   siga pasando con la vieja, si Clickedu sirve las dos), y publicar.
+
+Las páginas de los tests (2026-11-21, de la segunda pasada): `materias`,
+`items` (con las evaluaciones), `importar` y dos de `GetGrades`
+(`notas-1`, `notas-2`).
+
+**Qué lee cada ficha** (2026-11-21) y cuándo deja de leer bien:
+
+| Ficha | De dónde | Bien | Degradado | Roto |
+|---|---|---|---|---|
+| `materias` | `div.bloc-assignatura` (`.title`, `.sub-title`) y el `div.panel-separador` de antes (el curso) | por los bloques, con el mismo id en `Subject/…&id=`, «Evaluar» (`id=`) y sesiones (`assig=`) | los bloques no están o no cuadran (dos ids distintos), pero sí los enlaces `ctr=Subject/Subject&id=`: el nombre, el texto del enlace; sin curso | ni bloques ni enlaces que cuadren |
+| `evaluaciones` | las opciones numéricas de `select[name="trm"]` de Ítems, con las fechas `d/m/aaaa` del texto | fechas en todas y seguidas | alguna sin fechas o no seguidas: no se propone la de hoy | sin el `<select>`, sin opciones o una sin nombre |
+| `items` | `select[name="id_criteri_avaluacio"]` de la página de importar (sin el `---`) | ids numéricos, con nombre, sin repetir | — | sin el `<select>`, un id no numérico, sin nombre o repetido |
+| `importar` | el `form` de la página de importar | `POST`, *multipart*, `accio=carregar_plantilla` con el mismo `assig` e `id_aval`, `v_arxiu_importar` (fichero) e `id_criteri_avaluacio` | **no hay**: para subir notas no vale «más o menos» | falta el formulario o cualquiera de esas cosas |
+| `notas` | el JSON de `GetGrades` | una lista de filas con `id_alumne` e `id_criteri` numéricos y `nota` o `nota_mod` | — | no es JSON ni lista, o a una fila le falta eso |
+
+**Cómo se anonimiza** (`anonimizar_clickedu`, seguro por construcción):
+fuera scripts, estilos, comentarios e imágenes; solo los atributos de una
+lista blanca; los textos pasan por `Tapar` (quedan los rótulos de la
+interfaz, las palabras cortas y los números de hasta 4 cifras; lo demás,
+`▢`); los ids de más de 100 se cambian por inventados que empiezan por 9,
+con las mismas cifras y los mismos en todas las páginas (así siguen
+cuadrando `assig`, `id_aval`, `trm`, `it`); las notas del JSON, inventadas.
+Al final se comprueba con los nombres de las plantillas (textos, valores
+de atributos y comentarios, no las etiquetas: un alumno «Li» casaba con
+`<li>`). Lo que se escapó en la primera prueba y ya no: **los teléfonos
+del colegio** (ahora, número de 3 cifras o más que no sea un año → `▢`) y
+la ponderación «100» cambiada por un id (los ≤ 100 se quedan), y la
+inicial «Mª» del nombre del profesor en la cabecera (ahora `#nomUsuari`
+se tapa entero, `SIN_TEXTO`). Lo legible que queda son rótulos de la
+interfaz, materias y cursos.

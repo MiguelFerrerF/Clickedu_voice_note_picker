@@ -1,11 +1,12 @@
 //! Un Clickedu falso para los tests (H4): un servidor HTTP en un hilo, en un
 //! puerto libre de `127.0.0.1`.
 //!
-//! Las páginas son **inventadas**, de la forma que esperaba la v1: el
-//! formulario del archivo con `id_usuari`, `usrKO` en la dirección si el
-//! usuario está mal, «Archivo de seguridad INCORRECTO»… Cuando haya páginas
-//! de verdad (anonimizadas, H4 segunda parte), los tests se pasan también
-//! contra ellas.
+//! Las páginas son **inventadas**, de la forma que esperaba la v1 y que
+//! confirmó Clickedu de verdad: el formulario del archivo con `id_usuari`,
+//! `usrKO` en la dirección si el usuario está mal, «Archivo de seguridad
+//! INCORRECTO», sin sesión un 200 con un aviso en JS… Sirve para entrar,
+//! caducar y volver a entrar; lo que se lee de dentro se prueba en
+//! [`super::fichas`] con páginas de verdad anonimizadas.
 
 use std::sync::{Arc, Mutex};
 
@@ -26,6 +27,10 @@ pub enum Modo {
     NoDejaPasar,
     /// Todo, un 503.
     Caido,
+    /// Como `Normal`, pero la sesión caduca tras dos páginas de dentro (la
+    /// de comprobar y otra): la tercera contesta como sin sesión, hasta
+    /// volver a entrar.
+    Caduca,
 }
 
 pub struct Falso {
@@ -82,6 +87,8 @@ pub fn arrancar(modo: Modo) -> Falso {
     let puerto = servidor.server_addr().to_ip().expect("puerto").port();
     let pedidas = Arc::new(Mutex::new(Vec::new()));
     let (s, p) = (servidor.clone(), pedidas.clone());
+    // Las páginas de dentro pedidas desde la última vez que se entró.
+    let mut de_dentro = 0;
     std::thread::spawn(move || {
         for mut peticion in s.incoming_requests() {
             let metodo = peticion.method().as_str().to_string();
@@ -97,7 +104,7 @@ pub fn arrancar(modo: Modo) -> Falso {
             let mut cuerpo = Vec::new();
             let _ = peticion.as_reader().read_to_end(&mut cuerpo);
             let cuerpo = String::from_utf8_lossy(&cuerpo).into_owned();
-            let _ = peticion.respond(responder(modo, &metodo, &ruta, &cookies, &cuerpo));
+            let _ = peticion.respond(responder(modo, &metodo, &ruta, &cookies, &cuerpo, &mut de_dentro));
         }
     });
     Falso { base: format!("http://127.0.0.1:{puerto}"), pedidas, servidor }
@@ -117,9 +124,20 @@ fn ir_a(a: &str, cookie: Option<&str>) -> Respuesta {
     r
 }
 
-fn responder(modo: Modo, metodo: &str, ruta: &str, cookies: &str, cuerpo: &str) -> Respuesta {
+/// Los ítems, en Latin-1 y sin decirlo, como casi todo Clickedu: «1ª
+/// evaluación».
+const ITEMS_LATIN1: &[u8] = b"<html><body><select name=\"trm\"><option value=\"7\">1\xaa evaluaci\xf3n</option>\
+</select></body></html>";
+
+fn responder(modo: Modo, metodo: &str, ruta: &str, cookies: &str, cuerpo: &str, de_dentro: &mut u32) -> Respuesta {
     if modo == Modo::Caido {
         return pagina("Service Unavailable").with_status_code(503);
+    }
+    if ruta.starts_with("/go/") && cookies.contains(DENTRO) {
+        *de_dentro += 1;
+        if modo == Modo::Caduca && *de_dentro > 2 {
+            return pagina(SIN_SESION);
+        }
     }
     match (metodo, ruta) {
         ("POST", "/user.php?action=doLogin") => {
@@ -145,11 +163,17 @@ fn responder(modo: Modo, metodo: &str, ruta: &str, cookies: &str, cuerpo: &str) 
             match (campos && archivo, modo) {
                 (false, _) => pagina(ARCHIVO_INCORRECTO),
                 (true, Modo::NoDejaPasar) => pagina(INICIO),
-                (true, _) => ir_a("/index.php", Some(DENTRO)),
+                (true, _) => {
+                    *de_dentro = 0;
+                    ir_a("/index.php", Some(DENTRO))
+                }
             }
         }
         ("GET", "/index.php") => pagina(INICIO),
         ("GET", "/go/Index.php?ctr=Subjects/Subjects") if cookies.contains(DENTRO) => pagina(ASIGNATURAS),
+        ("GET", "/go/Index.php?ctr=Subject/Items&do=Index&id=101") if cookies.contains(DENTRO) => {
+            Response::from_data(ITEMS_LATIN1).with_header(Header::from_bytes("Content-Type", "text/html").unwrap())
+        }
         // Sin sesión, el de verdad no redirige: contesta 200 con un aviso y
         // manda a entrar con JS (visto el 2026-11-20).
         ("GET", r) if r.starts_with("/go/") => pagina(SIN_SESION),

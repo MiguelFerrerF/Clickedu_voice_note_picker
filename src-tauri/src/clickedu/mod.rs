@@ -6,13 +6,20 @@
 //!   Administrador de credenciales de Windows (D3), y la copia del archivo
 //!   de seguridad en `%APPDATA%\es.gestornotas.app\clickedu\`.
 //! - [`cliente`] — entrar (usuario y contraseña, y luego el archivo de
-//!   seguridad) y comprobar que se ha entrado.
+//!   seguridad), comprobar que se ha entrado y abrir páginas de dentro,
+//!   **volviendo a entrar solo** si la sesión ha caducado.
+//! - [`fichas`] — cada dato (materias, evaluaciones, ítems, el formulario
+//!   de importar, las notas puestas): cómo se busca y qué tiene que
+//!   cumplir. Bien, degradado o roto.
+//! - [`huella`] — la forma de cada página, sin nombres, comparada con la
+//!   última buena: qué ha cambiado y dónde.
+//! - [`tapar`] — pasar textos y direcciones a su forma, sin nombres.
 //!
-//! **H4, primera parte** (2026-11-20): sin Clickedu de verdad, porque la
-//! contraseña filtrada aún no está cambiada. El cliente se prueba contra un
-//! Clickedu falso con páginas **inventadas** de la forma que esperaba la v1.
-//! Lo que no se ha visto en una página de verdad no se adivina: un archivo
-//! caducado no se distingue todavía de uno incorrecto.
+//! El cliente se prueba contra un Clickedu falso con páginas inventadas
+//! ([`falso`]); las fichas y la huella, con páginas **de verdad,
+//! anonimizadas** (`tests/datos/clickedu/`, `examples/anonimizar_clickedu`).
+//! Clickedu no distingue un archivo de seguridad caducado de uno incorrecto
+//! (probado el 2026-11-20).
 //!
 //! Una página que no se entiende se guarda **en local** ([`guardar_pagina`])
 //! para diagnosticar: puede llevar nombres, así que no va en el informe de
@@ -20,6 +27,9 @@
 
 pub mod cliente;
 pub mod cuenta;
+pub mod fichas;
+pub mod huella;
+pub mod tapar;
 
 #[cfg(test)]
 pub(crate) mod falso;

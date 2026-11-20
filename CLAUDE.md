@@ -30,9 +30,18 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > diseñada** (2026-11-20, `docs/01` H4: fichas por dato, bien/degradado/
 > roto, huellas sin nombres); el aviso automático por issue (D8 reabierta)
 > **espera** a hacer el repo privado, que rompe los actualizadores.
-> **Siguiente**: lo que queda sin mirar (al final de `docs/03`; el
-> explorador ya está preparado, sin commit) y luego la segunda parte. Dentro de Clickedu, **nunca `/` ni `user.php`: cierran la
-> sesión**. La cuenta del usuario ya está guardada en la app. Clickedu no distingue «caducado» de
+> **H4, la segunda parte hecha** (2026-11-21, `docs/01`): `clickedu::fichas`
+> (bien/degradado/roto), `clickedu::huella`, `Cliente::abrir` (vuelve a
+> entrar solo) y las páginas de verdad anonimizadas en
+> `tests/datos/clickedu/` (`anonimizar_clickedu`; **se miran antes de cada
+> commit: el repo es público**). Lo crudo, en
+> `%APPDATA%\es.gestornotas.app\clickedu\capturas\`, **nunca en el repo**.
+> **Si no está ya apuntado**: cuánto dura la sesión quieta (`informe.md` de
+> `clickedu\exploracion\`, «Sesión») a `docs/03`, y mover esa carpeta a
+> `capturas\2026-11-20\`. **Siguiente**: H5 (traer las plantillas), que
+> engancha las fichas a la pantalla Conexión. La primera subida (H6), donde
+> diga la propietaria de la cuenta. Dentro de Clickedu, **nunca `/` ni
+> `user.php`: cierran la sesión**. La cuenta del usuario ya está guardada en la app. Clickedu no distingue «caducado» de
 > «incorrecto». La contraseña filtrada la cambia el administrador del
 > colegio (con el archivo nuevo, la filtrada ya deja entrar: hay que cambiarla).
 > **En espera** (`docs/01`, HUI): con lo que traigan H4–H8, volver a mirar

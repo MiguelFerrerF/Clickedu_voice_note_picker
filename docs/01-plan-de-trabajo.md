@@ -939,7 +939,9 @@ pasa por la conversación) y recorre la web desde la página de inicio.
   ya es un dato: cuánto dura la sesión).
 - **Lo crudo, solo en local**: las páginas tal cual, en
   `%APPDATA%\es.gestornotas.app\clickedu\exploracion\` (con nombres de
-  alumnos: nunca en el repo ni en la conversación; se borran al acabar).
+  alumnos: nunca en el repo ni en la conversación; al acabar se borran o
+  se mueven a `clickedu\capturas\<fecha>\`, de donde salen anonimizadas
+  las páginas de los tests).
   Lo descargable (un Excel, un PDF) no se guarda: solo su tipo y tamaño.
 - **Lo que se lee aquí es el informe**, sin nombres, como el de D8: cada
   página con su ruta y los parámetros como forma (`id=▢5`), el título, los
@@ -987,8 +989,31 @@ dejaba engañar (sin sesión, Clickedu contesta 200 con un aviso en JS;
 salen mejor del `<select>` de la página de importar; el paso de importar
 tras subir **sigue sin verse**. `Cliente` gana `leer` (`GET` solo dentro de
 Clickedu) y `pasos` (las páginas de entrar, para diagnosticar en local).
-**Siguiente: decidir con el usuario** lo que queda sin mirar (al final de
-`docs/03`) y la segunda parte.
+La segunda pasada (2026-11-20, 27 páginas) dejó `evalObject_` y
+`GetGrades` (`docs/03`) y la captura de la que salen las páginas de los
+tests.
+
+**La segunda parte, hecha** (2026-11-21), sin pantalla todavía: la usan
+H5 y H6.
+
+- `clickedu::fichas`: materias, evaluaciones (con sus fechas y la de
+  hoy), ítems, el formulario de importar y las notas puestas
+  (`GetGrades`). Cada una dice **bien, degradado o roto**, con el motivo.
+  Las materias, por sus bloques y, si no, solo por sus enlaces
+  (degradado); el formulario de importar, solo «bien» o roto: para
+  escribir no vale «más o menos».
+- `clickedu::huella`: formularios, desplegables, formas de los enlaces y
+  las clases de las que tiran las fichas, sin nombres; se guarda la última
+  buena (`clickedu\huellas\`) y se dice qué cambió.
+- `Cliente::abrir`: lee una página de dentro en ISO-8859-15 (lo que dice
+  el pie de Clickedu) y, si la sesión ha caducado, **vuelve a entrar
+  solo** con lo de la última vez (en memoria) y la pide otra vez.
+- `clickedu::tapar` (sacado del explorador) y
+  `examples/anonimizar_clickedu`: las páginas de verdad, **sin nombres por
+  construcción** (lista blanca, ids inventados que siguen cruzando, notas
+  inventadas) y comprobadas contra los nombres de las plantillas antes de
+  escribirlas en `tests/datos/clickedu/`. La guía para cuando Clickedu
+  cambie, en `docs/03`.
 
 - [x] Login con usuario, contraseña y archivo de seguridad; credenciales en el
       Administrador de credenciales (D3). **Probado con Clickedu de verdad**
@@ -1008,9 +1033,11 @@ Clickedu) y `pasos` (las páginas de entrar, para diagnosticar en local).
       filtrada sigue valiendo**: solo la frena el archivo caducado; que el
       colegio la cambie antes de dar el archivo nuevo, o a la vez). Con el
       archivo nuevo, la v2 entra: lo manda como la v1.
-- [ ] **Capa de Clickedu resistente** (diseño hablado con el usuario el
+- [x] **Capa de Clickedu resistente** (diseño hablado con el usuario el
       2026-11-20: que un cambio de Clickedu se sepa pronto y se sepa
-      arreglar):
+      arreglar). **Hecha** (2026-11-21, arriba); se engancha a la interfaz
+      con H5 (el aviso de «degradado» y de «roto»), y el aviso por issue
+      sigue esperando al repo privado (D8):
       1. **Cada dato, una ficha** (materias, evaluaciones, ítems,
          plantilla, cuadrícula): cómo se busca, por orden de fiabilidad
          (parámetros de las URLs y nombres de campos; luego la estructura;
@@ -1032,9 +1059,12 @@ Clickedu) y `pasos` (las páginas de entrar, para diagnosticar en local).
          tests con páginas reales anonimizadas (la tarea de abajo) y una guía
          en `docs/03`: capturar la nueva, añadirla como test, arreglar la
          ficha y publicar.
-- [ ] Tests con páginas de Clickedu guardadas y anonimizadas; script para
-      capturarlas.
-- [ ] Sesión caducada → volver a entrar sin que el usuario lo note.
+- [x] Tests con páginas de Clickedu guardadas y anonimizadas; script para
+      capturarlas (`explorar_clickedu` captura, `anonimizar_clickedu`
+      anonimiza).
+- [x] Sesión caducada → volver a entrar sin que el usuario lo note
+      (`Cliente::abrir`, probado contra el Clickedu falso). **Cuánto dura
+      quieta**: en `docs/03` («La sesión»).
 
 ### H5 · Traer las plantillas desde Clickedu
 
@@ -1043,7 +1073,11 @@ Clickedu) y `pasos` (las páginas de entrar, para diagnosticar en local).
 
 ### H6 · Subir notas a Clickedu
 
-- [ ] Elegir asignatura, evaluación e ítem; subir; **comprobar** que entraron.
+- [ ] Elegir asignatura, evaluación e ítem; subir; **comprobar** que entraron
+      (con `GetGrades`, `docs/03`). **La primera subida, en un sitio de
+      prueba** que dirá la propietaria de la cuenta (pendiente,
+      2026-11-20): un ítem de prueba con ponderación 0 y sin que lo vean
+      las familias, o una materia de pruebas del colegio.
 - [ ] Plan B: si falla, el Excel exportado y la página de importación abierta
       en el navegador. **Antes, confirmar que Clickedu acepta el exportado de
       H2**, que no se ha importado todavía.

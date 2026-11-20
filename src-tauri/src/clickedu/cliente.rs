@@ -16,10 +16,13 @@
 //!
 //! **Lo que se reconoce es lo que vio la v1**: `usrKO` en la dirección,
 //! «Incorrecto» en la página del usuario y «Archivo de seguridad
-//! INCORRECTO» en la del archivo. Un archivo **caducado** aún no se
-//! distingue de uno incorrecto (falta ver qué responde Clickedu, H4 segunda
-//! parte): no se adivina. Lo que no se entiende es [`Fallo::NoEntiendo`],
-//! con la página, para guardarla y mirarla.
+//! INCORRECTO» en la del archivo. Un archivo **caducado** no se distingue
+//! de uno incorrecto: Clickedu contesta igual a los dos (probado el
+//! 2026-11-20). Lo que no se entiende es [`Fallo::NoEntiendo`], con la
+//! página, para guardarla y mirarla.
+//!
+//! Dentro, [`Cliente::abrir`] lee una página y, si Clickedu manda a entrar
+//! (la sesión ha caducado), **vuelve a entrar solo** y la pide otra vez.
 
 use std::sync::Mutex;
 use std::time::Duration;
@@ -94,6 +97,17 @@ pub struct Cliente {
     /// Las páginas de la última vez que se entró, paso a paso: para
     /// diagnosticar en local ([`Cliente::pasos`]).
     pasos: Mutex<Vec<Paso>>,
+    /// Con lo que se entró la última vez, para volver a entrar solo si la
+    /// sesión caduca ([`Cliente::abrir`]). Solo en memoria, mientras viva el
+    /// cliente: lo guardado está en el Administrador de credenciales (D3).
+    credenciales: Mutex<Option<Credenciales>>,
+}
+
+#[derive(Clone)]
+struct Credenciales {
+    usuario: String,
+    contrasena: String,
+    archivo: (String, Vec<u8>),
 }
 
 /// Una página de un paso de entrar: `entrar`, `archivo` o `comprobar`.
@@ -115,7 +129,12 @@ impl Cliente {
             .timeout(Duration::from_secs(30))
             .build()
             .map_err(|e| format!("no se puede preparar la conexión: {e}"))?;
-        Ok(Self { http, base: base.trim_end_matches('/').to_string(), pasos: Mutex::new(Vec::new()) })
+        Ok(Self {
+            http,
+            base: base.trim_end_matches('/').to_string(),
+            pasos: Mutex::new(Vec::new()),
+            credenciales: Mutex::new(None),
+        })
     }
 
     fn url(&self, ruta: &str) -> String {
@@ -183,7 +202,46 @@ impl Cliente {
         }
 
         // 3. Comprobarlo.
-        self.comprobar().await
+        self.comprobar().await?;
+        if let Ok(mut c) = self.credenciales.lock() {
+            *c = Some(Credenciales {
+                usuario: usuario.to_string(),
+                contrasena: contrasena.to_string(),
+                archivo: (archivo.0.to_string(), archivo.1.to_vec()),
+            });
+        }
+        Ok(())
+    }
+
+    /// Abre una página **de dentro** con `GET` y la devuelve como texto (en
+    /// UTF-8 o en Latin-1, que es como llegan casi todas, [`decodificar`]).
+    /// Si Clickedu manda a entrar, la sesión ha caducado: **vuelve a entrar
+    /// solo**, con lo de la última vez, y la pide otra vez. Solo para leer:
+    /// lo que escribe no se repite así.
+    pub async fn abrir(&self, direccion: &str) -> Result<Abierta, Fallo> {
+        let primera = self.abrir_una_vez(direccion).await?;
+        if !es_pagina_de_entrar(&primera.url, &primera.texto) {
+            return Ok(primera);
+        }
+        let credenciales = self.credenciales.lock().ok().and_then(|c| c.clone());
+        let Some(c) = credenciales else {
+            return Err("no se ha entrado en Clickedu".to_string().into());
+        };
+        self.entrar(&c.usuario, &c.contrasena, (&c.archivo.0, &c.archivo.1)).await?;
+        let segunda = self.abrir_una_vez(direccion).await?;
+        if es_pagina_de_entrar(&segunda.url, &segunda.texto) {
+            // Recién entrado y vuelve a mandar a entrar: no es la sesión.
+            return Err(Fallo::NoEntiendo { paso: "abrir".into(), html: segunda.texto });
+        }
+        Ok(segunda)
+    }
+
+    async fn abrir_una_vez(&self, direccion: &str) -> Result<Abierta, Fallo> {
+        let leida = self.leer(direccion).await?;
+        if !(200..300).contains(&leida.estado) {
+            return Err(Fallo::Servidor { codigo: leida.estado });
+        }
+        Ok(Abierta { url: leida.url, texto: decodificar(&leida.cuerpo) })
     }
 
     /// Pide con `GET` una dirección **de este Clickedu** (`/ruta?…` o la
@@ -222,6 +280,39 @@ impl Cliente {
         }
         Ok(())
     }
+}
+
+/// Lo que devuelve [`Cliente::abrir`]: una página de dentro, ya como texto.
+#[derive(Debug)]
+pub struct Abierta {
+    /// La dirección final, tras las redirecciones.
+    pub url: String,
+    pub texto: String,
+}
+
+/// El cuerpo como texto: UTF-8 si lo es y, si no, **ISO-8859-15**, que es
+/// lo que dice el pie de sus páginas. Casi todo Clickedu llega así sin
+/// decirlo en la cabecera (270 de 288 páginas, `docs/03`): leído como
+/// UTF-8, «Evaluación» saldría rota. Es Latin-1 salvo ocho letras (`€`,
+/// `Š`, `Œ`…).
+pub fn decodificar(cuerpo: &[u8]) -> String {
+    if let Ok(s) = std::str::from_utf8(cuerpo) {
+        return s.to_string();
+    }
+    cuerpo
+        .iter()
+        .map(|&b| match b {
+            0xA4 => '€',
+            0xA6 => 'Š',
+            0xA8 => 'š',
+            0xB4 => 'Ž',
+            0xB8 => 'ž',
+            0xBC => 'Œ',
+            0xBD => 'œ',
+            0xBE => 'Ÿ',
+            _ => b as char,
+        })
+        .collect()
 }
 
 /// Lo que devuelve [`Cliente::leer`].
@@ -422,6 +513,58 @@ mod tests {
         let fuera = tauri::async_runtime::block_on(cliente.leer(&format!("{}.otro.eu/", f.base)));
         assert!(fuera.is_err());
         assert_eq!(f.pedidas(), ["GET /user.php?action=login"]);
+    }
+
+    const ITEMS: &str = "/go/Index.php?ctr=Subject/Items&do=Index&id=101";
+
+    #[test]
+    fn abre_en_latin1() {
+        let f = falso::arrancar(Modo::Normal);
+        let cliente = Cliente::new(&f.base).unwrap();
+        tauri::async_runtime::block_on(cliente.entrar(USUARIO, CONTRASENA, ("a.txt", ARCHIVO_BUENO))).unwrap();
+        let abierta = tauri::async_runtime::block_on(cliente.abrir(ITEMS)).unwrap();
+        assert!(abierta.texto.contains("1ª evaluación"), "{}", abierta.texto);
+    }
+
+    #[test]
+    fn vuelve_a_entrar_si_caduca() {
+        let f = falso::arrancar(Modo::Caduca);
+        let cliente = Cliente::new(&f.base).unwrap();
+        tauri::async_runtime::block_on(cliente.entrar(USUARIO, CONTRASENA, ("a.txt", ARCHIVO_BUENO))).unwrap();
+        // La segunda de dentro (tras comprobar), aún con sesión.
+        assert!(tauri::async_runtime::block_on(cliente.abrir(ITEMS)).is_ok());
+        // La tercera, caducada: vuelve a entrar solo y la trae.
+        let abierta = tauri::async_runtime::block_on(cliente.abrir(ITEMS)).unwrap();
+        assert!(abierta.texto.contains("evaluación"));
+        let pedidas = f.pedidas();
+        let tras = &pedidas[pedidas.iter().rposition(|p| p.contains("Items")).unwrap() - 6..];
+        assert_eq!(
+            tras,
+            [
+                "GET /go/Index.php?ctr=Subject/Items&do=Index&id=101",
+                "POST /user.php?action=doLogin",
+                "GET /user.php?action=arxiuPas",
+                "POST /user.php?action=controlArxiuPas",
+                "GET /index.php",
+                "GET /go/Index.php?ctr=Subjects/Subjects",
+                "GET /go/Index.php?ctr=Subject/Items&do=Index&id=101",
+            ]
+        );
+    }
+
+    #[test]
+    fn sin_haber_entrado_no_entra_solo() {
+        let f = falso::arrancar(Modo::Normal);
+        let cliente = Cliente::new(&f.base).unwrap();
+        let hecho = tauri::async_runtime::block_on(cliente.abrir(ITEMS));
+        assert!(matches!(hecho, Err(Fallo::Otro { .. })), "{hecho:?}");
+        assert_eq!(f.pedidas(), [format!("GET {ITEMS}")]);
+    }
+
+    #[test]
+    fn decodifica_iso_8859_15() {
+        assert_eq!(decodificar("Evaluación".as_bytes()), "Evaluación");
+        assert_eq!(decodificar(b"Evaluaci\xf3n 1\xaa \xa4 \xbd"), "Evaluación 1ª € œ");
     }
 
     #[test]
