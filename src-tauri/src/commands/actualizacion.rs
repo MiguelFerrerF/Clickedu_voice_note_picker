@@ -64,18 +64,44 @@ pub async fn buscar_actualizacion(app: AppHandle) -> Result<Option<VersionNueva>
     Ok(Some(nueva))
 }
 
+/// Un fallo: la frase que se enseña, en castellano, y el detalle técnico del
+/// actualizador (en inglés), que va solo al registro.
+struct Fallo {
+    mensaje: String,
+    detalle: String,
+}
+
+impl From<String> for Fallo {
+    fn from(mensaje: String) -> Self {
+        Fallo { detalle: mensaje.clone(), mensaje }
+    }
+}
+
+impl From<&str> for Fallo {
+    fn from(mensaje: &str) -> Self {
+        mensaje.to_string().into()
+    }
+}
+
+/// Apunta el detalle en el registro y devuelve solo la frase.
+fn contar(app: &AppHandle, donde: &str, hecho: Result<(), Fallo>) -> Result<(), String> {
+    hecho.map_err(|f| {
+        if let Ok(r) = registro(app) {
+            r.fallo(donde, &f.detalle);
+        }
+        f.mensaje
+    })
+}
+
 /// Descarga la versión encontrada, con avance, y comprueba su firma. Si no
 /// casa, no se guarda nada y se dice.
 #[tauri::command]
 pub async fn descargar_actualizacion(app: AppHandle, avance: Channel<AvanceDescarga>) -> Result<(), String> {
     let hecho = descargar(&app, &avance).await;
-    if let (Err(e), Ok(r)) = (&hecho, registro(&app)) {
-        r.fallo("descargar_actualizacion", e);
-    }
-    hecho
+    contar(&app, "descargar_actualizacion", hecho)
 }
 
-async fn descargar(app: &AppHandle, avance: &Channel<AvanceDescarga>) -> Result<(), String> {
+async fn descargar(app: &AppHandle, avance: &Channel<AvanceDescarga>) -> Result<(), Fallo> {
     let update = {
         let p = pendiente(app)?;
         let cogido = p.0.lock().map_err(|e| e.to_string())?;
@@ -95,15 +121,21 @@ async fn descargar(app: &AppHandle, avance: &Channel<AvanceDescarga>) -> Result<
             || {},
         )
         .await
-        .map_err(|e| match e {
-            Error::Minisign(_)
-            | Error::SignatureUtf8(_)
-            | Error::Base64(_)
-            | Error::SignedVersionMismatch { .. }
-            | Error::MissingSignedVersion => {
-                format!("la firma de la v{} no es la nuestra: no se ha instalado nada ({e})", update.version)
-            }
-            otro => otro.to_string(),
+        .map_err(|e| {
+            let mensaje = match e {
+                Error::Minisign(_)
+                | Error::SignatureUtf8(_)
+                | Error::Base64(_)
+                | Error::SignedVersionMismatch { .. }
+                | Error::MissingSignedVersion => {
+                    format!("la firma de la v{} no es la nuestra: no se ha instalado nada", update.version)
+                }
+                _ => format!(
+                    "no se ha podido descargar la v{}: comprueba la conexión y vuelve a probar",
+                    update.version
+                ),
+            };
+            Fallo { mensaje, detalle: e.to_string() }
         })?;
     let p = pendiente(app)?;
     let mut cogido = p.0.lock().map_err(|e| e.to_string())?;
@@ -119,20 +151,25 @@ async fn descargar(app: &AppHandle, avance: &Channel<AvanceDescarga>) -> Result<
 /// llega a contestar.
 #[tauri::command]
 pub async fn instalar_actualizacion(app: AppHandle) -> Result<(), String> {
+    let hecho = instalar(&app).await;
+    contar(&app, "instalar_actualizacion", hecho)
+}
+
+async fn instalar(app: &AppHandle) -> Result<(), Fallo> {
     let (update, bytes) = {
-        let p = pendiente(&app)?;
+        let p = pendiente(app)?;
         let cogido = p.0.lock().map_err(|e| e.to_string())?;
         match cogido.as_ref() {
             Some((u, Some(b))) => (u.clone(), b.clone()),
             _ => return Err("no hay nada descargado que instalar".into()),
         }
     };
-    let hecho =
-        tauri::async_runtime::spawn_blocking(move || update.install(bytes.as_slice()).map_err(|e| e.to_string()))
-            .await
-            .map_err(|e| format!("el trabajo en segundo plano se ha caído: {e}"))?;
-    if let (Err(e), Ok(r)) = (&hecho, registro(&app)) {
-        r.fallo("instalar_actualizacion", e);
-    }
-    hecho
+    let version = update.version.clone();
+    tauri::async_runtime::spawn_blocking(move || update.install(bytes.as_slice()))
+        .await
+        .map_err(|e| format!("el trabajo en segundo plano se ha caído: {e}"))?
+        .map_err(|e| Fallo {
+            mensaje: format!("no se ha podido instalar la v{version}: la versión que tienes sigue igual"),
+            detalle: e.to_string(),
+        })
 }
