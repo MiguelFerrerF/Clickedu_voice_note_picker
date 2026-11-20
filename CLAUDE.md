@@ -23,9 +23,10 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > D: su procesador con AVX2 e importar un exportado en Clickedu (lo
 > pendiente de H2, como muy tarde en H6). **H4, la primera parte hecha y
 > probada con Clickedu de verdad** (2026-11-20: la cuenta, entrar y
-> comprobar, `clickedu/`; la pantalla Conexión, solo en desarrollo). Sigue
-> la segunda parte (`docs/01`): páginas reales anonimizadas para los
-> tests, volver a entrar solo y la capa resistente. La cuenta del usuario
+> comprobar, `clickedu/`; la pantalla Conexión, solo en desarrollo).
+> **Siguiente, antes de montar nada: investigar Clickedu solo leyendo**
+> (`explorar_clickedu`, el plan en `docs/01`, H4, «Antes de la segunda
+> parte»), y el mapa a `docs/03-clickedu.md`. Luego, la segunda parte. La cuenta del usuario
 > ya está guardada en la app. Clickedu no distingue «caducado» de
 > «incorrecto». La contraseña filtrada la cambia el administrador del
 > colegio (con el archivo nuevo, la filtrada ya deja entrar: hay que cambiarla).

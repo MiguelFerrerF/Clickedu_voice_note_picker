@@ -901,6 +901,70 @@ contraseña sola no se entra. Por eso H4 va en dos partes:
   import.meta.env.DEV`), con su prueba de diseño (`clickedu` y
   `clickedu-guardada`).
 
+**Antes de la segunda parte: investigar Clickedu, solo leyendo** (pedido
+por el usuario el 2026-11-20, para después del `/clear`). Antes de montar
+nada de H4–H6, un mapa **exhaustivo** de las páginas internas, la
+navegación y lo que se puede hacer en Clickedu, que va a
+`docs/03-clickedu.md`. Sin cambiar nada en Clickedu y sin que salgan
+nombres.
+
+*Cómo*: un ejemplo, `cargo run --example explorar_clickedu`, que entra
+con la cuenta guardada (`cuenta::leer` + `LlaveroWindows`; la contraseña no
+pasa por la conversación) y recorre la web desde la página de inicio.
+
+- **Solo leer.** Solo `GET` (el único `POST` es el de entrar). Solo el
+  host del colegio. **Se siguen solo los enlaces con verbo de leer o sin
+  verbo**: lista blanca de `do`/`accio`/`action` (`Index`, `See`, ver,
+  listar…). El resto (editar, guardar, importar, borrar, cargar, enviar,
+  salir) **no se abre**: se apunta como «lo que se puede hacer», con su
+  forma. Ojo: en la v1, importar y borrar un fichero subido son **`GET`**
+  (`accio=importar_notes`, `accio=esborrar_arxiu`): un enlace no es
+  inofensivo por ser un enlace. Ningún formulario se manda.
+- **Despacio y con tope**: una petición por segundo, un máximo de páginas
+  y de profundidad. Si vuelve la página de entrar, se para y se dice (eso
+  ya es un dato: cuánto dura la sesión).
+- **Lo crudo, solo en local**: las páginas tal cual, en
+  `%APPDATA%\es.gestornotas.app\clickedu\exploracion\` (con nombres de
+  alumnos: nunca en el repo ni en la conversación; se borran al acabar).
+  Lo descargable (un Excel, un PDF) no se guarda: solo su tipo y tamaño.
+- **Lo que se lee aquí es el informe**, sin nombres, como el de D8: cada
+  página con su ruta y los parámetros como forma (`id=▢5`), el título, los
+  enlaces agrupados por patrón (`ctr=…`, `do=…`, `accio=…`) con cuántos
+  hay, los formularios (acción, método, nombres de campo, `<select>` con
+  cuántas opciones, sin sus textos), las cabeceras de las tablas y qué
+  clases CSS llevan los datos. Los textos libres pasan a su forma, salvo
+  una lista blanca (rótulos de la interfaz).
+
+*Qué buscar*:
+
+1. **La navegación**: el menú tras entrar, qué controladores (`ctr=`)
+   hay, qué es de profesor.
+2. **Asignaturas** (`go/Index.php?ctr=Subjects/Subjects`, la v1 lee
+   `div.bloc-assignatura`): los ids, asignatura y curso/grupo, si hay
+   selector de curso académico, la misma asignatura en varios grupos.
+3. **Evaluaciones e ítems** (`ctr=Subject/Items&do=Index&id=`): el
+   `<select name="trm">`, los ítems (`a.popupEvent` con
+   `ctr=Subject/Item/Item&do=See&it=`) y su evaluación (`trm` del enlace
+   de editar). En la v1, el id del ítem (`it`) es el
+   `id_criteri_avaluacio` al subir.
+4. **Importar notas** (`assignatures/importar_notes_items.php?assig=&id_aval=`):
+   el formulario de carga, la lista de ficheros subidos y sus enlaces (sin
+   abrirlos), y la plantilla (`accio=descarregar_plantilla`): ¿es la misma
+   forma que lee `plantillas.rs`? (Se mira en local con
+   `revisar_plantillas`.)
+5. **Leer las notas de un ítem**: dónde se ven las notas ya puestas, para
+   que H6 compruebe que entraron (el popup `do=See`, otras vistas).
+6. **La sesión**: las cookies, cuánto dura, qué devuelve una caducada
+   (para volver a entrar solo).
+7. **Idioma y textos**: si la interfaz sale en castellano o en catalán, y
+   qué depende de textos (lo frágil) y qué de parámetros (lo resistente).
+8. **Lo demás que pueda servir**: listas de alumnos por grupo, el
+   calendario de evaluaciones, otras formas de poner notas.
+
+*Al acabar*: `docs/03-clickedu.md` con el mapa, lo que confirma o
+desmiente lo de la v1, y lo que cambia del plan de H4–H6. Se decide con el
+usuario antes de seguir.
+
 - [x] Login con usuario, contraseña y archivo de seguridad; credenciales en el
       Administrador de credenciales (D3). **Probado con Clickedu de verdad**
       (el usuario, 2026-11-20, con el archivo nuevo): entra a la primera y
