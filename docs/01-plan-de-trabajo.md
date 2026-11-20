@@ -740,9 +740,14 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
       tras volver a copiar. Con «Más tarde», se ofrece al abrir otra vez.
       Si copiar falla, se dice y la v1 se queda. En desarrollo no se toca
       la v1 de verdad (`GESTORNOTAS_V1`).
-- [ ] Probado de punta a punta en este ordenador, que tiene la v1.3.4:
-      instalar el borrador de CI, ver lo traído y quitarla. **Toca los
-      datos reales del usuario**: con su permiso.
+- [x] Probado de punta a punta en este ordenador, con la v1.3.4 de verdad
+      (2026-11-20, con permiso y con copia de seguridad en
+      `%USERPROFILE%\Copia Gestor de Notas antes de la v2 (2026-11-20)`):
+      el instalador del borrador de CI; las 7 plantillas, copiadas byte a
+      byte (sin el README ni nada más); lo que ya había en Documentos, sin
+      tocar; quitarla con el botón y el UAC. **El desinstalador de la v1
+      borra sus plantillas**: copiar antes era imprescindible. Deja
+      `%LOCALAPPDATA%\GestorNotasClickedu` con tres carpetas vacías.
 
 **C · Asegurar la app** — hecho el 2026-11-20
 
@@ -803,8 +808,8 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
    actualizador la baja con `Accept: application/octet-stream`), así que la
    comprobación exige esa, la del instalador del mismo borrador, y la
    firma del `.sig`. **Siguiente: el paso 7.**
-7. **Con permiso del usuario**, probar en este ordenador el instalador del
-   borrador: copia sus datos reales, cambia Ajustes y quita la v1 (UAC).
+7. ~~**Con permiso del usuario**, probar en este ordenador el instalador
+   del borrador~~ (hecho el 2026-11-20: ver B). **Siguiente: el paso 8.**
 8. Lo de D, y «Publish»: la v1.3.4 de esa persona la encuentra sola.
 9. Una `v2.0.1` para probar el actualizador de Tauri de verdad.
 
