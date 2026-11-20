@@ -26,9 +26,12 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > comprobar, `clickedu/`; la pantalla Conexión, solo en desarrollo).
 > **Clickedu, investigado solo leyendo** (2026-11-20,
 > `cargo run --example explorar_clickedu`): el mapa, en
-> [`docs/03-clickedu.md`](docs/03-clickedu.md). **Siguiente: decidir con el
-> usuario** lo que queda sin mirar (al final de `docs/03`) y luego la
-> segunda parte. Dentro de Clickedu, **nunca `/` ni `user.php`: cierran la
+> [`docs/03-clickedu.md`](docs/03-clickedu.md). **La capa resistente,
+> diseñada** (2026-11-20, `docs/01` H4: fichas por dato, bien/degradado/
+> roto, huellas sin nombres); el aviso automático por issue (D8 reabierta)
+> **espera** a hacer el repo privado, que rompe los actualizadores.
+> **Siguiente**: lo que queda sin mirar (al final de `docs/03`; el
+> explorador ya está preparado, sin commit) y luego la segunda parte. Dentro de Clickedu, **nunca `/` ni `user.php`: cierran la
 > sesión**. La cuenta del usuario ya está guardada en la app. Clickedu no distingue «caducado» de
 > «incorrecto». La contraseña filtrada la cambia el administrador del
 > colegio (con el archivo nuevo, la filtrada ya deja entrar: hay que cambiarla).
@@ -115,7 +118,8 @@ Cerradas el 2026-11-17 (D8, el 2026-11-19). No se reabren sin que el usuario lo 
   la respuesta buena del profesor, y un **informe sin nombres ni voz** que
   se manda a mano como fichero. Sale la forma del error, nunca su
   contenido. **El audio no se guarda** (2026-11-19); se mide en local con
-  `medir_registro`.
+  `medir_registro`. **Reabierta** (2026-11-20): un cambio de Clickedu se
+  avisa solo, por issue, cuando el repo sea privado (`docs/01`, D8).
 - **Clickedu no tiene API para esto**: la oficial no expone notas y no nos dan
   credenciales. Se lee la web, con una capa resistente (H4).
 

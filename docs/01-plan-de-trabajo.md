@@ -193,6 +193,20 @@ Whisper o del modelo se mide con las grabaciones del corpus (H3a), y un
 nombre concreto mal oído, grabando frases parecidas con la clase
 inventada.
 
+**Reabierta para Clickedu** (el usuario, 2026-11-20): cuando la app vea
+que Clickedu ha cambiado, **el aviso sale solo**, como un issue en GitHub,
+con la huella de la página (su forma, sin nombres; ver «Capa de Clickedu
+resistente» en H4). Activado de serie, **visible en Ajustes**: se dice que
+existe, se ve lo enviado y se puede apagar. **En espera**: un issue pide un
+token dentro del instalador, y eso solo se hace con el repo **privado**
+(el usuario lo quiere para uso interno). Hacerlo privado tal cual rompe
+los dos actualizadores (la v1.3.4 y la v2.0.0 buscan las versiones en este
+repo sin entrar); la salida propuesta es renombrarlo, hacerlo privado y
+crear uno público con el nombre de ahora solo para las versiones. El
+usuario prefiere **esperar** (2026-11-20). Hasta entonces, el aviso va al
+registro y al informe a mano. Sin vigilante diario: el usuario no lo
+quiere.
+
 ---
 
 ## Los hitos
@@ -994,10 +1008,30 @@ Clickedu) y `pasos` (las páginas de entrar, para diagnosticar en local).
       filtrada sigue valiendo**: solo la frena el archivo caducado; que el
       colegio la cambie antes de dar el archivo nuevo, o a la vez). Con el
       archivo nuevo, la v2 entra: lo manda como la v1.
-- [ ] **Capa de Clickedu resistente**: leer por los parámetros de las URLs
-      antes que por las clases CSS, varias estrategias por dato, error claro
-      («Clickedu ha cambiado: no encuentro los ítems») y el HTML guardado para
-      diagnosticar.
+- [ ] **Capa de Clickedu resistente** (diseño hablado con el usuario el
+      2026-11-20: que un cambio de Clickedu se sepa pronto y se sepa
+      arreglar):
+      1. **Cada dato, una ficha** (materias, evaluaciones, ítems,
+         plantilla, cuadrícula): cómo se busca, por orden de fiabilidad
+         (parámetros de las URLs y nombres de campos; luego la estructura;
+         al final textos y clases CSS), y **qué tiene que cumplir** lo
+         encontrado (ids numéricos, nombres no vacíos, evaluaciones con
+         fechas seguidas, los mismos alumnos en la plantilla y en la
+         cuadrícula, el `id` de la materia también como `assig`). Lo que no
+         cumple, no vale.
+      2. **Tres estados**: bien; **degradado** (falló la primera manera y
+         acertó otra, o la huella cambió: el profesor sigue y queda el aviso
+         temprano); **roto** («Clickedu ha cambiado: no encuentro los ítems
+         de la 1ª evaluación» y el plan B de H6). Subir notas, solo con la
+         página de importar «bien», y siempre se comprueba después.
+      3. **La huella de cada página**, sin nombres (la forma del
+         explorador): ruta y parámetros, formularios, campos, `<select>` y
+         las clases que se usan. Se guarda la última buena y se compara: la
+         diferencia dice qué cambió y dónde. Es lo que va en el aviso (D8).
+      4. **Para arreglarlo**: el HTML entero en local (`guardar_pagina`),
+         tests con páginas reales anonimizadas (la tarea de abajo) y una guía
+         en `docs/03`: capturar la nueva, añadirla como test, arreglar la
+         ficha y publicar.
 - [ ] Tests con páginas de Clickedu guardadas y anonimizadas; script para
       capturarlas.
 - [ ] Sesión caducada → volver a entrar sin que el usuario lo note.
