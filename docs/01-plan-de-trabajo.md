@@ -678,7 +678,7 @@ Un commit por bloque, como en HUI.
       actualizador. Con el TLS del sistema, como `reqwest`. Probado: una
       compilación firmada con una clave de prueba lleva `version:2.0.0` en
       la firma, y el plugin solo mira la versión, no el nombre del fichero.
-- [ ] **La clave**: la genera el usuario y no pasa por la conversación. La
+- [x] **La clave**: la genera el usuario y no pasa por la conversación. La
       pública ya está en `tauri.conf.json` (minisign `E99FFA4B21E16BB4`,
       2026-11-20; `npm run release` y CI se paran si vuelve el
       `PON_AQUI_LA_CLAVE_PUBLICA`); la privada y su
@@ -712,8 +712,9 @@ administrador**: aunque la carpeta es del usuario, la apunta en
 accesos directos para todos («Gestor de Notas Clickedu», que no choca con
 los de la v2). Quitarla pide permiso a Windows (UAC).
 
-- [ ] La v1.3.4 instala lo que encuentre sin comprobar nada (solo HTTPS):
-      **verificación en dos pasos en la cuenta de GitHub** (el usuario).
+- [x] La v1.3.4 instala lo que encuentre sin comprobar nada (solo HTTPS):
+      **verificación en dos pasos en la cuenta de GitHub** (ya la tenía
+      activada, 2026-11-20).
       El hash del subido frente al compilado ya lo comprueba CI.
 - [x] Al abrir la v2, si la v1 está (`migracion.rs`, por el registro:
       HKCU o HKLM, en las dos vistas): **copiar** sus plantillas y sus
@@ -750,8 +751,9 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
       `glib` (solo Linux).
 - [x] `gitleaks` sobre todo el historial, todas las ramas y el reflog:
       limpio.
-- [ ] En GitHub, el escaneo de secretos con bloqueo al hacer push (lo
-      activa el usuario). Y la contraseña de Clickedu que se filtró en
+- [x] En GitHub, el escaneo de secretos con bloqueo al hacer push:
+      activados (comprobado con `gh api` el 2026-11-20).
+- [ ] La contraseña de Clickedu que se filtró en
       `config.json`, **cambiada**: purgar el historial no la quita de las
       copias que GitHub y otros guardan.
 - No se firma el `.exe` con certificado de Windows: cuesta dinero y no
@@ -765,14 +767,18 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
    con contraseña. El `.key` y la contraseña, a su gestor de contraseñas.
    Claude lee **solo** el `.pub` y lo pone en `tauri.conf.json` en lugar de
    `PON_AQUI_LA_CLAVE_PUBLICA`.
-2. **Los secrets** en GitHub (Settings → Secrets and variables → Actions):
+2. ~~**Los secrets**~~ (hecho el 2026-11-20; la clave, puesta con
+   `--body` y recortada: por tubería, PowerShell 5.1 le añade un salto de
+   línea) en GitHub (Settings → Secrets and variables → Actions):
    `TAURI_SIGNING_PRIVATE_KEY` (el contenido del `.key`) y
    `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
-3. **Verificación en dos pasos** en la cuenta de GitHub, y en el repo el
+3. ~~**Verificación en dos pasos**~~ (las dos cosas, ya activadas) en la cuenta de GitHub, y en el repo el
    **escaneo de secretos con bloqueo al hacer push** (Settings → Code
    security).
 4. **Preguntar** si la contraseña de Clickedu filtrada en `config.json` se
-   cambió.
+   cambió. **Pendiente** (2026-11-20): el usuario no está seguro y la
+   cambiará cuando tenga un archivo de seguridad nuevo (el suyo está
+   caducado). No frena la `v2.0.0`.
 5. Revisar con el usuario `docs/releases/v2.0.0.md`.
 6. `npm run release 2.0.0` y el push del usuario: CI deja el **borrador**
    (sin «Publish» todavía). Si `release.yml` falla, se arregla aquí.
@@ -797,6 +803,10 @@ pasa a `main`, y la v1 queda en el tag `v1.3.4`.
 
 - [ ] Login con usuario, contraseña y archivo de seguridad; credenciales en el
       Administrador de credenciales (D3).
+- [ ] **El archivo de seguridad caduca** (visto el 2026-11-20): distinguir
+      «caducado» de «incorrecto» y decir que se pide otro al colegio. La v1
+      lo copiaba a una carpeta temporal (`__file__` en PyInstaller): la v2
+      lo guarda donde no se pierda.
 - [ ] **Capa de Clickedu resistente**: leer por los parámetros de las URLs
       antes que por las clases CSS, varias estrategias por dato, error claro
       («Clickedu ha cambiado: no encuentro los ítems») y el HTML guardado para
