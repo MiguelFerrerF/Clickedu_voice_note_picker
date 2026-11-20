@@ -1388,6 +1388,7 @@ dependencies = [
  "tauri-plugin-updater",
  "tempfile",
  "whisper-rs",
+ "windows-registry",
 ]
 
 [[package]]

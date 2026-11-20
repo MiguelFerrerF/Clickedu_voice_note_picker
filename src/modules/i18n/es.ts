@@ -237,6 +237,33 @@ const es = {
   'actualizacion.error_descarga': 'La descarga no ha salido bien',
   'actualizacion.error_instalar': 'No se ha instalado nada',
 
+  // ── La versión anterior (H7) ──
+  'v1.titulo': 'Tus datos de la versión anterior',
+  'v1.traidas': 'Se han copiado {clases} y {notas} de la versión anterior a:',
+  'v1.clases': '{n} clases',
+  'v1.clases_una': '1 clase',
+  'v1.notas': '{n} ficheros de notas',
+  'v1.notas_una': '1 fichero de notas',
+  'v1.ya_estaban': 'Tus clases y tus notas de la versión anterior ya están copiadas en:',
+  'v1.renombrados':
+    'Algunos ya estaban con otro contenido: no se han tocado, y los de la versión anterior han entrado como',
+  'v1.carpeta_cambiada':
+    'Ajustes usaba las plantillas de la carpeta de la versión anterior; ahora usa las de la copia.',
+  'v1.quitar': 'La versión anterior sigue instalada. Quítala para no tener dos.',
+  'v1.quitar_con_permiso':
+    'La versión anterior sigue instalada. Quítala para no tener dos: Windows te pedirá permiso para hacerlo.',
+  'v1.quitar_boton': 'Quitar la versión anterior',
+  'v1.quitando': 'Quitando la versión anterior',
+  'v1.quitando_boton': 'Quitando…',
+  'v1.quitada': 'Hecho: la versión anterior ya no está instalada.',
+  'v1.error': 'No se ha quitado la versión anterior',
+  'v1.reintentar': 'Volver a probar',
+  'v1.mas_tarde': 'Más tarde',
+  'v1.entendido': 'Entendido',
+  'v1.no_copiadas': 'No se han podido copiar tus datos de la versión anterior',
+  'v1.no_copiadas_pie':
+    'La versión anterior sigue instalada y con todo. Se volverá a intentar la próxima vez que abras la app.',
+
   // ── Muestrario (H0) ──
   'muestrario.titulo': 'Muestrario',
   'muestrario.subtitulo': 'Los componentes de la app con la paleta, para ver de un vistazo que un cambio no rompe nada. Solo existe en desarrollo.',

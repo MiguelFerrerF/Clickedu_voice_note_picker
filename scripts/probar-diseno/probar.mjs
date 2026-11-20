@@ -51,9 +51,10 @@ const TAMANOS = [
  * carpeta de plantillas: `llena`, `vacia` o `no_existe`; `modelo`, si el
  * modelo de voz ya está descargado; `auriculares`, si el micrófono elegido
  * en Ajustes son unos auriculares que no están conectados; `actualizacion`,
- * si hay una versión nueva al arrancar (H7).
+ * si hay una versión nueva al arrancar (H7); `v1`, si la v1.3.4 está
+ * instalada: `traida` (con una renombrada y la carpeta cambiada) o `fallo`.
  */
-function simular({carpeta, modelo, auriculares, actualizacion}) {
+function simular({carpeta, modelo, auriculares, actualizacion, v1}) {
   let n = 1;
   const ruta = 'C:\\Users\\profesora\\Documents\\Gestor de Notas\\plantillas';
   const bien = (alumnos, calificados, avisos = 0) => ({tipo: 'bien', alumnos, calificados, avisos});
@@ -225,6 +226,20 @@ function simular({carpeta, modelo, auriculares, actualizacion}) {
                 ],
               }
             : null;
+        case 'traer_de_la_v1':
+          if (v1 === 'fallo')
+            throw 'no se puede leer C:\\Users\\profesora\\AppData\\Local\\GestorNotasClickedu\\notas: Acceso denegado. (os error 5)';
+          return v1 === 'traida'
+            ? {
+                traido: {clases: 7, notas: 12, ya_estaban: 0, renombrados: ['matematicas_3_a_eso (de la v1).xlsx']},
+                plantillas: ruta,
+                notas: ruta.replace(/plantillas$/, 'notas'),
+                carpeta_cambiada: true,
+                pide_permiso: true,
+              }
+            : null;
+        case 'quitar_la_v1':
+          return null;
         case 'descargar_actualizacion':
           // Se queda descargando: la barra sin porcentaje.
           return new Promise(() => {});
@@ -549,6 +564,33 @@ const PRUEBAS = [
     },
   },
   {
+    // H7: los datos de la v1.3.4 traídos, y quitarla.
+    nombre: 'version-anterior',
+    v1: 'traida',
+    actualizacion: true,
+    async probar(page, paso) {
+      const dialogo = page.getByRole('dialog', {name: 'Tus datos de la versión anterior'});
+      await dialogo.waitFor();
+      await page.waitForTimeout(250);
+      await paso('traida');
+      await dialogo.getByRole('button', {name: 'Quitar la versión anterior'}).click();
+      await dialogo.getByText('Hecho', {exact: false}).waitFor();
+      await paso('quitada');
+      // Cerrado, sale el de la versión nueva.
+      await dialogo.getByRole('button', {name: 'Entendido'}).click();
+      await page.getByRole('dialog', {name: 'Nueva versión'}).waitFor();
+    },
+  },
+  {
+    nombre: 'version-anterior-fallo',
+    v1: 'fallo',
+    async probar(page, paso) {
+      await page.getByRole('dialog', {name: 'Tus datos de la versión anterior'}).waitFor();
+      await page.waitForTimeout(250);
+      await paso('fallo');
+    },
+  },
+  {
     // H7: a mano, desde el pie de la barra, y al día.
     nombre: 'al-dia',
     async probar(page, paso) {
@@ -604,6 +646,7 @@ try {
         modelo: prueba.modelo ?? true,
         auriculares: prueba.auriculares ?? false,
         actualizacion: prueba.actualizacion ?? false,
+        v1: prueba.v1 ?? null,
       });
       page.on('pageerror', (e) => fallos.push(`${prueba.nombre} ${tam}: error en la página: ${e.message}`));
       await page.goto(`http://localhost:${PUERTO}/`);

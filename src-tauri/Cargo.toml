@@ -53,6 +53,11 @@ tauri-plugin-updater = { version = "2.14.1", default-features = false, features 
 # sistema, como `reqwest`, y sin `zip`, que en Windows no hace falta.
 # Llegarán `scraper`/`keyring` en H4.
 
+[target.'cfg(windows)'.dependencies]
+# `windows-registry` encuentra la v1.3.4 para traer sus datos y desinstalarla
+# (H7, `migracion`). La misma que ya trae `reqwest`.
+windows-registry = "0.6.1"
+
 [dev-dependencies]
 # La prueba de voz de H3a (`examples/grabar_frases` y `probar_voz`): `hound`
 # escribe y lee los `.wav`, `crossterm` lee el teclado en la consola y

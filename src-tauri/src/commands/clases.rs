@@ -114,7 +114,7 @@ pub async fn abrir_carpeta_plantillas(app: AppHandle) -> Result<(), String> {
 }
 
 /// Guarda la carpeta nueva, la vigila y avisa a la interfaz.
-fn cambiar_carpeta(app: &AppHandle, ruta: Option<PathBuf>) -> Result<CarpetaPlantillas, String> {
+pub(crate) fn cambiar_carpeta(app: &AppHandle, ruta: Option<PathBuf>) -> Result<CarpetaPlantillas, String> {
     let mut a = leer_ajustes(app)?;
     a.carpeta_plantillas = ruta;
     ajustes::guardar(&ruta_ajustes(app)?, &a)?;

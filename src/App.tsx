@@ -13,13 +13,17 @@
  * - Cada pantalla lleva su propio scroll.
  * - Lo que comparten dos pantallas vive aquí: la clase que se califica
  *   (la eligen Calificar y Clases).
- * - Al arrancar se pregunta si hay una versión nueva (H7). Sin conexión no
- *   se dice nada: es lo normal en un portátil.
+ * - Al arrancar (H7) se traen los datos de la v1.3.4 si está instalada, y se
+ *   pregunta si hay una versión nueva. Sin conexión no se dice nada: es lo
+ *   normal en un portátil. Primero un diálogo y luego el otro.
  */
 
 import {useCallback, useEffect, useState} from 'react';
 
+import {invoke} from '@tauri-apps/api/core';
+
 import {DialogoActualizacion} from '@components/dialogs/DialogoActualizacion';
+import {DialogoVersionAnterior, type PasoV1, type ResultadoV1} from '@components/dialogs/DialogoVersionAnterior';
 import {Sidebar} from '@components/layout/Sidebar';
 import {buscarActualizacion, saltarVersion, versionSaltada, type VersionNueva} from '@modules/actualizacion';
 import {Ajustes} from '@screens/Ajustes';
@@ -44,6 +48,14 @@ export default function App() {
   }, [pantalla]);
 
   const irAAjustes = () => setPantalla('ajustes');
+
+  const [v1, setV1] = useState<ResultadoV1 | null>(null);
+  useEffect(() => {
+    invoke<PasoV1 | null>('traer_de_la_v1').then(
+      (paso) => setV1(paso ? {paso} : null),
+      (e) => setV1({error: String(e)}),
+    );
+  }, []);
 
   const [nueva, setNueva] = useState<VersionNueva | null>(null);
   useEffect(() => {
@@ -99,7 +111,8 @@ export default function App() {
           </div>
         ))}
       </main>
-      <DialogoActualizacion nueva={nueva} cerrar={cerrarActualizacion} saltar={saltarActualizacion} />
+      <DialogoVersionAnterior resultado={v1} cerrar={() => setV1(null)} />
+      <DialogoActualizacion nueva={v1 ? null : nueva} cerrar={cerrarActualizacion} saltar={saltarActualizacion} />
     </div>
   );
 }

@@ -13,6 +13,8 @@
 //!   local, y el informe sin nombres que se puede mandar.
 //! - `actualizacion` (H7) — las notas de una versión nueva; el resto lo
 //!   hace `tauri-plugin-updater`, que comprueba la firma.
+//! - `migracion` (H7) — traer las plantillas y las notas de la v1.3.4 y
+//!   desinstalarla.
 //! - `commands` — lo que la interfaz puede llamar.
 //!
 //! Llegará `clickedu` (H4–H6).
@@ -24,6 +26,7 @@ pub mod actualizacion;
 pub mod ajustes;
 pub mod commands;
 pub mod exportar;
+pub mod migracion;
 pub mod plantillas;
 pub mod registro;
 pub mod sesion;
@@ -69,6 +72,8 @@ pub fn run() {
             commands::actualizacion::buscar_actualizacion,
             commands::actualizacion::descargar_actualizacion,
             commands::actualizacion::instalar_actualizacion,
+            commands::migracion::traer_de_la_v1,
+            commands::migracion::quitar_la_v1,
         ])
         .setup(|app| {
             // El registro (D8), lo primero: así se apunta cualquier fallo,
