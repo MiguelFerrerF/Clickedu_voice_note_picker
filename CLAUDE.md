@@ -28,7 +28,7 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > tests, volver a entrar solo y la capa resistente. La cuenta del usuario
 > ya está guardada en la app. Clickedu no distingue «caducado» de
 > «incorrecto». La contraseña filtrada la cambia el administrador del
-> colegio (con el archivo nuevo, ella sola ya no basta: hay que cambiarla).
+> colegio (con el archivo nuevo, la filtrada ya deja entrar: hay que cambiarla).
 > **En espera** (`docs/01`, HUI): con lo que traigan H4–H8, volver a mirar
 > la distribución de cada pantalla, que ya ocupa la ventana entera.
 > Estadísticas y Conexión están escondidas en `Sidebar` (`HAY_ESTADISTICAS`,
