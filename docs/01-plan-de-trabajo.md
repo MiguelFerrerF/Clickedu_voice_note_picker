@@ -811,7 +811,10 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
 7. ~~**Con permiso del usuario**, probar en este ordenador el instalador
    del borrador~~ (hecho el 2026-11-20: ver B). **Siguiente: el paso 8.**
 8. Lo de D, y «Publish»: la v1.3.4 de esa persona la encuentra sola.
-9. Una `v2.0.1` para probar el actualizador de Tauri de verdad.
+9. Una `v2.0.1` para probar el actualizador de Tauri de verdad. Lleva
+   (pedido el 2026-11-20) quitar la carpeta de la v1 si solo le quedan
+   carpetas vacías (`migracion::quitar_si_vacia`), al quitarla y al
+   arrancar. Notas en `docs/releases/v2.0.1.md`, por revisar.
 
 **D · Antes de dársela a esa persona**
 

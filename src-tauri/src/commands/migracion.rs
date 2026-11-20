@@ -10,7 +10,8 @@
 //!    (UAC); por eso no se hace sola al arrancar.
 //!
 //! Mientras no se quite, cada arranque vuelve a copiar (lo que ya está
-//! igual cuenta como «ya estaba») y vuelve a ofrecer quitarla.
+//! igual cuenta como «ya estaba») y vuelve a ofrecer quitarla. Ya quitada,
+//! cada arranque quita su carpeta si solo quedan en ella carpetas vacías.
 //!
 //! **En desarrollo no se toca la v1 de verdad** (en el ordenador de
 //! desarrollo está instalada): solo se mira la carpeta de `GESTORNOTAS_V1`,
@@ -45,7 +46,10 @@ pub struct PasoV1 {
 #[tauri::command]
 pub async fn traer_de_la_v1(app: AppHandle) -> Result<Option<PasoV1>, String> {
     en_segundo_plano(app.clone(), "traer_de_la_v1", move || {
-        let Some(v1) = buscar() else { return Ok(None) };
+        let Some(v1) = buscar() else {
+            quitar_restos(&app);
+            return Ok(None);
+        };
         let documentos = app.path().document_dir().map_err(|e| e.to_string())?;
         let plantillas = ajustes::por_defecto(&documentos);
         let notas = carpeta_notas(&app)?;
@@ -76,9 +80,24 @@ pub async fn quitar_la_v1(app: AppHandle) -> Result<(), String> {
         let v1 = buscar().ok_or("la versión anterior ya no está instalada")?;
         let documentos = app.path().document_dir().map_err(|e| e.to_string())?;
         migracion::copiar(&v1.carpeta, &ajustes::por_defecto(&documentos), &carpeta_notas(&app)?)?;
-        desinstalar(&v1)
+        desinstalar(&v1)?;
+        // Su desinstalador deja la carpeta con subcarpetas vacías. Si aún
+        // estaba borrando, lo que quede se quita al abrir la app otra vez.
+        migracion::quitar_si_vacia(&v1.carpeta);
+        Ok(())
     })
     .await
+}
+
+/// Con la v1 ya quitada, lo que dejó su desinstalador: su carpeta, si solo
+/// le quedan carpetas vacías. En desarrollo no se toca la de verdad.
+fn quitar_restos(app: &AppHandle) {
+    if cfg!(debug_assertions) {
+        return;
+    }
+    if let Ok(local) = app.path().local_data_dir() {
+        migracion::quitar_si_vacia(&local.join(migracion::CARPETA_V1));
+    }
 }
 
 fn buscar() -> Option<V1> {

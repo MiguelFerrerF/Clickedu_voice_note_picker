@@ -20,8 +20,10 @@
 //!   está abierta. Si algo falla, la v1 se queda y se dice por qué; al abrir
 //!   la app otra vez se vuelve a intentar (lo ya copiado cuenta como «ya
 //!   estaba»).
-//! - Desinstalarla no borra lo que el usuario puso en su carpeta (Inno solo
-//!   quita lo que instaló), pero da igual: ya está copiado.
+//! - **Su desinstalador borra sus plantillas** (visto el 2026-11-20 con la
+//!   v1.3.4 de verdad): por eso se copia antes, siempre. Deja la carpeta con
+//!   sus subcarpetas vacías, que quita [`quitar_si_vacia`]: solo carpetas
+//!   sin un solo fichero dentro, nunca un fichero.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -36,6 +38,8 @@ pub const CLAVE_V1: &str = r"Software\Microsoft\Windows\CurrentVersion\Uninstall
 #[cfg(windows)]
 const CLAVE_V1_32: &str =
     r"Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Gestor de Notas Clickedu_is1";
+/// Su carpeta de instalación, dentro de `%LOCALAPPDATA%`.
+pub const CARPETA_V1: &str = "GestorNotasClickedu";
 /// Sus carpetas de datos, dentro de la de instalación.
 pub const PLANTILLAS_V1: &str = "plantillas_clickedu_aulas";
 pub const NOTAS_V1: &str = "notas";
@@ -183,6 +187,28 @@ pub fn apunta_a_la_v1(carpeta: &Path, v1: &Path) -> bool {
     c == v || c.starts_with(&format!("{v}\\"))
 }
 
+/// Lo que deja el desinstalador de la v1: quita `carpeta` si dentro solo hay
+/// carpetas vacías. Con un solo fichero en cualquier sitio, ese fichero y
+/// las carpetas que lo contienen se quedan. Los enlaces (y las uniones de
+/// Windows) no se siguen y cuentan como algo que hay. `true` si `carpeta`
+/// ya no está.
+pub fn quitar_si_vacia(carpeta: &Path) -> bool {
+    let Ok(entradas) = fs::read_dir(carpeta) else { return !carpeta.exists() };
+    let mut vacia = true;
+    for e in entradas {
+        let Ok(e) = e else {
+            vacia = false;
+            continue;
+        };
+        let es_carpeta = e.file_type().is_ok_and(|t| t.is_dir());
+        if !es_carpeta || !quitar_si_vacia(&e.path()) {
+            vacia = false;
+        }
+    }
+    // `remove_dir` no borra una carpeta con algo dentro, por si acaso.
+    vacia && fs::remove_dir(carpeta).is_ok()
+}
+
 fn crear(p: &Path, e: std::io::Error) -> String {
     format!("no se puede crear {}: {e}", p.display())
 }
@@ -267,6 +293,36 @@ mod tests {
         let raiz = carpeta_temporal("vacia");
         let t = copiar(&raiz.join("no-esta"), &raiz.join("p"), &raiz.join("n")).unwrap();
         assert_eq!(t, Traido::default());
+        fs::remove_dir_all(raiz).unwrap();
+    }
+
+    #[test]
+    fn lo_que_deja_el_desinstalador_se_quita() {
+        // Como quedó la v1.3.4 de verdad: tres carpetas vacías.
+        let raiz = carpeta_temporal("restos");
+        let v1 = raiz.join(CARPETA_V1);
+        fs::create_dir_all(v1.join(NOTAS_V1).join("notas_viejas")).unwrap();
+        fs::create_dir_all(v1.join(PLANTILLAS_V1)).unwrap();
+        assert!(quitar_si_vacia(&v1));
+        assert!(!v1.exists());
+        assert!(raiz.exists());
+        // Otra vez, o sin la carpeta: nada que hacer, y no falla.
+        assert!(quitar_si_vacia(&v1));
+        fs::remove_dir_all(raiz).unwrap();
+    }
+
+    #[test]
+    fn con_un_fichero_dentro_no_se_borra_nada_de_lo_que_lo_lleva() {
+        let raiz = carpeta_temporal("con-fichero");
+        let v1 = raiz.join(CARPETA_V1);
+        let viejas = v1.join(NOTAS_V1).join("notas_viejas");
+        fs::create_dir_all(&viejas).unwrap();
+        fs::create_dir_all(v1.join(PLANTILLAS_V1)).unwrap();
+        fs::write(viejas.join("notas_biologia_1.xlsx"), b"viejas").unwrap();
+        assert!(!quitar_si_vacia(&v1));
+        assert_eq!(fs::read(viejas.join("notas_biologia_1.xlsx")).unwrap(), b"viejas");
+        // La vacía de al lado sí se va.
+        assert!(!v1.join(PLANTILLAS_V1).exists());
         fs::remove_dir_all(raiz).unwrap();
     }
 
