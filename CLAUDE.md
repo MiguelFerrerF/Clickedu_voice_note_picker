@@ -12,13 +12,18 @@ está en esta rama**: vive en `main` y en el tag `v1.3.4`, que es la última
 publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-19): H3a, H3b y HUI cerrados.** En la rama
-> `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
-> **Siguiente: H7, adelantado** (el usuario, 2026-11-19): el actualizador
-> oficial de Tauri con firma, `release.yml`, el paso desde la v1.3.4 (copiar
-> sus plantillas y notas y desinstalarla) y asegurar la app; luego, la
-> `v2.0.0` a la única persona que tiene la v1. **Después, H4**. **En
-> espera** (`docs/01`, HUI): con lo que traigan
+> **Dónde se quedó (2026-11-20): H7, adelantado, a medias.** En la rama
+> `v2`, la única de la v2 (un commit por hito y otro al cerrarlo). Hechos
+> (`docs/01`, H7): el actualizador oficial de Tauri con firma,
+> `release.yml` y `npm run release` (no hace push), el paso desde la
+> v1.3.4 (copiar sus datos y quitarla con un botón: su instalador pide
+> administrador) y asegurar la app (CSP, `cargo audit`). **Falta del
+> usuario**: la clave de firma (la pública va en `tauri.conf.json`, hoy
+> `PON_AQUI_…`), los secrets, la verificación en dos pasos y el escaneo de
+> secretos; y **probarlo con la v1 de verdad de este ordenador, con su
+> permiso** (una compilación *release* abierta aquí ya copia sus datos).
+> Luego, la `v2.0.0` a la única persona que tiene la v1. **Después, H4**.
+> **En espera** (`docs/01`, HUI): con lo que traigan
 > H4–H8, volver a mirar la distribución de cada pantalla, que ya ocupa la
 > ventana entera. Estadísticas y Conexión están escondidas en `Sidebar`
 > (`HAY_ESTADISTICAS`, `HAY_CLICKEDU`): se encienden al hacerlas. El audio **no se
@@ -47,6 +52,7 @@ npm run tauri:dev        # la app
 npm run typecheck        # los tipos
 npm run probar:diseno    # pantallas a 960×640, 1100, 1280 y 1920, sin Tauri
 cd src-tauri; cargo test # los tests de Rust
+npm run release X.Y.Z    # versión, commit y tag (docs/releases/README.md)
 ```
 
 - **La prueba de diseño se pasa tras todo cambio visible y las capturas se

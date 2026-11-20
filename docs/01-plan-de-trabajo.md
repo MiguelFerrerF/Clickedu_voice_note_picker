@@ -668,55 +668,91 @@ que la v2 pierde frente a la v1.3.4 son las estadísticas (H8). Condición
 del usuario: **antes, el actualizador de Tauri y todo bien asegurado.**
 Un commit por bloque, como en HUI.
 
-**A · El actualizador de la v2** (D7)
+**A · El actualizador de la v2** (D7) — hecho el 2026-11-20, sin publicar
 
-- [ ] `tauri-plugin-updater` **oficial, con firma** (no el propio de
+- [x] `tauri-plugin-updater` **oficial, con firma** (no el propio de
       library-app, que existe porque su repo es privado y no comprueba
-      firmas). Clave pública en `tauri.conf.json`; la privada y su
+      firmas), con `requireSignedVersion`: la firma lleva la versión y no
+      se puede hacer pasar una vieja por nueva. Lo hace todo Rust
+      (`commands/actualizacion.rs`); la interfaz no tiene permisos del
+      actualizador. Con el TLS del sistema, como `reqwest`. Probado: una
+      compilación firmada con una clave de prueba lleva `version:2.0.0` en
+      la firma, y el plugin solo mira la versión, no el nombre del fichero.
+- [ ] **La clave**: la genera el usuario y no pasa por la conversación. La
+      pública va en `tauri.conf.json` (hoy `PON_AQUI_LA_CLAVE_PUBLICA`:
+      `npm run release` y CI se paran con ella); la privada y su
       contraseña, **solo** en los secrets de Actions
       (`TAURI_SIGNING_PRIVATE_KEY`, `…_PASSWORD`) y en una copia del
-      usuario fuera del repo. La genera el usuario: no pasa por la
-      conversación. Endpoint: `latest.json` de la última versión publicada.
-- [ ] `release.yml` como el de library-app por su estructura: un tag
+      usuario fuera del repo. Sin ella, la app instalada no acepta más
+      actualizaciones.
+- [x] `release.yml` como el de library-app por su estructura: un tag
       `vX.Y.Z` compila en `windows-latest` y deja un **borrador**;
-      «Publish» es a mano. Permisos mínimos, acciones fijadas por SHA, y
-      tres secrets: `GITHUB_TOKEN` y los dos de la firma. Sube el
-      instalador de Tauri con su `.sig`, el `latest.json` y **una copia
-      llamada `Instalador_GestorNotas.exe`** para la v1.3.4.
-- [ ] La versión igual en los cuatro ficheros (`scripts/release.mjs`) y
-      las notas en `docs/releases/vX.Y.Z.md`, como library-app.
-- [ ] El diálogo: busca al arrancar y a mano, nunca instala en silencio,
-      deja saltarse una versión; avance real al descargar.
+      «Publish» es a mano. Antes: notas, versión del tag en los cuatro
+      ficheros, clave pública puesta, `npm audit` y `cargo audit`.
+      Permisos mínimos, acciones fijadas por SHA, tres secrets. El
+      instalador sube **directamente como `Instalador_GestorNotas.exe`**
+      (`releaseAssetNamePattern`), con su `.sig` y `latest.json`: un solo
+      fichero para los dos actualizadores. Después comprueba que
+      `latest.json` apunta a esta versión y que el subido es el compilado
+      (SHA-256, en el resumen). Sin probar en CI todavía.
+- [x] La versión igual en los cuatro ficheros (`npm run release`, que **no
+      hace push**) y las notas en `docs/releases/vX.Y.Z.md`, como
+      library-app. Borrador de las de la `v2.0.0`, por revisar.
+- [x] El diálogo: busca al arrancar y a mano (pie de la barra), nunca
+      instala sin pulsar, deja saltarse una versión; avance real al
+      descargar. Insignias en neutro (D6). Con la prueba de diseño.
 
-**B · El paso desde la v1.3.4**
+**B · El paso desde la v1.3.4** — hecho el 2026-11-20, sin probar con la v1 de verdad
 
-La v1.3.4 está en `%LOCALAPPDATA%\GestorNotasClickedu\` (Inno Setup, por
-usuario; en el registro, `HKCU\…\Uninstall\Gestor de Notas Clickedu_is1`)
-y guarda **dentro** de esa carpeta `plantillas_clickedu_aulas\` y
-`notas\`. Desinstalarla antes de copiarlas las podría borrar.
+La v1.3.4 está en `%LOCALAPPDATA%\GestorNotasClickedu\` y guarda
+**dentro** `plantillas_clickedu_aulas\` y `notas\`. **Su instalador pide
+administrador**: aunque la carpeta es del usuario, la apunta en
+`HKLM\…\WOW6432Node\…\Uninstall\Gestor de Notas Clickedu_is1` y deja los
+accesos directos para todos («Gestor de Notas Clickedu», que no choca con
+los de la v2). Quitarla pide permiso a Windows (UAC).
 
 - [ ] La v1.3.4 instala lo que encuentre sin comprobar nada (solo HTTPS):
-      **verificación en dos pasos en la cuenta de GitHub** y, antes de
-      «Publish», el hash del instalador subido comparado con el de CI.
-- [ ] Al arrancar la v2 la primera vez, si la v1 está: **copiar** sus
-      plantillas y sus notas a `Documentos\Gestor de Notas\` (nunca
-      mover), comprobar que están todas, y solo entonces **desinstalar la
-      v1** (decidido por el usuario el 2026-11-19) con su `unins000.exe`
-      en silencio. Se dice qué se ha traído y que la v1 se ha quitado; si
-      algo falla, la v1 se queda y se dice por qué.
-- [ ] Probado de punta a punta en una máquina con la v1.3.4 instalada
-      (este ordenador lo está).
+      **verificación en dos pasos en la cuenta de GitHub** (el usuario).
+      El hash del subido frente al compilado ya lo comprueba CI.
+- [x] Al abrir la v2, si la v1 está (`migracion.rs`, por el registro:
+      HKCU o HKLM, en las dos vistas): **copiar** sus plantillas y sus
+      notas a `Documentos\Gestor de Notas\` (nunca mover), cada copia
+      comparada byte a byte, sin pisar nada (uno distinto entra como «…
+      (de la v1)»); si Ajustes apuntaba dentro de la v1, pasa a la copia.
+      Se dice en un diálogo. **Quitarla es un botón** de ese diálogo,
+      avisando de que Windows pedirá permiso (decidido al ver que su
+      instalador pide administrador: un UAC que salta solo al arrancar
+      asusta): su `unins000.exe` en silencio, solo con la v1 cerrada y
+      tras volver a copiar. Con «Más tarde», se ofrece al abrir otra vez.
+      Si copiar falla, se dice y la v1 se queda. En desarrollo no se toca
+      la v1 de verdad (`GESTORNOTAS_V1`).
+- [ ] Probado de punta a punta en este ordenador, que tiene la v1.3.4:
+      instalar el borrador de CI, ver lo traído y quitarla. **Toca los
+      datos reales del usuario**: con su permiso.
 
-**C · Asegurar la app**
+**C · Asegurar la app** — hecho el 2026-11-20
 
-- [ ] CSP estricta (hoy `csp: null`), con la app entera repasada con ella.
-- [ ] Capacidades: solo `core:default` hoy; revisar que ningún comando
-      acepte una ruta cualquiera desde la interfaz sin validarla.
-- [ ] Sin herramientas de desarrollo en la compilación publicada.
-- [ ] `cargo audit` y `npm audit` en CI.
-- [ ] `gitleaks` sobre todo el historial (las credenciales ya se filtraron
-      una vez, D3) y, en GitHub, el escaneo de secretos con bloqueo al hacer
-      push (lo activa el usuario).
+- [x] CSP estricta: sin `unsafe-eval` ni red salvo el IPC; Tauri añade el
+      hash de su script. Probada en la compilada (las tres pantallas sin
+      violaciones, con las fuentes y el logo); en `tauri dev` no se aplica.
+      En una de las tandas, la página se cayó una vez («Target crashed»)
+      y no se ha vuelto a ver en seis más: a vigilar.
+- [x] Capacidades: solo `core:default`. Los comandos que reciben un
+      fichero ya rechazan rutas (`leer_plantilla`, `mostrar_informe`).
+- [x] Sin herramientas de desarrollo en la compilación publicada (Tauri no
+      las compila sin la *feature* `devtools`).
+- [x] `cargo audit` y `npm audit`, en CI. `cargo audit` encontró
+      `calamine` 0.36 (se caía con un `.xls` malformado) y el `zip` 8.6
+      vulnerable: subidos `calamine` 0.38 y `rust_xlsxwriter` 0.103, con
+      todos los tests y las plantillas reales leídas igual. Quedan tres
+      avisos sin arreglo: `chrono` y `proc-macro-error` sin mantener,
+      `glib` (solo Linux).
+- [x] `gitleaks` sobre todo el historial, todas las ramas y el reflog:
+      limpio.
+- [ ] En GitHub, el escaneo de secretos con bloqueo al hacer push (lo
+      activa el usuario). Y la contraseña de Clickedu que se filtró en
+      `config.json`, **cambiada**: purgar el historial no la quita de las
+      copias que GitHub y otros guardan.
 - No se firma el `.exe` con certificado de Windows: cuesta dinero y no
   compra nada con una sola persona usándola.
 
