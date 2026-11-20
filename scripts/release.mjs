@@ -109,7 +109,7 @@ const resultado = FICHEROS.map(({ruta, sube, lee}) => {
     console.log(`  ↑ ${ruta}`);
     escribir(ruta, despues);
   }
-  return {ruta, quedaEn: lee(despues)};
+  return {ruta, quedaEn: lee(despues), cambia: antes !== despues};
 });
 
 // ── 2. Los cuatro, iguales ───────────────────────────────────────────────────
@@ -140,8 +140,18 @@ try {
   /* no existía, que es lo normal */
 }
 
-correr(`git add ${FICHEROS.map((f) => f.ruta).join(' ')} ${notas.ruta}`);
-correr(`git commit -m "chore: release v${version}"`);
+// Si la versión y las notas ya estaban en el último commit, no hay nada que
+// commitear: el tag va a ese commit (git commit fallaría con «nothing to commit»).
+const rutas = `${FICHEROS.map((f) => f.ruta).join(' ')} ${notas.ruta}`;
+const hayCambios =
+  resultado.some(({cambia}) => cambia) ||
+  execSync(`git status --porcelain -- ${rutas}`, {cwd: raiz}).toString().trim() !== '';
+if (hayCambios) {
+  correr(`git add ${rutas}`);
+  correr(`git commit -m "chore: release v${version}"`);
+} else {
+  console.log(`  · nada que commitear: la versión y las notas ya están en el último commit; el tag va a él`);
+}
 correr(`git tag v${version}`);
 
 const rama = execSync('git rev-parse --abbrev-ref HEAD', {cwd: raiz}).toString().trim();
