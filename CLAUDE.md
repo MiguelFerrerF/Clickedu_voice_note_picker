@@ -21,15 +21,14 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > (ya en `v2`, notas revisadas) para probar el actualizador de verdad,
 > **cuando la única persona que tenía la v1 tenga la `v2.0.0`**; y lo de
 > D: su procesador con AVX2 e importar un exportado en Clickedu (lo
-> pendiente de H2, como muy tarde en H6). **H4, la primera parte hecha**
-> (la cuenta y el login contra un Clickedu falso, `clickedu/`; la pantalla
-> Conexión, solo en desarrollo): falta probarla a mano y la segunda parte,
-> con Clickedu de verdad (`docs/01`). El archivo de seguridad caducado del
-> usuario está en su carpeta de Descargas: no se lee ni se copia. La
-> contraseña filtrada **sigue valiendo** (probado el 2026-11-20; solo la
-> frena el archivo caducado): la cambia el administrador del colegio, antes
-> de dar el archivo nuevo. Clickedu no distingue «caducado» de
-> «incorrecto».
+> pendiente de H2, como muy tarde en H6). **H4, la primera parte hecha y
+> probada con Clickedu de verdad** (2026-11-20: la cuenta, entrar y
+> comprobar, `clickedu/`; la pantalla Conexión, solo en desarrollo). Sigue
+> la segunda parte (`docs/01`): páginas reales anonimizadas para los
+> tests, volver a entrar solo y la capa resistente. La cuenta del usuario
+> ya está guardada en la app. Clickedu no distingue «caducado» de
+> «incorrecto». La contraseña filtrada la cambia el administrador del
+> colegio (con el archivo nuevo, ella sola ya no basta: hay que cambiarla).
 > **En espera** (`docs/01`, HUI): con lo que traigan H4–H8, volver a mirar
 > la distribución de cada pantalla, que ya ocupa la ventana entera.
 > Estadísticas y Conexión están escondidas en `Sidebar` (`HAY_ESTADISTICAS`,

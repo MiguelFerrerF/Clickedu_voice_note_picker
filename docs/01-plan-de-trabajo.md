@@ -901,9 +901,12 @@ contraseña sola no se entra. Por eso H4 va en dos partes:
   import.meta.env.DEV`), con su prueba de diseño (`clickedu` y
   `clickedu-guardada`).
 
-- [ ] Login con usuario, contraseña y archivo de seguridad; credenciales en el
-      Administrador de credenciales (D3). *Hecho contra el Clickedu falso;
-      falta el de verdad.*
+- [x] Login con usuario, contraseña y archivo de seguridad; credenciales en el
+      Administrador de credenciales (D3). **Probado con Clickedu de verdad**
+      (el usuario, 2026-11-20, con el archivo nuevo): entra a la primera y
+      pasa el paso de comprobar. Windows enseña la entrada como
+      `cuenta.es.gestornotas.app/clickedu` (`keyring` 3 la nombra
+      «usuario.servicio»).
 - [x] **El archivo de seguridad caduca** (visto el 2026-11-20): distinguir
       «caducado» de «incorrecto» y decir que se pide otro al colegio. La v1
       lo copiaba a una carpeta temporal (`__file__` en PyInstaller): la v2
@@ -914,8 +917,8 @@ contraseña sola no se entra. Por eso H4 va en dos partes:
       queda «no acepta el archivo; si es antiguo, puede haber caducado».
       Esa prueba dejó también dos cosas: el paso 1 entró (**la contraseña
       filtrada sigue valiendo**: solo la frena el archivo caducado; que el
-      colegio la cambie antes de dar el archivo nuevo, o a la vez), y falta
-      confirmar con un archivo bueno que la v2 lo manda como la v1.
+      colegio la cambie antes de dar el archivo nuevo, o a la vez). Con el
+      archivo nuevo, la v2 entra: lo manda como la v1.
 - [ ] **Capa de Clickedu resistente**: leer por los parámetros de las URLs
       antes que por las clases CSS, varias estrategias por dato, error claro
       («Clickedu ha cambiado: no encuentro los ítems») y el HTML guardado para
