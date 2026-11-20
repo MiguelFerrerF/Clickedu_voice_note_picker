@@ -3,8 +3,8 @@
 //! Llegan con la pantalla que los necesita, no antes. Hoy están los de las
 //! **Clases** y la carpeta de plantillas (H1), los de poner notas y
 //! exportarlas (H2), los del dictado (H3: el push-to-talk y entender lo
-//! dictado), los del registro (D8) y los de las actualizaciones y el paso
-//! desde la v1.3.4 (H7).
+//! dictado), los del registro (D8), los de las actualizaciones y el paso
+//! desde la v1.3.4 (H7) y los de la cuenta de Clickedu (H4).
 //!
 //! Regla que no se relaja (library-app): **ningún comando síncrono hace
 //! trabajo**. Todos son `async` y lo que toca disco pasa por
@@ -13,6 +13,7 @@
 
 pub mod actualizacion;
 pub mod clases;
+pub mod clickedu;
 pub mod migracion;
 pub mod notas;
 pub mod registro;

@@ -192,3 +192,28 @@ textarea:focus {
   outline: 2px solid var(--accent);
   outline-offset: 0;
 }
+
+/* ── El ojo del campo de la contraseña (H4): dentro del campo, a la
+   derecha; gris, y más oscuro al pasar. Enseña solo lo que se escribe. ── */
+.boton-ojo {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+.boton-ojo:hover { color: var(--text-secondary); background: var(--bg-hover); }
+.boton-ojo:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
+}

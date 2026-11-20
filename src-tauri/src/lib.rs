@@ -15,15 +15,15 @@
 //!   hace `tauri-plugin-updater`, que comprueba la firma.
 //! - `migracion` (H7) — traer las plantillas y las notas de la v1.3.4 y
 //!   desinstalarla.
+//! - `clickedu` (H4–H6) — la cuenta y la web de Clickedu.
 //! - `commands` — lo que la interfaz puede llamar.
-//!
-//! Llegará `clickedu` (H4–H6).
 //!
 //! Regla heredada de library-app: **ningún comando síncrono hace trabajo**.
 //! Todos `async`, y lo largo con progreso real hacia la interfaz.
 
 pub mod actualizacion;
 pub mod ajustes;
+pub mod clickedu;
 pub mod commands;
 pub mod exportar;
 pub mod migracion;
@@ -43,6 +43,7 @@ pub fn run() {
         .manage(commands::actualizacion::Pendiente::default())
         .manage(vigilante::Vigilante::default())
         .manage(sesion::Cerrojo::default())
+        .manage(commands::clickedu::Sesion::default())
         .manage(std::sync::Arc::new(commands::voz::Voz::default()))
         .invoke_handler(tauri::generate_handler![
             commands::clases::listar_clases,
@@ -74,6 +75,10 @@ pub fn run() {
             commands::actualizacion::instalar_actualizacion,
             commands::migracion::traer_de_la_v1,
             commands::migracion::quitar_la_v1,
+            commands::clickedu::cuenta_clickedu,
+            commands::clickedu::elegir_archivo_seguridad,
+            commands::clickedu::entrar_clickedu,
+            commands::clickedu::olvidar_cuenta_clickedu,
         ])
         .setup(|app| {
             // El registro (D8), lo primero: así se apunta cualquier fallo,

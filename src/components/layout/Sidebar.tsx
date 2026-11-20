@@ -17,7 +17,8 @@
  * diálogo, lo que sale se queda escrito junto a la versión.
  *
  * Lo que aún no hace nada no se enseña (HUI): Estadísticas sale en H8 y la
- * sección de Clickedu en H4. Sus pantallas siguen ahí, vacías.
+ * sección de Clickedu al cerrar H4 (en desarrollo, ya). Sus pantallas
+ * siguen ahí.
  */
 
 import {useState} from 'react';
@@ -32,9 +33,13 @@ import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
 import type {PantallaId} from '@/types/pantalla';
 
-/** A `true` cuando tengan algo: Estadísticas en H8, Clickedu en H4. */
+/**
+ * A `true` cuando tengan algo: Estadísticas en H8, Clickedu al cerrar H4.
+ * Clickedu, mientras, **solo en desarrollo**: la cuenta ya se puede probar,
+ * pero sin Clickedu de verdad aún no se sabe si entra.
+ */
 const HAY_ESTADISTICAS = false;
-const HAY_CLICKEDU = false;
+const HAY_CLICKEDU = import.meta.env.DEV;
 
 export interface SidebarProps {
   pantalla: PantallaId;

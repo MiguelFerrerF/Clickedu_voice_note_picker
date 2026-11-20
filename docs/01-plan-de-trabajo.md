@@ -879,8 +879,31 @@ contraseña sola no se entra. Por eso H4 va en dos partes:
   cambiado», con la página guardada **en local** para diagnosticar (no va
   en el informe de D8: puede llevar nombres).
 
+**La primera parte, hecha** (2026-11-20; falta probarla a mano):
+
+- `clickedu::cuenta`: usuario y contraseña juntos en **una** entrada del
+  Administrador de credenciales (`es.gestornotas.app/clickedu`; ni el
+  usuario va a un fichero); `cuenta.json` solo con el nombre del archivo y
+  la fecha. Un archivo de más de 64 KB no se manda (no es uno de
+  seguridad). `keyring` 3, que habla con Windows directamente.
+- `clickedu::cliente`: los dos pasos de la v1 y **un tercero nuevo,
+  comprobar** (pedir las asignaturas y que no mande a entrar): la v1 daba
+  por entrado todo lo que no decía «INCORRECTO». Se reconoce solo lo que
+  vio la v1 (`usrKO`, «Incorrecto», «Archivo de seguridad INCORRECTO»).
+- `clickedu::falso`: un Clickedu falso (`tiny_http`) con páginas
+  inventadas; 19 tests en `clickedu` (entrar, usuario malo, archivo malo, Clickedu
+  cambiado, acepta el archivo sin dejar pasar, caído, sin red).
+- Se guarda **en local** (`clickedu\paginas\`, las 10 últimas) la página
+  que no se entiende **y la del archivo rechazado**: así, el primer intento
+  con el archivo caducado de ahora ya deja lo que hace falta para la
+  segunda parte. «Olvidar la cuenta» las borra con todo.
+- La pantalla Conexión, **solo en desarrollo** (`HAY_CLICKEDU =
+  import.meta.env.DEV`), con su prueba de diseño (`clickedu` y
+  `clickedu-guardada`).
+
 - [ ] Login con usuario, contraseña y archivo de seguridad; credenciales en el
-      Administrador de credenciales (D3).
+      Administrador de credenciales (D3). *Hecho contra el Clickedu falso;
+      falta el de verdad.*
 - [ ] **El archivo de seguridad caduca** (visto el 2026-11-20): distinguir
       «caducado» de «incorrecto» y decir que se pide otro al colegio. La v1
       lo copiaba a una carpeta temporal (`__file__` en PyInstaller): la v2

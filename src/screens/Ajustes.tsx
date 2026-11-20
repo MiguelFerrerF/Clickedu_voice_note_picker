@@ -9,7 +9,7 @@
  * Y **mejorar el dictado** (D8): lo guardado en el registro, el informe para
  * mandarlo y borrarlo.
  *
- * La cuenta de Clickedu llega con H4.
+ * La cuenta de Clickedu no va aquí: está en la pantalla Conexión (H4).
  */
 
 import {invoke} from '@tauri-apps/api/core';

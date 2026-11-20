@@ -25,9 +25,11 @@ notify-debouncer-mini = "0.7.0"
 rust_xlsxwriter = "0.103.0"
 whisper-rs = "0.16"
 cpal = "0.18"
-reqwest = "0.12"
+reqwest = { version = "0.12", features = ["cookies", "multipart"] }
 sha2 = "0.10"
 tauri-plugin-updater = { version = "2.14.1", default-features = false, features = ["native-tls", "system-proxy"] }
+scraper = "0.29.0"
+keyring = { version = "3", features = ["windows-native"] }
 
 # Cada dependencia llega con el hito que la usa, con su motivo, como en
 # library-app:
@@ -51,7 +53,11 @@ tauri-plugin-updater = { version = "2.14.1", default-features = false, features 
 # `tauri-plugin-updater` es el actualizador (H7, D7): el oficial, que
 # comprueba la firma de cada versión antes de instalarla. Con el TLS del
 # sistema, como `reqwest`, y sin `zip`, que en Windows no hace falta.
-# Llegarán `scraper`/`keyring` en H4.
+# Con Clickedu (H4), `reqwest` lleva `cookies` (la sesión) y `multipart`
+# (el archivo de seguridad se sube como un formulario). `scraper` lee su
+# HTML, que no tiene API para esto. `keyring` guarda la contraseña en el
+# Administrador de credenciales de Windows (D3), nunca en un fichero: la 3,
+# que es la que habla con él directamente (la 4 lo reparte en varios crates).
 
 [target.'cfg(windows)'.dependencies]
 # `windows-registry` encuentra la v1.3.4 para traer sus datos y desinstalarla
@@ -69,3 +75,6 @@ hound = "3.5"
 # así no hay ningún Excel binario en el repo y cada test dice qué hay en la
 # suya.
 tempfile = "3.27.0"
+# El Clickedu falso de los tests de `clickedu` (H4): un servidor HTTP en un
+# hilo, con páginas inventadas de la forma que tienen las de verdad.
+tiny_http = "0.12.0"

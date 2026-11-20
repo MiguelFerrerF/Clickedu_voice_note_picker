@@ -52,9 +52,10 @@ const TAMANOS = [
  * modelo de voz ya está descargado; `auriculares`, si el micrófono elegido
  * en Ajustes son unos auriculares que no están conectados; `actualizacion`,
  * si hay una versión nueva al arrancar (H7); `v1`, si la v1.3.4 está
- * instalada: `traida` (con una renombrada y la carpeta cambiada) o `fallo`.
+ * instalada: `traida` (con una renombrada y la carpeta cambiada) o `fallo`;
+ * `clickedu`, si ya hay una cuenta de Clickedu guardada (H4).
  */
-function simular({carpeta, modelo, auriculares, actualizacion, v1}) {
+function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu}) {
   let n = 1;
   const ruta = 'C:\\Users\\profesora\\Documents\\Gestor de Notas\\plantillas';
   const bien = (alumnos, calificados, avisos = 0) => ({tipo: 'bien', alumnos, calificados, avisos});
@@ -243,6 +244,27 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1}) {
         case 'descargar_actualizacion':
           // Se queda descargando: la barra sin porcentaje.
           return new Promise(() => {});
+        // H4: la cuenta de Clickedu. La contraseña «mala» no entra, y
+        // cambiar el archivo de una cuenta guardada da el de «no lo acepta».
+        case 'cuenta_clickedu':
+          return clickedu
+            ? {usuario: 'profesora.fernandez.villalobos', archivo: 'archivo_seguridad_3062.txt', elegido: 1795132800}
+            : null;
+        case 'elegir_archivo_seguridad':
+          return 'C:\\Users\\profesora\\Downloads\\archivo_seguridad_de_la_profesora_curso_2026_2027_3062.txt';
+        case 'entrar_clickedu':
+          await new Promise((r) => setTimeout(r, 400));
+          if (args.contrasena === 'mala') throw {tipo: 'usuario'};
+          if (args.archivo && !args.usuario) throw {tipo: 'archivo'};
+          if (args.usuario === 'sinred')
+            throw {tipo: 'sin_conexion', detalle: 'error sending request: client error (Connect): tcp connect error: Se ha agotado el tiempo de espera (os error 10060)'};
+          return {
+            usuario: args.usuario ?? 'profesora.fernandez.villalobos',
+            archivo: 'archivo_seguridad_de_la_profesora_curso_2026_2027_3062.txt',
+            elegido: 1795219200,
+          };
+        case 'olvidar_cuenta_clickedu':
+          return null;
         case 'exportar_clase':
           return {
             ruta: `${ruta.replace(/plantillas$/, 'notas')}\\notas_${args.fichero.replace(/\.xlsx?$/, '')}.xlsx`,
@@ -599,7 +621,67 @@ const PRUEBAS = [
       await paso('barra');
     },
   },
-  // Estadísticas y Conexión, escondidas hasta H8 y H4 (HUI): sin prueba.
+  // Estadísticas, escondida hasta H8 (HUI): sin prueba.
+  {
+    // H4: la cuenta, sin guardar. Vacía, la contraseña con el ojo, un
+    // usuario que no entra, sin red y entrar bien (en verde).
+    nombre: 'clickedu',
+    async probar(page, paso) {
+      await ir(page, 'Conexión', 'clickedu');
+      const main = page.locator('[data-pantalla="clickedu"]');
+      const entrar = main.getByRole('button', {name: 'Entrar', exact: true});
+      await entrar.waitFor();
+      if (!(await entrar.isDisabled())) throw new Error('«Entrar» se puede pulsar sin nada escrito');
+      await paso('vacia');
+      await main.getByLabel('Usuario').fill('profesora.fernandez.villalobos');
+      await main.getByLabel('Contraseña', {exact: true}).fill('mala');
+      await main.getByRole('button', {name: 'Enseñar la contraseña'}).click();
+      await main.getByRole('button', {name: 'Elegir archivo…'}).click();
+      await main.getByText('archivo_seguridad_de_la_profesora', {exact: false}).waitFor();
+      await paso('rellena');
+      await entrar.click();
+      await main.getByText('Entrando en Clickedu').waitFor();
+      await paso('entrando');
+      await main.getByText('no son correctos').waitFor();
+      await paso('usuario-mal');
+      await main.getByLabel('Usuario').fill('sinred');
+      await main.getByLabel('Contraseña', {exact: true}).fill('buena');
+      await entrar.click();
+      await main.getByText('No se puede llegar').waitFor();
+      await paso('sin-red');
+      await main.getByLabel('Usuario').fill('profesora.fernandez.villalobos');
+      await entrar.click();
+      await main.getByText('Has entrado en Clickedu').waitFor();
+      await paso('entrado');
+    },
+  },
+  {
+    // H4: con la cuenta guardada. Cambiar el archivo y que no lo acepte,
+    // cambiar la contraseña y olvidar la cuenta.
+    nombre: 'clickedu-guardada',
+    clickedu: true,
+    async probar(page, paso) {
+      await ir(page, 'Conexión', 'clickedu');
+      const main = page.locator('[data-pantalla="clickedu"]');
+      await main.getByText('profesora.fernandez.villalobos').waitFor();
+      await paso('guardada');
+      await main.getByRole('button', {name: 'Cambiar archivo…'}).click();
+      await main.getByText('puede haber caducado', {exact: false}).waitFor();
+      await paso('archivo-mal');
+      await main.getByRole('button', {name: 'Cambiar contraseña'}).click();
+      await main.getByLabel('Contraseña nueva').waitFor();
+      await paso('cambiar-contrasena');
+      await main.getByRole('button', {name: 'Cancelar'}).click();
+      await main.getByRole('button', {name: 'Olvidar la cuenta'}).click();
+      await page.getByRole('dialog').waitFor();
+      // Que acabe de entrar el diálogo.
+      await page.waitForTimeout(250);
+      await paso('olvidar');
+      await page.getByRole('dialog').getByRole('button', {name: 'Olvidar', exact: true}).click();
+      await main.getByRole('button', {name: 'Entrar', exact: true}).waitFor();
+      await paso('olvidada');
+    },
+  },
   {
     nombre: 'muestrario',
     async probar(page, paso) {
@@ -647,6 +729,7 @@ try {
         auriculares: prueba.auriculares ?? false,
         actualizacion: prueba.actualizacion ?? false,
         v1: prueba.v1 ?? null,
+        clickedu: prueba.clickedu ?? false,
       });
       page.on('pageerror', (e) => fallos.push(`${prueba.nombre} ${tam}: error en la página: ${e.message}`));
       await page.goto(`http://localhost:${PUERTO}/`);
