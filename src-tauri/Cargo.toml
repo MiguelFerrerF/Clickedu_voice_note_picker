@@ -19,14 +19,15 @@ tauri-build = { version = "2", features = [] }
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-calamine = "0.36"
+calamine = "0.38"
 tauri-plugin-dialog = "2.7.3"
 notify-debouncer-mini = "0.7.0"
-rust_xlsxwriter = "0.99.1"
+rust_xlsxwriter = "0.103.0"
 whisper-rs = "0.16"
 cpal = "0.18"
 reqwest = "0.12"
 sha2 = "0.10"
+tauri-plugin-updater = { version = "2.14.1", default-features = false, features = ["native-tls", "system-proxy"] }
 
 # Cada dependencia llega con el hito que la usa, con su motivo, como en
 # library-app:
@@ -47,6 +48,9 @@ sha2 = "0.10"
 # TLS por defecto en Windows es el del sistema (schannel) y no pide nada más
 # para compilar. Con ella hablará con Clickedu (H4). `sha2`, la que ya trae
 # Tauri.
+# `tauri-plugin-updater` es el actualizador (H7, D7): el oficial, que
+# comprueba la firma de cada versión antes de instalarla. Con el TLS del
+# sistema, como `reqwest`, y sin `zip`, que en Windows no hace falta.
 # Llegarán `scraper`/`keyring` en H4.
 
 [dev-dependencies]

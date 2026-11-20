@@ -11,6 +11,8 @@
 //! - `voz` (H3) — del micrófono al texto, con Whisper local.
 //! - `registro` (D8) — lo no entendido, lo corregido y los fallos, en
 //!   local, y el informe sin nombres que se puede mandar.
+//! - `actualizacion` (H7) — las notas de una versión nueva; el resto lo
+//!   hace `tauri-plugin-updater`, que comprueba la firma.
 //! - `commands` — lo que la interfaz puede llamar.
 //!
 //! Llegará `clickedu` (H4–H6).
@@ -18,6 +20,7 @@
 //! Regla heredada de library-app: **ningún comando síncrono hace trabajo**.
 //! Todos `async`, y lo largo con progreso real hacia la interfaz.
 
+pub mod actualizacion;
 pub mod ajustes;
 pub mod commands;
 pub mod exportar;
@@ -33,6 +36,8 @@ use tauri::Manager;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .manage(commands::actualizacion::Pendiente::default())
         .manage(vigilante::Vigilante::default())
         .manage(sesion::Cerrojo::default())
         .manage(std::sync::Arc::new(commands::voz::Voz::default()))
@@ -61,6 +66,9 @@ pub fn run() {
             commands::registro::preparar_informe,
             commands::registro::mostrar_informe,
             commands::registro::borrar_registro,
+            commands::actualizacion::buscar_actualizacion,
+            commands::actualizacion::descargar_actualizacion,
+            commands::actualizacion::instalar_actualizacion,
         ])
         .setup(|app| {
             // El registro (D8), lo primero: así se apunta cualquier fallo,

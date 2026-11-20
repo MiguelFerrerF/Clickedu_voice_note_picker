@@ -13,11 +13,15 @@
  * - Cada pantalla lleva su propio scroll.
  * - Lo que comparten dos pantallas vive aquí: la clase que se califica
  *   (la eligen Calificar y Clases).
+ * - Al arrancar se pregunta si hay una versión nueva (H7). Sin conexión no
+ *   se dice nada: es lo normal en un portátil.
  */
 
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 
+import {DialogoActualizacion} from '@components/dialogs/DialogoActualizacion';
 import {Sidebar} from '@components/layout/Sidebar';
+import {buscarActualizacion, saltarVersion, versionSaltada, type VersionNueva} from '@modules/actualizacion';
 import {Ajustes} from '@screens/Ajustes';
 import {Calificar} from '@screens/Calificar';
 import {Clases} from '@screens/Clases';
@@ -40,6 +44,20 @@ export default function App() {
   }, [pantalla]);
 
   const irAAjustes = () => setPantalla('ajustes');
+
+  const [nueva, setNueva] = useState<VersionNueva | null>(null);
+  useEffect(() => {
+    buscarActualizacion()
+      .then((v) => {
+        if (v && v.version !== versionSaltada()) setNueva(v);
+      })
+      .catch(() => {});
+  }, []);
+  const cerrarActualizacion = useCallback(() => setNueva(null), []);
+  const saltarActualizacion = useCallback((version: string) => {
+    saltarVersion(version);
+    setNueva(null);
+  }, []);
 
   function renderizar(id: PantallaId) {
     switch (id) {
@@ -70,7 +88,7 @@ export default function App() {
 
   return (
     <div style={{display: 'flex', height: '100vh', overflow: 'hidden'}}>
-      <Sidebar pantalla={pantalla} setPantalla={setPantalla} />
+      <Sidebar pantalla={pantalla} setPantalla={setPantalla} alEncontrar={setNueva} />
       <main style={{flex: 1, minWidth: 0, overflow: 'hidden'}}>
         {[...visitadas].map((id) => (
           <div
@@ -81,6 +99,7 @@ export default function App() {
           </div>
         ))}
       </main>
+      <DialogoActualizacion nueva={nueva} cerrar={cerrarActualizacion} saltar={saltarActualizacion} />
     </div>
   );
 }

@@ -58,5 +58,17 @@
     "copyright": "© 2026 Miguel Ferrer",
     "shortDescription": "Dictado de notas por voz para Clickedu",
     "longDescription": "Pon las notas de tus alumnos dictándolas por voz o con el teclado, sobre las plantillas de Clickedu, y súbelas a Clickedu sin pasar por el navegador."
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "PON_AQUI_LA_CLAVE_PUBLICA",
+      "endpoints": [
+        "https://github.com/MiguelFerrerF/Clickedu_voice_note_picker/releases/latest/download/latest.json"
+      ],
+      "requireSignedVersion": true,
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

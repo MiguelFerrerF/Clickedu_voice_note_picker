@@ -211,6 +211,32 @@ const es = {
   'registro.cancelar': 'Cancelar',
   'registro.borrar_si': 'Borrar',
 
+  // ── Actualizaciones (H7) ──
+  'actualizacion.buscar': 'Buscar actualizaciones',
+  'actualizacion.buscando': 'Buscando…',
+  'actualizacion.al_dia': 'al día',
+  'actualizacion.sin_conexion': 'no se ha podido mirar',
+  'actualizacion.etiqueta': 'Nueva versión',
+  'actualizacion.actual': 'ahora: v{version}',
+  'actualizacion.publicada': 'Publicada el {fecha}',
+  'actualizacion.tipo_feat': 'Nuevo',
+  'actualizacion.tipo_fix': 'Arreglo',
+  'actualizacion.tipo_perf': 'Más rápido',
+  'actualizacion.tipo_chore': 'Info',
+  'actualizacion.saltar': 'Saltar esta versión',
+  'actualizacion.mas_tarde': 'Más tarde',
+  'actualizacion.descargar': 'Descargar',
+  'actualizacion.descargando': 'Descargando la versión nueva (MB)',
+  'actualizacion.descargando_boton': 'Descargando…',
+  'actualizacion.lista':
+    'Descargada y con la firma comprobada. Al instalar, la app se cierra y vuelve a abrirse ya actualizada; tus notas se quedan.',
+  'actualizacion.instalar': 'Instalar y reiniciar',
+  'actualizacion.instalando': 'Abriendo el instalador…',
+  'actualizacion.instalando_boton': 'Instalando…',
+  'actualizacion.reintentar': 'Reintentar',
+  'actualizacion.error_descarga': 'La descarga no ha salido bien',
+  'actualizacion.error_instalar': 'No se ha instalado nada',
+
   // ── Muestrario (H0) ──
   'muestrario.titulo': 'Muestrario',
   'muestrario.subtitulo': 'Los componentes de la app con la paleta, para ver de un vistazo que un cambio no rompe nada. Solo existe en desarrollo.',

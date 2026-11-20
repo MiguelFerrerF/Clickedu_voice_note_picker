@@ -12,16 +12,21 @@
  * - **Clickedu**: la conexión, traer plantillas y subir notas.
  * - **Aplicación**: Ajustes y, solo en desarrollo, el Muestrario.
  *
- * Al pie, la versión. «Buscar actualizaciones» llega en H7.
+ * Al pie, la versión y «Buscar actualizaciones» (H7): la app ya mira sola
+ * al arrancar, esto es para no esperar. Si no hay nada que enseñar en el
+ * diálogo, lo que sale se queda escrito junto a la versión.
  *
  * Lo que aún no hace nada no se enseña (HUI): Estadísticas sale en H8 y la
  * sección de Clickedu en H4. Sus pantallas siguen ahí, vacías.
  */
 
+import {useState} from 'react';
+
 import logo from '@/assets/logo.png';
 import {NavItem} from './NavItem';
 import {SidebarSection} from './SidebarSection';
 import {ICONOS} from '@components/ui/Icon';
+import {buscarActualizacion, type VersionNueva} from '@modules/actualizacion';
 import {VERSION_ACTUAL} from '@modules/app/version';
 import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
@@ -34,9 +39,11 @@ const HAY_CLICKEDU = false;
 export interface SidebarProps {
   pantalla: PantallaId;
   setPantalla: (p: PantallaId) => void;
+  /** Hay una versión nueva: la enseña el diálogo de `App`. */
+  alEncontrar: (v: VersionNueva) => void;
 }
 
-export function Sidebar({pantalla, setPantalla}: SidebarProps) {
+export function Sidebar({pantalla, setPantalla, alEncontrar}: SidebarProps) {
   useIdioma();
 
   const entrada = (id: PantallaId, icono: string | readonly string[], rotulo: string) => (
@@ -125,8 +132,49 @@ export function Sidebar({pantalla, setPantalla}: SidebarProps) {
           fontSize: 10.5,
           color: 'var(--text-tertiary)',
         }}>
-        {t('comun.version', {version: VERSION_ACTUAL})}
+        <BuscarActualizacion alEncontrar={alEncontrar} />
       </div>
     </aside>
+  );
+}
+
+function BuscarActualizacion({alEncontrar}: {alEncontrar: (v: VersionNueva) => void}) {
+  const [buscando, setBuscando] = useState(false);
+  const [resultado, setResultado] = useState<string | null>(null);
+
+  const buscar = () => {
+    setBuscando(true);
+    setResultado(null);
+    buscarActualizacion()
+      .then((v) => (v ? alEncontrar(v) : setResultado(t('actualizacion.al_dia'))))
+      .catch(() => setResultado(t('actualizacion.sin_conexion')))
+      .finally(() => setBuscando(false));
+  };
+
+  return (
+    <>
+      <div>
+        {t('comun.version', {version: VERSION_ACTUAL})}
+        {resultado && ` · ${resultado}`}
+      </div>
+      <div style={{marginTop: 3}}>
+        {buscando ? (
+          t('actualizacion.buscando')
+        ) : (
+          <button
+            type="button"
+            onClick={buscar}
+            style={{
+              all: 'unset',
+              cursor: 'pointer',
+              color: 'var(--text-secondary)',
+              textDecoration: 'underline',
+              textUnderlineOffset: 2,
+            }}>
+            {t('actualizacion.buscar')}
+          </button>
+        )}
+      </div>
+    </>
   );
 }

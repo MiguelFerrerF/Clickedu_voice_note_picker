@@ -50,9 +50,10 @@ const TAMANOS = [
  * no se lee, notas que no son nota, un alumno sin nombre. `carpeta` elige la
  * carpeta de plantillas: `llena`, `vacia` o `no_existe`; `modelo`, si el
  * modelo de voz ya está descargado; `auriculares`, si el micrófono elegido
- * en Ajustes son unos auriculares que no están conectados.
+ * en Ajustes son unos auriculares que no están conectados; `actualizacion`,
+ * si hay una versión nueva al arrancar (H7).
  */
-function simular({carpeta, modelo, auriculares}) {
+function simular({carpeta, modelo, auriculares, actualizacion}) {
   let n = 1;
   const ruta = 'C:\\Users\\profesora\\Documents\\Gestor de Notas\\plantillas';
   const bien = (alumnos, calificados, avisos = 0) => ({tipo: 'bien', alumnos, calificados, avisos});
@@ -207,6 +208,26 @@ function simular({carpeta, modelo, auriculares}) {
             : {dictados: 0, seguros: 0, preguntados: 0, noEntendidos: 0, corregidos: 0, fallos: 0, desde: null};
         case 'preparar_informe':
           return `${ruta.replace(/plantillas$/, 'informes')}\\informe-2026-11-19.json`;
+        case 'buscar_actualizacion':
+          // H7: con titular largo y los cuatro tipos de cambio.
+          return actualizacion
+            ? {
+                version: '2.1.0',
+                actual: '2.0.0',
+                publicada: '2026-12-03',
+                titular:
+                  'El dictado entiende mejor los nombres compuestos y te pregunta menos; y Clickedu, por fin desde la app.',
+                entradas: [
+                  {tipo: 'feat', texto: 'Conectar con Clickedu y traer las plantillas sin pasar por el navegador.'},
+                  {tipo: 'fix', texto: 'Los nombres con dos apellidos compuestos ya no se confunden.'},
+                  {tipo: 'perf', texto: 'La primera frase dictada tarda la mitad.'},
+                  {tipo: 'chore', texto: 'El registro guarda seis meses, como antes.'},
+                ],
+              }
+            : null;
+        case 'descargar_actualizacion':
+          // Se queda descargando: la barra sin porcentaje.
+          return new Promise(() => {});
         case 'exportar_clase':
           return {
             ruta: `${ruta.replace(/plantillas$/, 'notas')}\\notas_${args.fichero.replace(/\.xlsx?$/, '')}.xlsx`,
@@ -513,6 +534,29 @@ const PRUEBAS = [
       await paso('ajustes');
     },
   },
+  {
+    // H7: una versión nueva al arrancar, y descargándose.
+    nombre: 'actualizacion',
+    actualizacion: true,
+    async probar(page, paso) {
+      const dialogo = page.getByRole('dialog', {name: 'Nueva versión'});
+      await dialogo.waitFor();
+      await page.waitForTimeout(250);
+      await paso('aviso');
+      await dialogo.getByRole('button', {name: 'Descargar'}).click();
+      await dialogo.getByRole('progressbar').waitFor();
+      await paso('descargando');
+    },
+  },
+  {
+    // H7: a mano, desde el pie de la barra, y al día.
+    nombre: 'al-dia',
+    async probar(page, paso) {
+      await page.locator('aside').getByRole('button', {name: 'Buscar actualizaciones'}).click();
+      await page.locator('aside').getByText('al día', {exact: false}).waitFor();
+      await paso('barra');
+    },
+  },
   // Estadísticas y Conexión, escondidas hasta H8 y H4 (HUI): sin prueba.
   {
     nombre: 'muestrario',
@@ -559,6 +603,7 @@ try {
         carpeta: prueba.carpeta ?? 'llena',
         modelo: prueba.modelo ?? true,
         auriculares: prueba.auriculares ?? false,
+        actualizacion: prueba.actualizacion ?? false,
       });
       page.on('pageerror', (e) => fallos.push(`${prueba.nombre} ${tam}: error en la página: ${e.message}`));
       await page.goto(`http://localhost:${PUERTO}/`);
