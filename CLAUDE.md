@@ -12,37 +12,28 @@ está en esta rama**: vive en `main` y en el tag `v1.3.4`, que es la última
 publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-20): H7, adelantado, a medias.** En la rama
-> `v2`, la única de la v2 (un commit por hito y otro al cerrarlo). Hechos
-> (`docs/01`, H7): el actualizador oficial de Tauri con firma,
-> `release.yml` y `npm run release` (no hace push), el paso desde la
-> v1.3.4 (copiar sus datos y quitarla con un botón: su instalador pide
-> administrador) y asegurar la app (CSP, `cargo audit`). Hechos también (2026-11-20): la clave
-> de firma, los secrets, la verificación en dos pasos, el escaneo de
-> secretos, las notas de la `v2.0.0` revisadas y **el actualizador probado
-> en local de punta a punta**, y el paso 6: el **borrador** de la `v2.0.0`
-> en GitHub, compilado y firmado por CI (sin «Publish»). Pendiente del
-> usuario: cambiar la contraseña de Clickedu filtrada. Pasos 7 y 8 hechos:
-> el borrador instalado aquí copió las plantillas de la v1 de verdad y la
-> quitó, y **la `v2.0.0` está publicada** (2026-11-20), sin lo de D
-> (AVX2, importar en Clickedu: siguen sin comprobar). **Sigue el paso 9**:
-> la `v2.0.1` (quitar la carpeta vacía de la v1; notas revisadas) para
-> probar el actualizador de verdad, **cuando esa persona tenga la
-> `v2.0.0`**: hasta entonces, en espera. **Se sigue paso a paso, guiando al usuario**, con la lista
-> «Lo que falta, uno a uno» de H7 en `docs/01` (una compilación *release* abierta aquí ya copia sus datos).
-> Luego, la `v2.0.0` a la única persona que tiene la v1. **Después, H4**.
-> **En espera** (`docs/01`, HUI): con lo que traigan
-> H4–H8, volver a mirar la distribución de cada pantalla, que ya ocupa la
-> ventana entera. Estadísticas y Conexión están escondidas en `Sidebar`
-> (`HAY_ESTADISTICAS`, `HAY_CLICKEDU`): se encienden al hacerlas. El audio **no se
-> guarda** (D8); lo dictado se mide en local con `cargo run --example
-> medir_registro` (solo cuenta, sin nombres). El campo «Probar el dictado»
-> se queda, solo en desarrollo. **Pendiente de H2**: importar un exportado en
-> Clickedu (como muy tarde en H6). Para ver plantillas reales sin sacar
-> datos de alumnos: `cargo run --example revisar_plantillas -- <carpeta>`;
-> para probar el dictado sin alumnos reales:
-> `cargo run --example escribir_clase_inventada` (a la carpeta por
-> defecto, **no** a la de la v1, que es la que tiene puesta el usuario).
+> **Dónde se quedó (2026-11-20): toca H4** (conectar con Clickedu, `docs/01`).
+> En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
+> **H7, casi cerrado**: la `v2.0.0` está **publicada** (actualizador de
+> Tauri con firma, `release.yml`, el paso desde la v1.3.4, la app
+> asegurada); en este ordenador ya está instalada y la v1, quitada. **En
+> espera** (lista «Lo que falta, uno a uno» de H7): el paso 9, la `v2.0.1`
+> (ya en `v2`, notas revisadas) para probar el actualizador de verdad,
+> **cuando la única persona que tenía la v1 tenga la `v2.0.0`**; y lo de
+> D: su procesador con AVX2 e importar un exportado en Clickedu (lo
+> pendiente de H2, como muy tarde en H6). Pendiente del usuario: cambiar
+> la contraseña de Clickedu filtrada (antes de H4 con credenciales reales).
+> **En espera** (`docs/01`, HUI): con lo que traigan H4–H8, volver a mirar
+> la distribución de cada pantalla, que ya ocupa la ventana entera.
+> Estadísticas y Conexión están escondidas en `Sidebar` (`HAY_ESTADISTICAS`,
+> `HAY_CLICKEDU`): se encienden al hacerlas. El audio **no se guarda** (D8);
+> lo dictado se mide en local con `cargo run --example medir_registro` (solo
+> cuenta, sin nombres). El campo «Probar el dictado» se queda, solo en
+> desarrollo. Para ver plantillas reales sin sacar datos de alumnos:
+> `cargo run --example revisar_plantillas -- <carpeta>`; para probar el
+> dictado sin alumnos reales: `cargo run --example escribir_clase_inventada`
+> (a la carpeta por defecto). Copia de los datos de antes de la v2:
+> `%USERPROFILE%\Copia Gestor de Notas antes de la v2 (2026-11-20)`.
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
