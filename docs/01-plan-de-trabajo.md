@@ -965,6 +965,17 @@ pasa por la conversación) y recorre la web desde la página de inicio.
 desmiente lo de la v1, y lo que cambia del plan de H4–H6. Se decide con el
 usuario antes de seguir.
 
+**Hecho el 2026-11-20** (300 páginas; lo crudo, borrado): el mapa, en
+[`docs/03-clickedu.md`](03-clickedu.md). Lo que más pesa: `comprobar()` se
+dejaba engañar (sin sesión, Clickedu contesta 200 con un aviso en JS;
+**arreglado**); pedir `/` **cierra la sesión**; la plantilla es la que lee
+`plantillas.rs`; los ítems de la v1 (*popups* `do=See`) **ya no existen**, y
+salen mejor del `<select>` de la página de importar; el paso de importar
+tras subir **sigue sin verse**. `Cliente` gana `leer` (`GET` solo dentro de
+Clickedu) y `pasos` (las páginas de entrar, para diagnosticar en local).
+**Siguiente: decidir con el usuario** lo que queda sin mirar (al final de
+`docs/03`) y la segunda parte.
+
 - [x] Login con usuario, contraseña y archivo de seguridad; credenciales en el
       Administrador de credenciales (D3). **Probado con Clickedu de verdad**
       (el usuario, 2026-11-20, con el archivo nuevo): entra a la primera y

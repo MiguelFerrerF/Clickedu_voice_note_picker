@@ -24,10 +24,12 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > pendiente de H2, como muy tarde en H6). **H4, la primera parte hecha y
 > probada con Clickedu de verdad** (2026-11-20: la cuenta, entrar y
 > comprobar, `clickedu/`; la pantalla Conexión, solo en desarrollo).
-> **Siguiente, antes de montar nada: investigar Clickedu solo leyendo**
-> (`explorar_clickedu`, el plan en `docs/01`, H4, «Antes de la segunda
-> parte»), y el mapa a `docs/03-clickedu.md`. Luego, la segunda parte. La cuenta del usuario
-> ya está guardada en la app. Clickedu no distingue «caducado» de
+> **Clickedu, investigado solo leyendo** (2026-11-20,
+> `cargo run --example explorar_clickedu`): el mapa, en
+> [`docs/03-clickedu.md`](docs/03-clickedu.md). **Siguiente: decidir con el
+> usuario** lo que queda sin mirar (al final de `docs/03`) y luego la
+> segunda parte. Dentro de Clickedu, **nunca `/` ni `user.php`: cierran la
+> sesión**. La cuenta del usuario ya está guardada en la app. Clickedu no distingue «caducado» de
 > «incorrecto». La contraseña filtrada la cambia el administrador del
 > colegio (con el archivo nuevo, la filtrada ya deja entrar: hay que cambiarla).
 > **En espera** (`docs/01`, HUI): con lo que traigan H4–H8, volver a mirar
@@ -83,6 +85,8 @@ npm run release X.Y.Z    # versión, commit y tag (docs/releases/README.md)
    decisiones D1–D8 y los hitos**
 2. [`docs/02-sistema-visual.md`](docs/02-sistema-visual.md) — la paleta y la
    regla de color
+3. [`docs/03-clickedu.md`](docs/03-clickedu.md) — cómo es Clickedu por
+   dentro (H4–H6)
 
 ## Decisiones que no hay que reabrir
 

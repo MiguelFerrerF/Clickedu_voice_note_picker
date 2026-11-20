@@ -21,6 +21,7 @@
 //! parte): no se adivina. Lo que no se entiende es [`Fallo::NoEntiendo`],
 //! con la página, para guardarla y mirarla.
 
+use std::sync::Mutex;
 use std::time::Duration;
 
 use reqwest::header::{ORIGIN, REFERER};
@@ -33,7 +34,7 @@ pub const BASE: &str = "https://calasanz-pamplona-escolapiosemaus.clickedu.eu";
 const ENTRAR: &str = "/user.php?action=doLogin";
 const PAGINA_ENTRAR: &str = "/user.php?action=login";
 const ARCHIVO: &str = "/user.php?action=controlArxiuPas";
-pub(crate) const ASIGNATURAS: &str = "/go/Index.php?ctr=Subjects/Subjects";
+pub const ASIGNATURAS: &str = "/go/Index.php?ctr=Subjects/Subjects";
 /// Clickedu es una web para navegadores: se le habla como uno, como la v1.
 const NAVEGADOR: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0";
 
@@ -90,6 +91,18 @@ impl From<String> for Fallo {
 pub struct Cliente {
     http: reqwest::Client,
     base: String,
+    /// Las páginas de la última vez que se entró, paso a paso: para
+    /// diagnosticar en local ([`Cliente::pasos`]).
+    pasos: Mutex<Vec<Paso>>,
+}
+
+/// Una página de un paso de entrar: `entrar`, `archivo` o `comprobar`.
+#[derive(Clone)]
+pub struct Paso {
+    pub paso: &'static str,
+    /// La dirección final, tras las redirecciones.
+    pub url: String,
+    pub html: String,
 }
 
 impl Cliente {
@@ -102,28 +115,40 @@ impl Cliente {
             .timeout(Duration::from_secs(30))
             .build()
             .map_err(|e| format!("no se puede preparar la conexión: {e}"))?;
-        Ok(Self { http, base: base.trim_end_matches('/').to_string() })
+        Ok(Self { http, base: base.trim_end_matches('/').to_string(), pasos: Mutex::new(Vec::new()) })
     }
 
     fn url(&self, ruta: &str) -> String {
         format!("{}{ruta}", self.base)
     }
 
-    /// Manda la petición y devuelve la dirección final (tras las
+    /// Las páginas de la última vez que se entró, paso a paso. Pueden
+    /// llevar el nombre del profesor: solo para mirarlas en local.
+    pub fn pasos(&self) -> Vec<Paso> {
+        self.pasos.lock().map(|p| p.clone()).unwrap_or_default()
+    }
+
+    /// Manda la petición del `paso` y devuelve la dirección final (tras las
     /// redirecciones) y la página.
-    async fn pagina(&self, peticion: reqwest::RequestBuilder) -> Result<(String, String), Fallo> {
+    async fn pagina(&self, paso: &'static str, peticion: reqwest::RequestBuilder) -> Result<(String, String), Fallo> {
         let r = peticion.send().await.map_err(sin_conexion)?;
         if !r.status().is_success() {
             return Err(Fallo::Servidor { codigo: r.status().as_u16() });
         }
         let url = r.url().to_string();
         let html = r.text().await.map_err(sin_conexion)?;
+        if let Ok(mut p) = self.pasos.lock() {
+            p.push(Paso { paso, url: url.clone(), html: html.clone() });
+        }
         Ok((url, html))
     }
 
     /// Entra con usuario, contraseña y el archivo de seguridad (nombre y
     /// contenido), y comprueba que se ha entrado.
     pub async fn entrar(&self, usuario: &str, contrasena: &str, archivo: (&str, &[u8])) -> Result<(), Fallo> {
+        if let Ok(mut p) = self.pasos.lock() {
+            p.clear();
+        }
         // 1. Usuario y contraseña.
         let peticion = self
             .http
@@ -131,7 +156,7 @@ impl Cliente {
             .header(ORIGIN, &self.base)
             .header(REFERER, self.url(PAGINA_ENTRAR))
             .form(&[("username", usuario), ("password", contrasena), ("button", "Inicia")]);
-        let (url, html) = self.pagina(peticion).await?;
+        let (url, html) = self.pagina("entrar", peticion).await?;
         let campos = campos_del_formulario(&html);
         if !campos.iter().any(|(n, _)| n == "id_usuari") {
             if url.contains("usrKO") || html.to_lowercase().contains("incorrect") {
@@ -152,7 +177,7 @@ impl Cliente {
             .header(ORIGIN, &self.base)
             .header(REFERER, self.url(ENTRAR))
             .multipart(formulario);
-        let (url, html) = self.pagina(peticion).await?;
+        let (url, html) = self.pagina("archivo", peticion).await?;
         if url.contains("usrKO") || html.to_lowercase().contains("archivo de seguridad incorrecto") {
             return Err(Fallo::Archivo { html });
         }
@@ -161,14 +186,64 @@ impl Cliente {
         self.comprobar().await
     }
 
+    /// Pide con `GET` una dirección **de este Clickedu** (`/ruta?…` o la
+    /// dirección entera) y la devuelve tal cual, sin juzgarla: el código, el
+    /// tipo y el cuerpo. Una dirección de fuera no se pide.
+    pub async fn leer(&self, direccion: &str) -> Result<Leida, Fallo> {
+        let url = if direccion.starts_with('/') {
+            self.url(direccion)
+        } else if direccion.strip_prefix(self.base.as_str()).is_some_and(|r| r.is_empty() || r.starts_with('/')) {
+            direccion.to_string()
+        } else {
+            return Err(format!("{direccion} no es de Clickedu").into());
+        };
+        let r = self.http.get(url).header(REFERER, &self.base).send().await.map_err(sin_conexion)?;
+        let cabecera = |nombre| r.headers().get(nombre).and_then(|v| v.to_str().ok()).unwrap_or_default().to_string();
+        let tipo = cabecera(reqwest::header::CONTENT_TYPE);
+        let disposicion = cabecera(reqwest::header::CONTENT_DISPOSITION);
+        let cookies = r
+            .headers()
+            .get_all(reqwest::header::SET_COOKIE)
+            .iter()
+            .filter_map(|v| v.to_str().ok())
+            .map(cookie_sin_valor)
+            .collect();
+        let (url, estado) = (r.url().to_string(), r.status().as_u16());
+        let cuerpo = r.bytes().await.map_err(sin_conexion)?.to_vec();
+        Ok(Leida { url, estado, tipo, disposicion, cookies, cuerpo })
+    }
+
     /// Si la sesión sigue: la página de las asignaturas no manda a entrar.
     pub async fn comprobar(&self) -> Result<(), Fallo> {
-        let (url, html) = self.pagina(self.http.get(self.url(ASIGNATURAS)).header(REFERER, &self.base)).await?;
+        let (url, html) =
+            self.pagina("comprobar", self.http.get(self.url(ASIGNATURAS)).header(REFERER, &self.base)).await?;
         if es_pagina_de_entrar(&url, &html) {
             return Err(Fallo::NoEntiendo { paso: "comprobar".into(), html });
         }
         Ok(())
     }
+}
+
+/// Lo que devuelve [`Cliente::leer`].
+pub struct Leida {
+    /// La dirección final, tras las redirecciones.
+    pub url: String,
+    pub estado: u16,
+    /// `Content-Type`.
+    pub tipo: String,
+    /// `Content-Disposition`: si viene, es un fichero para descargar.
+    pub disposicion: String,
+    /// Las cookies que pone, **sin su valor**: `PHPSESSID; path=/; HttpOnly`.
+    pub cookies: Vec<String>,
+    pub cuerpo: Vec<u8>,
+}
+
+/// Una cabecera `Set-Cookie` sin el valor, que es la sesión: el nombre y lo
+/// demás.
+fn cookie_sin_valor(c: &str) -> String {
+    let mut partes = c.split(';').map(str::trim);
+    let nombre = partes.next().unwrap_or_default().split('=').next().unwrap_or_default();
+    std::iter::once(nombre).chain(partes).collect::<Vec<_>>().join("; ")
 }
 
 /// El fallo de red, con su causa: «error sending request» solo no dice nada.
@@ -207,10 +282,15 @@ pub(crate) fn campos_del_formulario(html: &str) -> Vec<(String, String)> {
     campos
 }
 
-/// Clickedu ha devuelto la página de entrar: por la dirección o porque pide
-/// una contraseña.
-pub(crate) fn es_pagina_de_entrar(url: &str, html: &str) -> bool {
+/// Clickedu ha devuelto la página de entrar: por la dirección, porque
+/// manda a ella con JS (sin sesión, Clickedu contesta 200 con un
+/// `alert('No ha iniciado sesión')` y `window.location` a la de entrar:
+/// visto el 2026-11-20) o porque pide una contraseña.
+pub fn es_pagina_de_entrar(url: &str, html: &str) -> bool {
     if url.contains("action=login") || url.contains("usrKO") {
+        return true;
+    }
+    if html.contains("location") && html.contains("user.php?action=login") {
         return true;
     }
     let selector = Selector::parse(r#"input[type="password" i]"#).expect("selector fijo");
@@ -330,9 +410,34 @@ mod tests {
     }
 
     #[test]
+    fn leer_solo_dentro_de_clickedu() {
+        let f = falso::arrancar(Modo::Normal);
+        let cliente = Cliente::new(&f.base).unwrap();
+        let leida = tauri::async_runtime::block_on(cliente.leer("/user.php?action=login")).unwrap();
+        assert_eq!(leida.estado, 200);
+        assert!(String::from_utf8_lossy(&leida.cuerpo).contains("password"));
+        let fuera = tauri::async_runtime::block_on(cliente.leer("https://example.com/"));
+        assert!(matches!(fuera, Err(Fallo::Otro { .. })), "{:?}", fuera.err());
+        // Una dirección que empieza como la base pero es otro host.
+        let fuera = tauri::async_runtime::block_on(cliente.leer(&format!("{}.otro.eu/", f.base)));
+        assert!(fuera.is_err());
+        assert_eq!(f.pedidas(), ["GET /user.php?action=login"]);
+    }
+
+    #[test]
+    fn la_cookie_sin_su_valor() {
+        assert_eq!(cookie_sin_valor("PHPSESSID=abc123; path=/; HttpOnly"), "PHPSESSID; path=/; HttpOnly");
+        assert_eq!(cookie_sin_valor("x=1"), "x");
+    }
+
+    #[test]
     fn la_pagina_de_entrar() {
         assert!(es_pagina_de_entrar("https://x/user.php?action=login", ""));
         assert!(es_pagina_de_entrar("https://x/otra", r#"<input type="PASSWORD" name="p">"#));
         assert!(!es_pagina_de_entrar("https://x/go/Index.php", "<div class='bloc-assignatura'></div>"));
+        // La de verdad sin sesión, tal cual.
+        let sin_sesion = "<html><body class='home'><script>\nalert('No ha iniciado sesión');\n\
+            window.location.href='https://colegio.clickedu.eu/user.php?action=login';\n</script></body></html>";
+        assert!(es_pagina_de_entrar("https://colegio.clickedu.eu/go/Index.php?ctr=Subjects/Subjects", sin_sesion));
     }
 }

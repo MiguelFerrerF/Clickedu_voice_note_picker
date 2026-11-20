@@ -73,6 +73,9 @@ const ASIGNATURAS: &str = r#"<!DOCTYPE html><html><body>
   <div class="title">Matemáticas</div><div class="sub-title">3.º ESO A</div></a></div>
 </body></html>"#;
 
+const SIN_SESION: &str = "<html><body class='home'><script>alert('No ha iniciado sesión');
+window.location.href='/user.php?action=login';</script></body></html>";
+
 /// Arranca el Clickedu falso. Se para al soltarlo.
 pub fn arrancar(modo: Modo) -> Falso {
     let servidor = Arc::new(Server::http("127.0.0.1:0").expect("servidor falso"));
@@ -147,6 +150,9 @@ fn responder(modo: Modo, metodo: &str, ruta: &str, cookies: &str, cuerpo: &str) 
         }
         ("GET", "/index.php") => pagina(INICIO),
         ("GET", "/go/Index.php?ctr=Subjects/Subjects") if cookies.contains(DENTRO) => pagina(ASIGNATURAS),
+        // Sin sesión, el de verdad no redirige: contesta 200 con un aviso y
+        // manda a entrar con JS (visto el 2026-11-20).
+        ("GET", r) if r.starts_with("/go/") => pagina(SIN_SESION),
         _ => ir_a("/user.php?action=login", None),
     }
 }
