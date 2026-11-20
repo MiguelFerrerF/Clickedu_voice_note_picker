@@ -702,7 +702,18 @@ Un commit por bloque, como en HUI.
 - [x] El diálogo: busca al arrancar y a mano (pie de la barra), nunca
       instala sin pulsar, deja saltarse una versión; avance real al
       descargar. Insignias con color, como library-app (pedido el
-      2026-11-20; nunca rojo, D6). Con la prueba de diseño.
+      2026-11-20; nunca rojo, D6). Con la prueba de diseño. Los errores,
+      solo en castellano: el detalle del plugin (en inglés), al registro.
+- [x] **Probado de punta a punta en local** (2026-11-20, con el usuario):
+      `0.9.0` y `0.9.1` con `tauri build --debug` (así la migración no mira
+      la v1 de verdad), `--config` con una clave de prueba y un servidor en
+      `127.0.0.1` (`dangerousInsecureTransportProtocol`). Visto: el aviso
+      al arrancar y a mano, la descarga con avance, instalar (se cierra y
+      vuelve a abrirse en la `0.9.1`), «al día»; **rechaza** una firmada
+      con otra clave y una que anuncia `0.9.5` con la firma de la `0.9.1`;
+      sin red, «no se ha podido mirar» y nada al arrancar. `tauri build`
+      mete `version:` en la firma, que es lo que hará CI. El desinstalador
+      con `/S` no borra `%APPDATA%\es.gestornotas.app`.
 
 **B · El paso desde la v1.3.4** — hecho el 2026-11-20, sin probar con la v1 de verdad
 

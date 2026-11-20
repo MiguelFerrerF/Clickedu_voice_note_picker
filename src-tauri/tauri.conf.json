@@ -57,7 +57,7 @@
     "category": "Education",
     "copyright": "© 2026 Miguel Ferrer",
     "shortDescription": "Dictado de notas por voz para Clickedu",
-    "longDescription": "Pon las notas de tus alumnos dictándolas por voz o con el teclado, sobre las plantillas de Clickedu, y súbelas a Clickedu sin pasar por el navegador."
+    "longDescription": "Pon las notas de tus alumnos dictándolas por voz o con el teclado, sobre las plantillas de Clickedu, y expórtalas para importarlas en Clickedu."
   },
   "plugins": {
     "updater": {
