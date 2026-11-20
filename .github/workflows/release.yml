@@ -1,0 +1,189 @@
+# Release — un tag vX.Y.Z audita, compila, FIRMA y deja un release BORRADOR.
+#
+# El de library-app por su estructura (validar, compilar en windows-latest,
+# publicar borrador), con el actualizador oficial de Tauri (H7, D7):
+#
+# - El instalador sube como `Instalador_GestorNotas.exe`, con su `.sig` y
+#   `latest.json`. Con ese nombre lo encuentran a la vez el actualizador de
+#   Tauri y el de la v1.3.4.
+# - Antes de compilar: las notas de la versión, la versión del tag igual a la
+#   de los ficheros, la clave pública puesta, y `npm audit` y `cargo audit`.
+# - Después: que en el borrador estén los tres ficheros, que `latest.json`
+#   apunte al instalador de esta versión y que el subido sea el compilado
+#   (su SHA-256, que queda en el resumen).
+#
+# El clic de «Publish release» en GitHub es manual, siempre: hasta entonces
+# ninguna app se entera de la versión.
+#
+# Secrets: EXACTAMENTE tres, y solo en el paso de compilar.
+#   GITHUB_TOKEN                        lo pone Actions solo.
+#   TAURI_SIGNING_PRIVATE_KEY           la clave privada del actualizador.
+#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD  su contraseña.
+#
+# Las acciones van fijadas por commit, no por etiqueta: una etiqueta se puede
+# mover. Al subir una, se cambia el SHA y el comentario a la vez.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag que compilar (p. ej. v2.0.1)'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.ref_name }}
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.TAG }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      # Sin notas no hay release: el diálogo de la app saldría vacío.
+      - name: Las notas de la versión
+        run: node scripts/notas-de-version.mjs "$TAG"
+
+      - name: La versión del tag, en los cuatro ficheros
+        run: |
+          v="${TAG#v}"
+          grep -q "\"version\": \"$v\"" package.json
+          grep -q "^version = \"$v\"" src-tauri/Cargo.toml
+          grep -q "\"version\": \"$v\"" src-tauri/tauri.conf.json
+          grep -A1 '^name = "gestor-de-notas"$' src-tauri/Cargo.lock | grep -q "^version = \"$v\""
+
+      # Con la de mentira, la versión publicada no podría actualizarse nunca.
+      - name: La clave pública del actualizador, puesta
+        run: |
+          if grep -q PON_AQUI_LA_CLAVE_PUBLICA src-tauri/tauri.conf.json; then
+            echo "::error::falta la clave pública del actualizador en tauri.conf.json"
+            exit 1
+          fi
+
+      - name: npm audit
+        run: npm audit --audit-level=moderate
+
+      - uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+
+      # Falla con una vulnerabilidad; los avisos (sin mantener) no.
+      - name: cargo audit
+        run: |
+          cargo install cargo-audit --locked
+          cd src-tauri && cargo audit
+
+  release:
+    needs: comprobar
+    runs-on: windows-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write # solo aquí: hace falta para crear el release
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.TAG }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Dependencias de npm
+        run: npm ci
+
+      - name: Cuerpo del release
+        id: notas
+        run: node scripts/notas-de-version.mjs "$env:TAG" --github-output
+
+      # `createUpdaterArtifacts` solo aquí: en local, `tauri build` sigue
+      # funcionando sin la clave privada.
+      - name: Compilar, firmar y publicar el borrador
+        id: tauri
+        uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # action-v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ env.TAG }}
+          releaseName: 'Gestor de Notas ${{ env.TAG }}'
+          releaseBody: ${{ steps.notas.outputs.cuerpo }}
+          releaseDraft: true
+          prerelease: false
+          releaseAssetNamePattern: 'Instalador_GestorNotas[ext]'
+          args: '--config {"bundle":{"createUpdaterArtifacts":true}}'
+
+      - name: Comprobar el borrador
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ID: ${{ steps.tauri.outputs.releaseId }}
+        run: |
+          set -euo pipefail
+          api="repos/${{ github.repository }}/releases"
+          nombres=$(gh api "$api/$ID" --jq '.assets[].name' | sort | tr '\n' ' ')
+          echo "En el borrador: $nombres"
+          for f in Instalador_GestorNotas.exe Instalador_GestorNotas.exe.sig latest.json; do
+            echo " $nombres" | grep -q " $f " || { echo "::error::falta $f en el borrador"; exit 1; }
+          done
+
+          # latest.json, de esta versión y apuntando a este instalador.
+          id_json=$(gh api "$api/$ID" --jq '.assets[] | select(.name=="latest.json") | .id')
+          gh api -H 'Accept: application/octet-stream' "$api/assets/$id_json" > latest.json
+          node -e '
+            const j = JSON.parse(require("fs").readFileSync("latest.json", "utf8"));
+            const v = process.env.TAG.replace(/^v/, "");
+            const url = j.platforms?.["windows-x86_64"]?.url ?? "";
+            if (j.version !== v) throw new Error(`latest.json dice ${j.version}, el tag ${v}`);
+            if (!url.endsWith(`/download/${process.env.TAG}/Instalador_GestorNotas.exe`))
+              throw new Error(`latest.json apunta a ${url}`);
+            console.log("latest.json:", j.version, url);
+          '
+
+          # El subido es el compilado.
+          local=$(sha256sum src-tauri/target/release/bundle/nsis/*-setup.exe | cut -d' ' -f1)
+          subido=$(gh api "$api/$ID" --jq '.assets[] | select(.name=="Instalador_GestorNotas.exe") | .digest')
+          echo "compilado: $local"
+          echo "subido:    $subido"
+          [ "sha256:$local" = "$subido" ] || { echo "::error::el instalador subido no es el compilado"; exit 1; }
+          echo "SHA=$local" >> "$GITHUB_ENV"
+
+      - name: Resumen
+        if: success()
+        shell: bash
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## ✓ Gestor de Notas $TAG compilado y firmado
+
+          Borrador listo en [Releases](https://github.com/${{ github.repository }}/releases).
+
+          SHA-256 de \`Instalador_GestorNotas.exe\`: \`$SHA\`
+
+          Pulsa **Publish release** para que lo vean la app y la v1.3.4.
+          EOF

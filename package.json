@@ -12,7 +12,8 @@
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
     "typecheck": "tsc --noEmit",
-    "probar:diseno": "node scripts/probar-diseno/probar.mjs"
+    "probar:diseno": "node scripts/probar-diseno/probar.mjs",
+    "release": "node scripts/release.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
