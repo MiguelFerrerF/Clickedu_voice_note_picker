@@ -22,9 +22,12 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > secretos, las notas de la `v2.0.0` revisadas y **el actualizador probado
 > en local de punta a punta**, y el paso 6: el **borrador** de la `v2.0.0`
 > en GitHub, compilado y firmado por CI (sin «Publish»). Pendiente del
-> usuario: cambiar la contraseña de Clickedu filtrada. Paso 7 hecho: el
-> borrador instalado aquí copió las plantillas de la v1 de verdad y la
-> quitó. **Sigue el paso 8** (lo de D y «Publish»). **Se sigue paso a paso, guiando al usuario**, con la lista
+> usuario: cambiar la contraseña de Clickedu filtrada. Pasos 7 y 8 hechos:
+> el borrador instalado aquí copió las plantillas de la v1 de verdad y la
+> quitó, y **la `v2.0.0` está publicada** (2026-11-20), sin lo de D
+> (AVX2, importar en Clickedu: siguen sin comprobar). **Sigue el paso 9**:
+> la `v2.0.1` (ya lleva quitar la carpeta vacía de la v1; notas por
+> revisar) para probar el actualizador de verdad. **Se sigue paso a paso, guiando al usuario**, con la lista
 > «Lo que falta, uno a uno» de H7 en `docs/01` (una compilación *release* abierta aquí ya copia sus datos).
 > Luego, la `v2.0.0` a la única persona que tiene la v1. **Después, H4**.
 > **En espera** (`docs/01`, HUI): con lo que traigan

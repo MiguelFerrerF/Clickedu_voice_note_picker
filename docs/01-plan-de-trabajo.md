@@ -810,7 +810,13 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
    firma del `.sig`. **Siguiente: el paso 7.**
 7. ~~**Con permiso del usuario**, probar en este ordenador el instalador
    del borrador~~ (hecho el 2026-11-20: ver B). **Siguiente: el paso 8.**
-8. Lo de D, y «Publish»: la v1.3.4 de esa persona la encuentra sola.
+8. ~~«Publish»~~ (hecho el 2026-11-20 con `gh release edit --draft=false
+   --latest`, **sin lo de D**: el usuario lo decidió sabiendo que ni el
+   AVX2 ni importar en Clickedu están comprobados). Comprobado sin token:
+   el API `releases/latest` da `v2.0.0` con `Instalador_GestorNotas.exe`
+   (la v1.3.4 compara `[2,0,0] > [1,3,4]` y saca su aviso), y el
+   `latest.json` del endpoint da la `2.0.0`; por las dos URLs baja el
+   mismo instalador (`fb6a3760…`). **Siguiente: el paso 9.**
 9. Una `v2.0.1` para probar el actualizador de Tauri de verdad. Lleva
    (pedido el 2026-11-20) quitar la carpeta de la v1 si solo le quedan
    carpetas vacías (`migracion::quitar_si_vacia`), al quitarla y al
