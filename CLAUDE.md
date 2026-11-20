@@ -21,7 +21,8 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > usuario**: la clave de firma (la pública va en `tauri.conf.json`, hoy
 > `PON_AQUI_…`), los secrets, la verificación en dos pasos y el escaneo de
 > secretos; y **probarlo con la v1 de verdad de este ordenador, con su
-> permiso** (una compilación *release* abierta aquí ya copia sus datos).
+> permiso**. **Se sigue paso a paso, guiando al usuario**, con la lista
+> «Lo que falta, uno a uno» de H7 en `docs/01` (una compilación *release* abierta aquí ya copia sus datos).
 > Luego, la `v2.0.0` a la única persona que tiene la v1. **Después, H4**.
 > **En espera** (`docs/01`, HUI): con lo que traigan
 > H4–H8, volver a mirar la distribución de cada pantalla, que ya ocupa la

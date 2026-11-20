@@ -756,6 +756,30 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
 - No se firma el `.exe` con certificado de Windows: cuesta dinero y no
   compra nada con una sola persona usándola.
 
+**Lo que falta, uno a uno y guiando al usuario** (pedido el 2026-11-20):
+
+1. **La clave de firma**: el usuario la genera **en su propia terminal**
+   (no con `!`, para que la privada no pase por la conversación):
+   `npx tauri signer generate -w "$env:USERPROFILE\.tauri\gestor-notas.key"`,
+   con contraseña. El `.key` y la contraseña, a su gestor de contraseñas.
+   Claude lee **solo** el `.pub` y lo pone en `tauri.conf.json` en lugar de
+   `PON_AQUI_LA_CLAVE_PUBLICA`.
+2. **Los secrets** en GitHub (Settings → Secrets and variables → Actions):
+   `TAURI_SIGNING_PRIVATE_KEY` (el contenido del `.key`) y
+   `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
+3. **Verificación en dos pasos** en la cuenta de GitHub, y en el repo el
+   **escaneo de secretos con bloqueo al hacer push** (Settings → Code
+   security).
+4. **Preguntar** si la contraseña de Clickedu filtrada en `config.json` se
+   cambió.
+5. Revisar con el usuario `docs/releases/v2.0.0.md`.
+6. `npm run release 2.0.0` y el push del usuario: CI deja el **borrador**
+   (sin «Publish» todavía). Si `release.yml` falla, se arregla aquí.
+7. **Con permiso del usuario**, probar en este ordenador el instalador del
+   borrador: copia sus datos reales, cambia Ajustes y quita la v1 (UAC).
+8. Lo de D, y «Publish»: la v1.3.4 de esa persona la encuentra sola.
+9. Una `v2.0.1` para probar el actualizador de Tauri de verdad.
+
 **D · Antes de dársela a esa persona**
 
 - [ ] Su procesador tiene AVX2 (H3a).
