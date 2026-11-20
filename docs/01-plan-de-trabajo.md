@@ -679,8 +679,9 @@ Un commit por bloque, como en HUI.
       compilación firmada con una clave de prueba lleva `version:2.0.0` en
       la firma, y el plugin solo mira la versión, no el nombre del fichero.
 - [ ] **La clave**: la genera el usuario y no pasa por la conversación. La
-      pública va en `tauri.conf.json` (hoy `PON_AQUI_LA_CLAVE_PUBLICA`:
-      `npm run release` y CI se paran con ella); la privada y su
+      pública ya está en `tauri.conf.json` (minisign `E99FFA4B21E16BB4`,
+      2026-11-20; `npm run release` y CI se paran si vuelve el
+      `PON_AQUI_LA_CLAVE_PUBLICA`); la privada y su
       contraseña, **solo** en los secrets de Actions
       (`TAURI_SIGNING_PRIVATE_KEY`, `…_PASSWORD`) y en una copia del
       usuario fuera del repo. Sin ella, la app instalada no acepta más
@@ -758,7 +759,7 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
 
 **Lo que falta, uno a uno y guiando al usuario** (pedido el 2026-11-20):
 
-1. **La clave de firma**: el usuario la genera **en su propia terminal**
+1. ~~**La clave de firma**~~ (hecho el 2026-11-20, `E99FFA4B21E16BB4`): el usuario la genera **en su propia terminal**
    (no con `!`, para que la privada no pase por la conversación):
    `npx tauri signer generate -w "$env:USERPROFILE\.tauri\gestor-notas.key"`,
    con contraseña. El `.key` y la contraseña, a su gestor de contraseñas.

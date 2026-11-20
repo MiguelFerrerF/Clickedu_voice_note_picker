@@ -18,8 +18,8 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > `release.yml` y `npm run release` (no hace push), el paso desde la
 > v1.3.4 (copiar sus datos y quitarla con un botón: su instalador pide
 > administrador) y asegurar la app (CSP, `cargo audit`). **Falta del
-> usuario**: la clave de firma (la pública va en `tauri.conf.json`, hoy
-> `PON_AQUI_…`), los secrets, la verificación en dos pasos y el escaneo de
+> usuario** (la clave de firma ya está: la pública, en `tauri.conf.json`):
+> los secrets, la verificación en dos pasos y el escaneo de
 > secretos; y **probarlo con la v1 de verdad de este ordenador, con su
 > permiso**. **Se sigue paso a paso, guiando al usuario**, con la lista
 > «Lo que falta, uno a uno» de H7 en `docs/01` (una compilación *release* abierta aquí ya copia sus datos).
