@@ -793,9 +793,16 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
    caducado). No frena la `v2.0.0`.
 5. ~~Revisar con el usuario `docs/releases/v2.0.0.md`~~ (hecho el
    2026-11-20, y además el actualizador probado en local: ver A).
-   **Siguiente: el paso 6.**
-6. `npm run release 2.0.0` y el push del usuario: CI deja el **borrador**
-   (sin «Publish» todavía). Si `release.yml` falla, se arregla aquí.
+6. ~~`npm run release 2.0.0` y el push del usuario~~ (hecho el
+   2026-11-20, tag en `10f9d64`): CI dejó el **borrador**, sin «Publish»,
+   con el SHA-256 del instalador `fb6a3760…4460b`. Por el camino: el
+   script no etiquetaba si la versión ya estaba puesta; el secret de la
+   contraseña tenía mal la contraseña (se volvió a poner con
+   `gh secret set` a secas, que la pide sin salto de línea); y
+   `tauri-action` 1.0 pone en `latest.json` la URL del API del asset (el
+   actualizador la baja con `Accept: application/octet-stream`), así que la
+   comprobación exige esa, la del instalador del mismo borrador, y la
+   firma del `.sig`. **Siguiente: el paso 7.**
 7. **Con permiso del usuario**, probar en este ordenador el instalador del
    borrador: copia sus datos reales, cambia Ajustes y quita la v1 (UAC).
 8. Lo de D, y «Publish»: la v1.3.4 de esa persona la encuentra sola.

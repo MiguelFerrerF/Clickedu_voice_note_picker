@@ -20,10 +20,11 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > administrador) y asegurar la app (CSP, `cargo audit`). Hechos también (2026-11-20): la clave
 > de firma, los secrets, la verificación en dos pasos, el escaneo de
 > secretos, las notas de la `v2.0.0` revisadas y **el actualizador probado
-> en local de punta a punta**. Pendiente del usuario: cambiar la contraseña
-> de Clickedu filtrada. **Sigue el paso 6** (`npm run release 2.0.0` y su
-> push), y luego **probarlo con la v1 de verdad de este ordenador, con su
-> permiso**. **Se sigue paso a paso, guiando al usuario**, con la lista
+> en local de punta a punta**, y el paso 6: el **borrador** de la `v2.0.0`
+> en GitHub, compilado y firmado por CI (sin «Publish»). Pendiente del
+> usuario: cambiar la contraseña de Clickedu filtrada. **Sigue el paso 7**:
+> probar el instalador del borrador con la v1 de verdad de este
+> ordenador, **con su permiso**. **Se sigue paso a paso, guiando al usuario**, con la lista
 > «Lo que falta, uno a uno» de H7 en `docs/01` (una compilación *release* abierta aquí ya copia sus datos).
 > Luego, la `v2.0.0` a la única persona que tiene la v1. **Después, H4**.
 > **En espera** (`docs/01`, HUI): con lo que traigan
