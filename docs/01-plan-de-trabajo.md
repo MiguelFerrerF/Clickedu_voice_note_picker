@@ -795,7 +795,9 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
 4. **Preguntar** si la contraseña de Clickedu filtrada en `config.json` se
    cambió. **Pendiente** (2026-11-20): el usuario no está seguro y la
    cambiará cuando tenga un archivo de seguridad nuevo (el suyo está
-   caducado). No frena la `v2.0.0`.
+   caducado). No frena la `v2.0.0`. **No se puede cambiar desde el
+   usuario** (2026-11-20): la cambia quien administra Clickedu en el
+   colegio (ver H4).
 5. ~~Revisar con el usuario `docs/releases/v2.0.0.md`~~ (hecho el
    2026-11-20, y además el actualizador probado en local: ver A).
 6. ~~`npm run release 2.0.0` y el push del usuario~~ (hecho el
@@ -838,6 +840,44 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
 pasa a `main`, y la v1 queda en el tag `v1.3.4`.
 
 ### H4 · Conectar con Clickedu
+
+**La contraseña filtrada no se puede cambiar desde el usuario** (el
+usuario, 2026-11-20): la cambia quien administra Clickedu en el colegio.
+Mientras, el archivo de seguridad hace de segundo factor: con la
+contraseña sola no se entra. Por eso H4 va en dos partes:
+
+- **Sin Clickedu de verdad** (se hace ya): las credenciales (D3), el
+  cliente en Rust probado contra un servidor falso con páginas inventadas
+  de la forma que esperaba la v1, y la pantalla.
+- **Con Clickedu de verdad** (cuando haya acceso): capturar las páginas,
+  «caducado» frente a «incorrecto» (guardar antes la respuesta al archivo
+  caducado de ahora) y volver a entrar solo.
+
+**El diseño del login** (decidido el 2026-11-20):
+
+- **Va en la pantalla Conexión**, arriba, en la tarjeta «Tu cuenta»;
+  debajo irán traer plantillas (H5) y subir notas (H6). Todo lo de
+  Clickedu, en un sitio.
+- **Se rellena una vez**: usuario, contraseña y «Elegir archivo…» para el
+  de seguridad. «Entrar» entra de verdad y **solo guarda si ha entrado**:
+  la contraseña, en el Administrador de credenciales (D3); el archivo, en
+  `%APPDATA%\es.gestornotas.app\clickedu\` con su nombre. Desde ahí la app
+  entra sola cuando H5 o H6 lo pidan, y vuelve a entrar si la sesión
+  caduca: la tarjeta solo cambia si algo falla.
+- **La contraseña guardada no se enseña nunca**: para cambiarla se escribe
+  otra. El ojo del campo enseña solo lo que se está escribiendo.
+- **La regla de color**: con la cuenta guardada, el usuario en mono y
+  «Archivo de seguridad: `clave.txt`, elegido el 20/11/2026» en gris (estar
+  conectado es lo normal). «Has entrado en Clickedu», en verde y se apaga
+  (evento). Botones fantasma: «Cambiar archivo», «Cambiar contraseña»,
+  «Olvidar la cuenta» (borra la contraseña del Administrador y la copia del
+  archivo). Los campos, con tope de ancho (~420 px), que son controles.
+- **Los errores, en rojo y con qué hacer**: sin red o Clickedu no
+  contesta; usuario o contraseña incorrectos; archivo de seguridad
+  incorrecto; **archivo caducado** («pide otro al colegio y elígelo aquí»,
+  con el botón al lado; falta ver qué responde Clickedu); y «Clickedu ha
+  cambiado», con la página guardada **en local** para diagnosticar (no va
+  en el informe de D8: puede llevar nombres).
 
 - [ ] Login con usuario, contraseña y archivo de seguridad; credenciales en el
       Administrador de credenciales (D3).

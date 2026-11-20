@@ -21,8 +21,11 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > (ya en `v2`, notas revisadas) para probar el actualizador de verdad,
 > **cuando la única persona que tenía la v1 tenga la `v2.0.0`**; y lo de
 > D: su procesador con AVX2 e importar un exportado en Clickedu (lo
-> pendiente de H2, como muy tarde en H6). Pendiente del usuario: cambiar
-> la contraseña de Clickedu filtrada (antes de H4 con credenciales reales).
+> pendiente de H2, como muy tarde en H6). **H4, el diseño del login
+> decidido** (en la pantalla Conexión, `docs/01`); se hace primero la
+> parte sin Clickedu de verdad. La contraseña filtrada no la puede cambiar
+> el usuario: la cambia el administrador del colegio (antes de probar con
+> credenciales reales).
 > **En espera** (`docs/01`, HUI): con lo que traigan H4–H8, volver a mirar
 > la distribución de cada pantalla, que ya ocupa la ventana entera.
 > Estadísticas y Conexión están escondidas en `Sidebar` (`HAY_ESTADISTICAS`,
