@@ -820,7 +820,10 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
 9. Una `v2.0.1` para probar el actualizador de Tauri de verdad. Lleva
    (pedido el 2026-11-20) quitar la carpeta de la v1 si solo le quedan
    carpetas vacías (`migracion::quitar_si_vacia`), al quitarla y al
-   arrancar. Notas en `docs/releases/v2.0.1.md`, por revisar.
+   arrancar. Notas en `docs/releases/v2.0.1.md`, revisadas (2026-11-20).
+   **Se espera a que esa persona tenga la `v2.0.0`** (decidido el
+   2026-11-20): así la prueba es también en su ordenador y no le salen dos
+   avisos seguidos. Entonces, `npm run release 2.0.1` y su push.
 
 **D · Antes de dársela a esa persona**
 

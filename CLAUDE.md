@@ -26,8 +26,9 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > el borrador instalado aquí copió las plantillas de la v1 de verdad y la
 > quitó, y **la `v2.0.0` está publicada** (2026-11-20), sin lo de D
 > (AVX2, importar en Clickedu: siguen sin comprobar). **Sigue el paso 9**:
-> la `v2.0.1` (ya lleva quitar la carpeta vacía de la v1; notas por
-> revisar) para probar el actualizador de verdad. **Se sigue paso a paso, guiando al usuario**, con la lista
+> la `v2.0.1` (quitar la carpeta vacía de la v1; notas revisadas) para
+> probar el actualizador de verdad, **cuando esa persona tenga la
+> `v2.0.0`**: hasta entonces, en espera. **Se sigue paso a paso, guiando al usuario**, con la lista
 > «Lo que falta, uno a uno» de H7 en `docs/01` (una compilación *release* abierta aquí ya copia sus datos).
 > Luego, la `v2.0.0` a la única persona que tiene la v1. **Después, H4**.
 > **En espera** (`docs/01`, HUI): con lo que traigan
