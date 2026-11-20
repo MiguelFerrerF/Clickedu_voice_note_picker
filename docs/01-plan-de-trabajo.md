@@ -904,10 +904,18 @@ contraseña sola no se entra. Por eso H4 va en dos partes:
 - [ ] Login con usuario, contraseña y archivo de seguridad; credenciales en el
       Administrador de credenciales (D3). *Hecho contra el Clickedu falso;
       falta el de verdad.*
-- [ ] **El archivo de seguridad caduca** (visto el 2026-11-20): distinguir
+- [x] **El archivo de seguridad caduca** (visto el 2026-11-20): distinguir
       «caducado» de «incorrecto» y decir que se pide otro al colegio. La v1
       lo copiaba a una carpeta temporal (`__file__` en PyInstaller): la v2
-      lo guarda donde no se pierda.
+      lo guarda donde no se pierda. **Clickedu no los distingue**
+      (probado por el usuario el 2026-11-20 con la v2, su usuario y el
+      archivo caducado): a los dos contesta con un `alert('Archivo de
+      seguridad INCORRECTO.')` y va a `user.php?action=usrKO`. Así que se
+      queda «no acepta el archivo; si es antiguo, puede haber caducado».
+      Esa prueba dejó también dos cosas: el paso 1 entró (**la contraseña
+      filtrada sigue valiendo**: solo la frena el archivo caducado; que el
+      colegio la cambie antes de dar el archivo nuevo, o a la vez), y falta
+      confirmar con un archivo bueno que la v2 lo manda como la v1.
 - [ ] **Capa de Clickedu resistente**: leer por los parámetros de las URLs
       antes que por las clases CSS, varias estrategias por dato, error claro
       («Clickedu ha cambiado: no encuentro los ítems») y el HTML guardado para

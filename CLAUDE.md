@@ -26,8 +26,10 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > Conexión, solo en desarrollo): falta probarla a mano y la segunda parte,
 > con Clickedu de verdad (`docs/01`). El archivo de seguridad caducado del
 > usuario está en su carpeta de Descargas: no se lee ni se copia. La
-> contraseña filtrada no la puede cambiar el usuario: la cambia el
-> administrador del colegio.
+> contraseña filtrada **sigue valiendo** (probado el 2026-11-20; solo la
+> frena el archivo caducado): la cambia el administrador del colegio, antes
+> de dar el archivo nuevo. Clickedu no distingue «caducado» de
+> «incorrecto».
 > **En espera** (`docs/01`, HUI): con lo que traigan H4–H8, volver a mirar
 > la distribución de cada pantalla, que ya ocupa la ventana entera.
 > Estadísticas y Conexión están escondidas en `Sidebar` (`HAY_ESTADISTICAS`,
