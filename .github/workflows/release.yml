@@ -153,17 +153,29 @@ jobs:
             echo " $nombres" | grep -q " $f " || { echo "::error::falta $f en el borrador"; exit 1; }
           done
 
-          # latest.json, de esta versión y apuntando a este instalador.
+          # latest.json, de esta versión, apuntando a este instalador y con su firma.
+          # tauri-action 1.0 escribe la URL del API del asset, no la de
+          # /releases/download/: el actualizador la descarga con
+          # «Accept: application/octet-stream», que es lo que la hace servir.
           id_json=$(gh api "$api/$ID" --jq '.assets[] | select(.name=="latest.json") | .id')
+          id_sig=$(gh api "$api/$ID" --jq '.assets[] | select(.name=="Instalador_GestorNotas.exe.sig") | .id')
           gh api -H 'Accept: application/octet-stream' "$api/assets/$id_json" > latest.json
+          gh api -H 'Accept: application/octet-stream' "$api/assets/$id_sig" > instalador.sig
+          ESPERADA="https://api.github.com/$api/assets/$(gh api "$api/$ID" --jq '.assets[] | select(.name=="Instalador_GestorNotas.exe") | .id')" \
           node -e '
-            const j = JSON.parse(require("fs").readFileSync("latest.json", "utf8"));
+            const fs = require("fs");
+            const j = JSON.parse(fs.readFileSync("latest.json", "utf8"));
+            const firma = fs.readFileSync("instalador.sig", "utf8");
             const v = process.env.TAG.replace(/^v/, "");
-            const url = j.platforms?.["windows-x86_64"]?.url ?? "";
             if (j.version !== v) throw new Error(`latest.json dice ${j.version}, el tag ${v}`);
-            if (!url.endsWith(`/download/${process.env.TAG}/Instalador_GestorNotas.exe`))
-              throw new Error(`latest.json apunta a ${url}`);
-            console.log("latest.json:", j.version, url);
+            const plataformas = Object.entries(j.platforms ?? {});
+            if (!j.platforms?.["windows-x86_64"]) throw new Error("latest.json sin windows-x86_64");
+            for (const [nombre, p] of plataformas) {
+              if (p.url !== process.env.ESPERADA)
+                throw new Error(`${nombre} apunta a ${p.url}, no a ${process.env.ESPERADA}`);
+              if (p.signature !== firma) throw new Error(`${nombre}: la firma no es la del .sig`);
+            }
+            console.log("latest.json:", j.version, plataformas.map(([n]) => n).join(", "), process.env.ESPERADA);
           '
 
           # El subido es el compilado.
