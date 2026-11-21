@@ -12,7 +12,11 @@ está en esta rama**: vive en `main` y en el tag `v1.3.4`, que es la última
 publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-20): toca H4** (conectar con Clickedu, `docs/01`).
+> **Dónde se quedó (2026-11-22): toca H5** (traer las plantillas desde
+> Clickedu, `docs/01`): engancha las fichas a la pantalla Conexión, los
+> avisos de degradado/roto y la enciende fuera de desarrollo. Antes, tres
+> preguntas al usuario: el nombre (y carpeta) de cada plantilla, qué hacer
+> si ya existe y las pendientes. **H4, cerrado** (2026-11-22, tabla).
 > En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
 > **H7, casi cerrado**: la `v2.0.0` está **publicada** (actualizador de
 > Tauri con firma, `release.yml`, el paso desde la v1.3.4, la app
@@ -21,26 +25,17 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > (ya en `v2`, notas revisadas) para probar el actualizador de verdad,
 > **cuando la única persona que tenía la v1 tenga la `v2.0.0`**; y lo de
 > D: su procesador con AVX2 e importar un exportado en Clickedu (lo
-> pendiente de H2, como muy tarde en H6). **H4, la primera parte hecha y
-> probada con Clickedu de verdad** (2026-11-20: la cuenta, entrar y
-> comprobar, `clickedu/`; la pantalla Conexión, solo en desarrollo).
-> **Clickedu, investigado solo leyendo** (2026-11-20,
-> `cargo run --example explorar_clickedu`): el mapa, en
-> [`docs/03-clickedu.md`](docs/03-clickedu.md). **La capa resistente,
-> diseñada** (2026-11-20, `docs/01` H4: fichas por dato, bien/degradado/
-> roto, huellas sin nombres); el aviso automático por issue (D8 reabierta)
-> **espera** a hacer el repo privado, que rompe los actualizadores.
-> **H4, la segunda parte hecha** (2026-11-21, `docs/01`): `clickedu::fichas`
-> (bien/degradado/roto), `clickedu::huella`, `Cliente::abrir` (vuelve a
-> entrar solo) y las páginas de verdad anonimizadas en
-> `tests/datos/clickedu/` (`anonimizar_clickedu`; **se miran antes de cada
-> commit: el repo es público**). Lo crudo, en
+> pendiente de H2, como muy tarde en H6). El mapa de Clickedu, en
+> [`docs/03-clickedu.md`](docs/03-clickedu.md). Las páginas de verdad
+> anonimizadas (`tests/datos/clickedu/`, `anonimizar_clickedu`) **se miran
+> antes de cada commit: el repo es público**; lo crudo, en
 > `%APPDATA%\es.gestornotas.app\clickedu\capturas\`, **nunca en el repo**.
-> La sesión quieta aguanta al menos 45 min (`docs/03`). **Siguiente**: H5 (traer las plantillas), que
-> engancha las fichas a la pantalla Conexión. **Lo básico es traer y subir**;
-mirar Clickedu (ítems, rúbricas…) va aparte, en H10, solo leyendo y tras H6
-(`docs/01`, la frontera, 2026-11-21). La primera subida (H6), donde
-> diga la propietaria de la cuenta. Dentro de Clickedu, **nunca `/` ni
+> El aviso automático por issue (D8 reabierta) **espera** a hacer el repo
+> privado, que rompe los actualizadores. **Lo básico es traer y subir**;
+> mirar Clickedu (ítems, rúbricas…) va aparte, en H10, solo leyendo y tras
+> H6; qué enseña, se decide más adelante (`docs/01`, la frontera,
+> 2026-11-21). La primera subida (H6), donde diga la propietaria de la
+> cuenta. Dentro de Clickedu, **nunca `/` ni
 > `user.php`: cierran la sesión**. La cuenta del usuario ya está guardada en la app. Clickedu no distingue «caducado» de
 > «incorrecto». La contraseña filtrada la cambia el administrador del
 > colegio (con el archivo nuevo, la filtrada ya deja entrar: hay que cambiarla).
@@ -58,6 +53,7 @@ mirar Clickedu (ítems, rúbricas…) va aparte, en H10, solo leyendo y tras H6
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
+| **H4** | `clickedu::cuenta` (usuario y contraseña en el Administrador de credenciales, el archivo de seguridad en `%APPDATA%`; se rellena una vez), `cliente` (entrar, comprobar, `abrir` en ISO-8859-15 y vuelve a entrar solo), `fichas` (materias, evaluaciones, ítems, importar, `GetGrades`; bien/degradado/roto), `huella`, `tapar`; Clickedu investigado solo leyendo (`explorar_clickedu`, `docs/03`); la pantalla Conexión, solo en desarrollo | sí: entrar, a mano con Clickedu de verdad; 43 tests contra el Clickedu falso y páginas reales anonimizadas; la sesión quieta, 111 min sin caer. **Volver a entrar solo, solo contra el falso** |
 | **HUI** | La interfaz, antes de H4: la cuadrícula compacta y de 1 a 4 columnas; el dictado (lo apuntado grande y los dos de antes, dudas con 1–4/Esc, medidor de volumen, micrófono en Ajustes); el avance, «Siguiente sin nota» y las teclas tras un ⓘ; el título que es el desplegable; `BarraAvance`; las pantallas a todo el ancho | sí, a mano (A–D y a todo el ancho) y con la prueba de diseño |
 | **H3b** | `voz::interprete` (la nota; lo no visto en grabaciones, `NOTA_RARA`, no se interpreta), `voz::emparejar` (fonética, los dos órdenes de «Apellidos, Nombre»), `voz::entender` (cuándo preguntar); `entender_frase`, el panel del dictado y las propuestas en la cuadrícula; `registro.rs` e informe sin nombres (D8), en Ajustes | sí, a mano (clase inventada), con tests de Rust, la prueba de diseño y `probar_entender` sobre las 100 grabaciones: **77 apuntadas, 20 preguntadas, 2 sin entender, 0 mal en silencio** |
 | **H3a** | D2 cerrada con números: Whisper `small` `q5_1` recortado (90–94 % en 1,1 s); micrófono, remuestreo y motor; el banco de pruebas de voz; **el push-to-talk** (`useDictado`, `commands::voz`), la descarga comprobada del modelo (`voz::modelo`) y medir en local (`registro::medir`, sin audio); los bucles de Whisper se enseñan una vez y «[Música]» es silencio | el motor, con voz de verdad (100 grabaciones); el push-to-talk, a mano (clase inventada y descarga), con tests de Rust y la prueba de diseño |

@@ -853,7 +853,18 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
 **Con H7 cerrado, la `v2.0.0` sustituye a la app Python**: la rama `v2`
 pasa a `main`, y la v1 queda en el tag `v1.3.4`.
 
-### H4 · Conectar con Clickedu
+### H4 · Conectar con Clickedu ✓ (2026-11-22)
+
+**Cerrado el 2026-11-22**, con las cinco tareas hechas (abajo) y 43 tests
+de `clickedu` en verde. Quedan tres matices, ninguno frena H5:
+
+1. **Volver a entrar solo** (`Cliente::abrir`) está probado contra el
+   Clickedu falso, no contra el de verdad: quieta no caducó en 111 min.
+   Se verá la primera vez que caduque usándola.
+2. **La pantalla Conexión sigue solo en desarrollo** (`HAY_CLICKEDU`): se
+   enciende con H5, cuando tenga algo que hacer.
+3. **Los avisos de degradado y roto** no llegan aún a la interfaz: la capa
+   los calcula y H5 los engancha.
 
 **La contraseña filtrada no se puede cambiar desde el usuario** (el
 usuario, 2026-11-20): la cambia quien administra Clickedu en el colegio.
