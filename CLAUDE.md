@@ -14,9 +14,13 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 
 > **Dónde se quedó (2026-11-22): toca H5** (traer las plantillas desde
 > Clickedu, `docs/01`): engancha las fichas a la pantalla Conexión, los
-> avisos de degradado/roto y la enciende fuera de desarrollo. Antes, tres
-> preguntas al usuario: el nombre (y carpeta) de cada plantilla, qué hacer
-> si ya existe y las pendientes. **H4, cerrado** (2026-11-22, tabla).
+> avisos de degradado/roto y la enciende fuera de desarrollo. **Decidido**
+> (2026-11-22, `docs/01` H5): manda Clickedu con una regla fija
+> (`‹Materia› - ‹Curso› ‹Grupo›.xlsx`, `Pendiente - …`), se sobrescribe,
+> lo viejo a `plantillas\antiguas\‹fecha›\` y las notas pasan por `Id`;
+> las pendientes, separadas en la lista. Lo primero: comprobar, solo
+> leyendo, que la plantilla no cambia con la evaluación.
+> **H4, cerrado** (2026-11-22, tabla).
 > En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
 > **H7, casi cerrado**: la `v2.0.0` está **publicada** (actualizador de
 > Tauri con firma, `release.yml`, el paso desde la v1.3.4, la app

@@ -1094,10 +1094,30 @@ mantener: si se rompe, lo básico sigue funcionando.
 
 **Los nombres y la carpeta** (decidido por el usuario el 2026-11-22):
 
-- **Manda el nombre de Clickedu, siempre**: `‹Materia› - ‹curso y
-  grupo›.xlsx`, tal cual lo da Clickedu (`Biología - 3º E.S.O.-A.xlsx`),
-  todas sueltas en la carpeta de plantillas: una carpeta, un formato. Lo
-  que no valga en un nombre de Windows se cambia y se dice.
+- **Manda Clickedu, siempre con la misma regla** (2026-11-22): los datos
+  salen de Clickedu y se montan igual en todas, sueltas en la carpeta de
+  plantillas (una carpeta, un formato):
+  `‹Materia› - ‹Curso› ‹Grupo›.xlsx`.
+  - *Materia*: el `div.title`. *Curso*: el `div.panel-separador` de
+    antes, abreviado siempre igual («Tercero de ESO» → «3º ESO»,
+    «Primero de Bachillerato» → «1º Bach»). *Grupo*: la letra, si el
+    `div.sub-title` es un grupo («3º E.S.O.-A» → «A»).
+  - Si dos quedarían con el mismo nombre, el `sub-title` entre
+    paréntesis, tal cual: `Química - 2º Bach (QUÍMICA 2).xlsx`.
+  - **Las pendientes** (el `sub-title` empieza por «PENDIENTE»):
+    `Pendiente - ‹Materia› - ‹curso de la asignatura›.xlsx`, con el curso
+    del título y, si no trae nivel, el del encabezado:
+    `Pendiente - Física y Química - 1º Bach.xlsx`.
+  - Los retoques de forma («2ºESO» → «2º ESO», «E.S.O.» → «ESO», «/» →
+    «-», que Windows no acepta) **se ven**: en la lista, al lado, lo que
+    pone Clickedu tal cual. Un encabezado que no sea de ESO ni de
+    Bachillerato va tal cual, con aviso.
+  - Si el colegio cambia un texto, cambia el nombre: la app se acuerda
+    del `id` de cada materia, así que es la misma (la vieja, a
+    `antiguas`, y las notas pasan).
+  - Con las 10 de la cuenta del usuario (la captura) sale bien, también
+    las dos «Física y Química» de 1º Bach, que se distinguen por el
+    `sub-title`.
 - **Se sobrescriben**: traer una materia que ya está la vuelve a bajar de
   Clickedu. Lo que había **no se borra**: va a
   `plantillas\antiguas\‹AAAA-MM-DD›\`, fuera de la raíz (`listar` no lee
@@ -1119,8 +1139,11 @@ mantener: si se rompe, lo básico sigue funcionando.
   misma en todas las evaluaciones (la descarga pide `id_aval`; las dos de
   la exploración eran de la misma), y que la evaluación solo se elige al
   subir (H6).
-- **Las pendientes de otros cursos**: sin decidir (propuesta: en la
-  misma lista, en un grupo aparte al final y sin marcar).
+- **Las pendientes de otros cursos** (decidido el 2026-11-22): se traen
+  como las demás, pero **en la vista de materias van separadas**, en su
+  propio grupo «Pendientes», al final: en Conexión, en Clases y en el
+  desplegable de Calificar. Por el nombre (`Pendiente - …`) salen
+  también juntas en la carpeta.
 
 ### H6 · Subir notas a Clickedu
 
