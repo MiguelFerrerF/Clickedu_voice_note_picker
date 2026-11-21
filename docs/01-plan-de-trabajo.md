@@ -1066,6 +1066,16 @@ H5 y H6.
       (`Cliente::abrir`, probado contra el Clickedu falso). **Cuánto dura
       quieta**: en `docs/03` («La sesión»).
 
+**La frontera entre lo básico y lo de más** (decidido con el usuario el
+2026-11-21): el objetivo de la app es **traer las plantillas y subir las
+notas sin pasar por un fichero** (H5–H6). Eso es lo básico, y lee de
+Clickedu solo lo justo para subir y comprobar: materias, evaluaciones, la
+página de importar (ítems y formulario) y `GetGrades`, que son parámetros,
+nombres de campo y JSON, lo resistente (`docs/03`). Todo lo que sea
+**mirar** Clickedu (ítems con detalle, rúbricas, la cuadrícula…) va
+aparte, en «Más de Clickedu» (H10), porque lee lo frágil y obliga a
+mantener: si se rompe, lo básico sigue funcionando.
+
 ### H5 · Traer las plantillas desde Clickedu
 
 - [ ] Asignaturas y evaluaciones; descargar las plantillas que falten, con
@@ -1078,6 +1088,10 @@ H5 y H6.
       prueba** que dirá la propietaria de la cuenta (pendiente,
       2026-11-20): un ítem de prueba con ponderación 0 y sin que lo vean
       las familias, o una materia de pruebas del colegio.
+- [ ] **No pisar notas** (2026-11-21): antes de subir, leer con
+      `GetGrades` las notas que ya hay en ese ítem y avisar de qué alumnos
+      ya tienen nota en Clickedu y cuál cambiaría («¿la cambio?»). Va en
+      lo básico, no en H10, porque es donde protege.
 - [ ] Plan B: si falla, el Excel exportado y la página de importación abierta
       en el navegador. **Antes, confirmar que Clickedu acepta el exportado de
       H2**, que no se ha importado todavía.
@@ -1094,6 +1108,38 @@ H5 y H6.
 - [ ] **«Ayuda» en la barra lateral** (pedido por el usuario el
       2026-11-19): cómo funciona cada cosa de la app, en un sitio; el «?»
       de library-app. Se deja para aquí porque H4–H8 cambian las pantallas.
+
+### H10 · Más de Clickedu (solo leer)
+
+Pedido por el usuario el 2026-11-21: un apartado que enseñe lo relevante
+de Clickedu, no solo subir notas (ítems, rúbricas y demás). **No es
+funcionalidad básica**, porque lee lo frágil (HTML, clases CSS, textos) y
+es lo que más va a romper cada cambio de Clickedu. Va **detrás de H6**, y
+mejor con la subida ya en uso, para hacer lo que se eche de menos en vez de
+adivinarlo.
+
+- **Un apartado, no una versión aparte**: dos versiones serían dos
+  instaladores y dos actualizadores. Va en la barra lateral, escondido
+  como `HAY_ESTADISTICAS`, y se enciende con un interruptor en Ajustes
+  («Ver más de Clickedu»), apagado al principio.
+- **Solo leer, siempre.** La única escritura de la app sigue siendo la de
+  H6. Nada de `do=Save` de la cuadrícula (manda la cuadrícula entera) ni
+  editar ítems o rúbricas.
+- **No tumba lo básico**: sus fichas van en su propio módulo, cada una
+  con su bien/degradado/roto. Si se rompe la de rúbricas, solo se apaga
+  esa tarjeta («esto no se puede leer ahora»), y no cuenta como «Clickedu
+  ha cambiado» para subir notas.
+- Los datos de alumnos que enseñe se leen al momento y no se guardan más
+  de lo que haga falta; el informe de D8, solo con la forma.
+- El aviso automático de cambios (D8, reabierta) pesa más aquí: cuanto
+  más se lee, más se rompe.
+
+- [ ] **Primero, investigar solo leyendo** lo que no se ha visto: las
+      rúbricas y lo demás que pida el usuario
+      (`explorar_clickedu --solo`), a `docs/03`. Con eso se decide qué
+      entra y cuánto cuesta cada cosa, antes de prometerlo.
+- [ ] Qué enseña el apartado: **pendiente de que el usuario lo diga**,
+      además de ítems y rúbricas.
 
 ---
 

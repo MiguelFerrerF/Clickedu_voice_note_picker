@@ -37,7 +37,9 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > commit: el repo es público**). Lo crudo, en
 > `%APPDATA%\es.gestornotas.app\clickedu\capturas\`, **nunca en el repo**.
 > La sesión quieta aguanta al menos 45 min (`docs/03`). **Siguiente**: H5 (traer las plantillas), que
-> engancha las fichas a la pantalla Conexión. La primera subida (H6), donde
+> engancha las fichas a la pantalla Conexión. **Lo básico es traer y subir**;
+mirar Clickedu (ítems, rúbricas…) va aparte, en H10, solo leyendo y tras H6
+(`docs/01`, la frontera, 2026-11-21). La primera subida (H6), donde
 > diga la propietaria de la cuenta. Dentro de Clickedu, **nunca `/` ni
 > `user.php`: cierran la sesión**. La cuenta del usuario ya está guardada en la app. Clickedu no distingue «caducado» de
 > «incorrecto». La contraseña filtrada la cambia el administrador del
