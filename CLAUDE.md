@@ -36,9 +36,7 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > `tests/datos/clickedu/` (`anonimizar_clickedu`; **se miran antes de cada
 > commit: el repo es público**). Lo crudo, en
 > `%APPDATA%\es.gestornotas.app\clickedu\capturas\`, **nunca en el repo**.
-> **Si no está ya apuntado**: cuánto dura la sesión quieta (`informe.md` de
-> `clickedu\exploracion\`, «Sesión») a `docs/03`, y mover esa carpeta a
-> `capturas\2026-11-20\`. **Siguiente**: H5 (traer las plantillas), que
+> La sesión quieta aguanta al menos 45 min (`docs/03`). **Siguiente**: H5 (traer las plantillas), que
 > engancha las fichas a la pantalla Conexión. La primera subida (H6), donde
 > diga la propietaria de la cuenta. Dentro de Clickedu, **nunca `/` ni
 > `user.php`: cierran la sesión**. La cuenta del usuario ya está guardada en la app. Clickedu no distingue «caducado» de

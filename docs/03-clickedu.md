@@ -49,7 +49,10 @@ preferencia (`layout=`, el idioma), los datos de salud y de conducta,
 - **Duración**: aguantó el recorrido entero (unos 6 minutos de peticiones
   seguidas). **Quieta** (2026-11-21, `--sesion "10,20,30,45"`, cada pausa
   sin pedir nada y una página al acabar): a los 10 min, **sigue**; a los
-  20 min (35 desde que se entró), **sigue**; 30 y 45, midiéndose.
+  20 min (35 desde que se entró), **sigue**; a los 30 (66), **sigue**; a
+  los 45 (111), **sigue**. **Aguanta al menos 45 minutos quieta** y casi
+  dos horas desde que se entró: entre dictar una clase y subirla no
+  caduca, y si caduca, `Cliente::abrir` vuelve a entrar.
 - **Caducada no se distingue de incorrecta**: la sesión caducada contesta
   lo mismo que sin entrar (el `alert`). `Cliente::abrir` lo ve
   (`es_pagina_de_entrar`), entra otra vez con lo de la última vez (solo en
