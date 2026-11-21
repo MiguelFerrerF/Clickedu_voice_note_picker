@@ -133,6 +133,15 @@ notas: ‹materia›»), enlazada desde «Evaluar». **Como en la v1:**
 «Id | Alumnos | Nota», 30 alumnos, ids solo cifras, nombres «Apellidos,
 Nombre». **`plantillas.rs` la lee tal cual** (`revisar_plantillas`).
 
+- **No depende de la evaluación** (2026-11-22, `comparar_plantillas`, las
+  10 materias): con cualquier `id_aval` de la materia sale la misma,
+  celda a celda, y sin notas. El fichero se llama
+  `evaluate_‹AAAAMMDD›_‹HHMMSS›.xlsx` (la hora de bajarla).
+- **Sin alumnos, sale vacía**: una pendiente sin nadie da un `.xlsx` con
+  la hoja «Worksheet» y ninguna celda, ni la cabecera.
+- Los `id_aval` son **de cada curso** (los de 3º ESO no son los de 4º; 1º
+  Bach tiene una cuarta, «JUNIO»).
+
 ## Leer las notas ya puestas
 
 `ctr=Evaluate/EvaluateTermly&id=N&trm=T` es **la cuadrícula de notas**

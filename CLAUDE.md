@@ -18,8 +18,11 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > (2026-11-22, `docs/01` H5): manda Clickedu con una regla fija
 > (`‹Materia› - ‹Curso› ‹Grupo›.xlsx`, `Pendiente - …`), se sobrescribe,
 > lo viejo a `plantillas\antiguas\‹fecha›\` y las notas pasan por `Id`;
-> las pendientes, separadas en la lista. Lo primero: comprobar, solo
-> leyendo, que la plantilla no cambia con la evaluación.
+> las pendientes, separadas en la lista. **Comprobado** (2026-11-22,
+> `comparar_plantillas`): la plantilla no cambia con la evaluación (22 de
+> 22 iguales); una por materia, y la evaluación se elige al subir (H6).
+> Una pendiente sin alumnos viene vacía: no se guarda. Lo siguiente: el
+> código de traer (`clickedu::traer`), luego la pantalla.
 > **H4, cerrado** (2026-11-22, tabla).
 > En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
 > **H7, casi cerrado**: la `v2.0.0` está **publicada** (actualizador de

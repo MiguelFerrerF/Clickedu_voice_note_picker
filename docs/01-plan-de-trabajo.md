@@ -1135,10 +1135,23 @@ mantener: si se rompe, lo básico sigue funcionando.
   notas pasan a dónde, y se confirma. Después, se hace y se cuenta.
 - Un Excel abierto no se puede mover: se dice cuál y se sigue con el
   resto.
-- **Por comprobar, solo leyendo, al empezar**: que la plantilla es la
-  misma en todas las evaluaciones (la descarga pide `id_aval`; las dos de
-  la exploración eran de la misma), y que la evaluación solo se elige al
-  subir (H6).
+- **La plantilla no cambia con la evaluación** (comprobado, solo
+  leyendo, el 2026-11-22 con `cargo run --example comparar_plantillas`):
+  en las 10 materias, las 22 bajadas de las evaluaciones 2ª, 3ª y
+  «JUNIO» son **iguales celda a celda** a la de la 1ª (mismos `Id`,
+  nombres y orden; todas sin notas). Así que se trae una por materia, con
+  el `id_aval` de su primera evaluación, y **la evaluación solo se elige
+  al subir** (H6). Dos cosas más:
+  - Clickedu llama al fichero `evaluate_‹AAAAMMDD›_‹HHMMSS›.xlsx`: no dice
+    qué materia es. La regla de nombres de arriba es la única manera.
+  - **Una pendiente viene vacía**: la de Física y Química de 1º Bach
+    (bajo «Segundo de Bachillerato») es un `.xlsx` con la hoja
+    «Worksheet» y nada más, ni la cabecera: sin alumnos. Una plantilla así
+    **no se guarda** (`plantillas.rs` no la lee y saldría como error en
+    Clases): sale en la lista como «sin alumnos en Clickedu».
+  - Las evaluaciones son **de cada curso**, no del colegio: 3º ESO tiene
+    unos `id_aval`, 4º ESO otros, 1º Bach cuatro (con «JUNIO»). Hay que
+    leerlas de cada materia (su página de Ítems).
 - **Las pendientes de otros cursos** (decidido el 2026-11-22): se traen
   como las demás, pero **en la vista de materias van separadas**, en su
   propio grupo «Pendientes», al final: en Conexión, en Clases y en el
