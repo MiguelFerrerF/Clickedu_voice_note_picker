@@ -1092,6 +1092,36 @@ mantener: si se rompe, lo básico sigue funcionando.
 - [ ] Asignaturas y evaluaciones; descargar las plantillas que falten, con
       progreso.
 
+**Los nombres y la carpeta** (decidido por el usuario el 2026-11-22):
+
+- **Manda el nombre de Clickedu, siempre**: `‹Materia› - ‹curso y
+  grupo›.xlsx`, tal cual lo da Clickedu (`Biología - 3º E.S.O.-A.xlsx`),
+  todas sueltas en la carpeta de plantillas: una carpeta, un formato. Lo
+  que no valga en un nombre de Windows se cambia y se dice.
+- **Se sobrescriben**: traer una materia que ya está la vuelve a bajar de
+  Clickedu. Lo que había **no se borra**: va a
+  `plantillas\antiguas\‹AAAA-MM-DD›\`, fuera de la raíz (`listar` no lee
+  subcarpetas, así que no sale como clase). Igual con las de nombre a
+  mano (las de la v1, `biologia_3_a_eso.xlsx`) y cualquier otra plantilla
+  de la raíz que no sea de Clickedu.
+- **Las notas puestas sin exportar no se pierden**: `sesion.rs` las
+  guarda por fichero, así que al cambiar de nombre se pasan al nuevo,
+  alumno por alumno (por su `Id`). Para saber qué fichero viejo es cada
+  materia: los mismos `Id` y el nombre; si dos materias tienen el mismo
+  grupo y no está claro, se pregunta. Solo hace falta con las que tienen
+  notas puestas o notas en su columna «Nota»; las demás se apartan sin
+  más. Un alumno con nota que ya no está en Clickedu, se dice.
+- **La primera vez se enseña antes** qué se mueve a `antiguas` y qué
+  notas pasan a dónde, y se confirma. Después, se hace y se cuenta.
+- Un Excel abierto no se puede mover: se dice cuál y se sigue con el
+  resto.
+- **Por comprobar, solo leyendo, al empezar**: que la plantilla es la
+  misma en todas las evaluaciones (la descarga pide `id_aval`; las dos de
+  la exploración eran de la misma), y que la evaluación solo se elige al
+  subir (H6).
+- **Las pendientes de otros cursos**: sin decidir (propuesta: en la
+  misma lista, en un grupo aparte al final y sin marcar).
+
 ### H6 · Subir notas a Clickedu
 
 - [ ] Elegir asignatura, evaluación e ítem; subir; **comprobar** que entraron
