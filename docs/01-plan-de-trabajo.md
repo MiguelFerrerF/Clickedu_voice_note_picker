@@ -1152,6 +1152,45 @@ mantener: si se rompe, lo básico sigue funcionando.
   - Las evaluaciones son **de cada curso**, no del colegio: 3º ESO tiene
     unos `id_aval`, 4º ESO otros, 1º Bach cuatro (con «JUNIO»). Hay que
     leerlas de cada materia (su página de Ítems).
+- **Cómo se monta** (esbozo del 2026-11-22, sin código aún):
+  `src-tauri/src/clickedu/traer.rs`, en cuatro partes, y los comandos en
+  `commands/clickedu.rs`.
+  1. **`nombres`** (puro, con tests de `Materia` inventadas): `curso_corto`
+     («Tercero de ESO» → `3º ESO`, «Primero de Bachillerato» → `1º Bach`;
+     si no, tal cual y con aviso); `letra_de_grupo` (`3º E.S.O.-A` → `A`:
+     lo de tras el último `-`, 1–2 mayúsculas, y delante número + `º` +
+     ESO/Bach); pendiente si el `sub-title` empieza por «pendiente»: se
+     parte el título por el final (nivel y `Nº`) y, sin nivel, el del
+     encabezado. Cada retoque (`E.S.O.`→`ESO`, `2ºESO`→`2º ESO`,
+     `<>:"/\|?*`→`-`) se devuelve como `{de, a}`. Repetidos: ` (‹sub-title›)`;
+     si aun así se repiten (la página anonimizada tiene dos `F/Q ▢`), se
+     añade el id.
+  2. **`bajar`** (async, solo red): materias; por cada una, su página de
+     Ítems → la primera evaluación → la descarga (`PK` al principio, o
+     fallo de esa materia, que no para las demás). Devuelve los bytes y
+     el HTML de materias e Ítems, para las huellas (`huella`, con un
+     `Tapar` de los nombres bajados) y los avisos de degradado.
+  3. **`planear`** (puro): lo bajado, a `clickedu\bajadas\` (local) y
+     leído con `plantillas::leer` (`SinDatos`/`SinAlumnos` = vacía, no se
+     guarda). Por materia: nueva, **igual** (mismo nombre y mismos
+     alumnos y notas: no se toca ni se aparta), cambia, vacía o fallo. A
+     `antiguas` va todo lo de la raíz salvo lo igual y lo de Clickedu de
+     materias no traídas esta vez. Las notas de cada apartada (las de la
+     sesión, por encima de su columna «Nota»; con clave `fila:` no se
+     pueden pasar y se cuentan): a dónde, por este orden: lo recordado
+     (`clickedu\traidas.json`, `id → fichero`), el mismo nombre, y si no,
+     los `Id` (≥ 50 % de los suyos en la nueva) y, si quedan varias, la
+     primera palabra de la materia en el nombre viejo. Si no queda una,
+     **duda**: se pregunta, y sin respuesta la vieja **se queda en la
+     raíz** (no se pierde nada en silencio).
+  4. **`aplicar`** (fs): mover a `antiguas\‹AAAA-MM-DD›\` (si ya está,
+     ` (2)`); un Excel abierto no se mueve, se dice y su nueva no se
+     escribe; copiar las nuevas; pasar las notas en `sesion.json` con el
+     `Cerrojo` (lo que ya tuviera la nueva, manda); guardar
+     `traidas.json` (y si ya se confirmó la primera vez); vaciar
+     `bajadas`.
+  Para probar `bajar`, el Clickedu falso sirve Ítems y una descarga
+  (`.xlsx` hecho con `rust_xlsxwriter`, como los tests de plantillas).
 - **Las pendientes de otros cursos** (decidido el 2026-11-22): se traen
   como las demás, pero **en la vista de materias van separadas**, en su
   propio grupo «Pendientes», al final: en Conexión, en Clases y en el

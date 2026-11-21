@@ -22,7 +22,8 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > `comparar_plantillas`): la plantilla no cambia con la evaluación (22 de
 > 22 iguales); una por materia, y la evaluación se elige al subir (H6).
 > Una pendiente sin alumnos viene vacía: no se guarda. Lo siguiente: el
-> código de traer (`clickedu::traer`), luego la pantalla.
+> código de traer (`clickedu::traer`, esbozado en `docs/01` H5, «Cómo se
+> monta»), luego la pantalla.
 > **H4, cerrado** (2026-11-22, tabla).
 > En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
 > **H7, casi cerrado**: la `v2.0.0` está **publicada** (actualizador de
