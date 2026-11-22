@@ -789,11 +789,12 @@ const PRUEBAS = [
       await paso('plan');
       await main.getByRole('button', {name: 'avisos al leer Clickedu'}).click();
       await paso('avisos');
-      await main.getByRole('button', {name: 'Sin decidir: se queda en la carpeta'}).first().click();
+      await main.getByText('te lo vuelvo a preguntar la próxima vez', {exact: false}).first().waitFor();
+      await main.getByRole('button', {name: 'Dejarla como está y decidirlo otro día'}).first().click();
       await page.waitForTimeout(150);
       await paso('desplegable');
-      await page.getByRole('button', {name: 'A ninguna: se descartan'}).last().click();
-      await main.getByText('no pasan a ninguna', {exact: false}).waitFor();
+      await page.getByRole('button', {name: 'No pasarlas a ninguna: borrarlas'}).last().click();
+      await main.getByText('se borran de la app', {exact: false}).waitFor();
       await paso('respondida');
       await main.getByRole('button', {name: 'Hacerlo'}).click();
       await main.getByText('puestas en tu carpeta', {exact: false}).waitFor();

@@ -457,7 +457,10 @@ function Carpeta({
                     ...(dudosas.includes(f.fichero)
                       ? [{value: SIN_DECIDIR, label: t('traer.opcion_sin_decidir')}]
                       : []),
-                    ...primero(f.duda?.candidatas ?? [], destinos).map((d) => ({value: `pasar:${d}`, label: d})),
+                    ...primero(f.duda?.candidatas ?? [], destinos).map((d) => ({
+                      value: `pasar:${d}`,
+                      label: t('traer.opcion_pasar', {a: d.replace(/\.xlsx$/i, '')}),
+                    })),
                     {value: NINGUNA, label: t('traer.opcion_ninguna')},
                   ]
                 : undefined
@@ -515,15 +518,23 @@ function FilaCarpeta({
   const lineas: string[] = [];
   let pregunta: string | undefined;
 
-  // Con desplegable, la pregunta; la de una duda no cambia al responderla.
+  // Con desplegable, la pregunta (la de una duda no cambia al responderla)
+  // y, debajo, qué pasará con lo elegido: con el Excel y con sus notas.
   const conNota = duda?.notas ?? (paso ? paso.pasan + paso.sin_alumno + paso.sin_id : (apartada?.descartadas ?? 0));
-  if (opciones)
+  if (opciones) {
     pregunta = dudosa
       ? contar(conNota, 'traer.duda_uno', 'traer.duda')
-      : contar(conNota, 'traer.pasan_a_uno', 'traer.pasan_a');
-
-  if (duda) {
-    if (!opciones) lineas.push(t('traer.se_queda'));
+      : contar(conNota, 'traer.que_hago_uno', 'traer.que_hago');
+    if (valor === SIN_DECIDIR) lineas.push(t('traer.efecto_sin_decidir'));
+    else if (valor === NINGUNA) lineas.push(contar(conNota, 'traer.efecto_ninguna_uno', 'traer.efecto_ninguna'));
+    else if (paso) {
+      lineas.push(contar(paso.pasan, 'traer.efecto_pasar_uno', 'traer.efecto_pasar'));
+      if (paso.por !== 'respuesta') lineas.push(t(`traer.por_${paso.por}`));
+      if (paso.sin_alumno) lineas.push(contar(paso.sin_alumno, 'traer.sin_alumno_uno', 'traer.sin_alumno'));
+      if (paso.sin_id) lineas.push(contar(paso.sin_id, 'traer.sin_id_uno', 'traer.sin_id'));
+    }
+  } else if (duda) {
+    lineas.push(t('traer.se_queda'));
   } else if (sinApartar) {
     // Sus notas siguen en la sesión, y la nueva de su nombre no se escribe.
     lineas.push(t('traer.sin_apartar'));
@@ -531,7 +542,7 @@ function FilaCarpeta({
     if (!hecho) lineas.push(t('traer.a_antiguas'));
     if (paso) {
       if (notasSinPasar) lineas.push(t('traer.notas_sin_pasar', {a: paso.a}));
-      else if (!opciones) lineas.push(contar(paso.pasan, 'traer.ha_pasado', 'traer.han_pasado', {a: paso.a}));
+      else lineas.push(contar(paso.pasan, 'traer.ha_pasado', 'traer.han_pasado', {a: paso.a}));
       lineas.push(t(`traer.por_${paso.por}`));
       if (paso.sin_alumno) lineas.push(contar(paso.sin_alumno, 'traer.sin_alumno_uno', 'traer.sin_alumno'));
       if (paso.sin_id) lineas.push(contar(paso.sin_id, 'traer.sin_id_uno', 'traer.sin_id'));
@@ -586,7 +597,7 @@ function FilaCarpeta({
       <div style={{display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0}}>
         {pregunta && <span style={{fontSize: 12.5, lineHeight: 1.45, color: 'var(--text-primary)'}}>{pregunta}</span>}
         {opciones && responder && (
-          <div style={{maxWidth: 380}}>
+          <div style={{maxWidth: 480}}>
             <Dropdown value={valor} options={opciones} onChange={responder} size="sm" />
           </div>
         )}

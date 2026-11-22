@@ -1271,7 +1271,12 @@ mantener: si se rompe, lo básico sigue funcionando.
   como se eligió («a ninguna»). Salió **un falso fallo**, `leer_clase` de
   la clase abierta en Calificar, que se había apartado: `useClases` subía
   `cambios` con el aviso y Calificar la releía con la lista de antes.
-  Ahora sube con la lista nueva.
+  Ahora sube con la lista nueva. Y **el desplegable no se entendía**
+  (mezclaba qué pasa con el Excel y con sus notas; las opciones eran
+  nombres de fichero y «A ninguna» no decía de qué): ahora cada opción es
+  lo que se hace («Dejarla como está y decidirlo otro día», «Pasar sus
+  notas a ‹plantilla›», «No pasarlas a ninguna: borrarlas») y debajo se
+  dice qué le pasa al Excel y a sus notas con lo elegido.
 
 ### H6 · Subir notas a Clickedu
 
