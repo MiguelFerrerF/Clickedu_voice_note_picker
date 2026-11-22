@@ -27,8 +27,8 @@ pub enum Modo {
     NoDejaPasar,
     /// Todo, un 503.
     Caido,
-    /// Como `Normal`, pero la sesión caduca tras dos páginas de dentro (la
-    /// de comprobar y otra): la tercera contesta como sin sesión, hasta
+    /// Como `Normal`, pero la sesión caduca tras dos peticiones de dentro
+    /// (la de comprobar y otra): la tercera contesta como sin sesión, hasta
     /// volver a entrar.
     Caduca,
 }
@@ -73,10 +73,50 @@ const ARXIU: &str = r#"<!DOCTYPE html><html><body>
 const ARCHIVO_INCORRECTO: &str = "<!DOCTYPE html><html><body><p>Archivo de seguridad INCORRECTO</p></body></html>";
 const CAMBIADO: &str = "<!DOCTYPE html><html><body><p>Bienvenido al nuevo Clickedu</p></body></html>";
 const INICIO: &str = "<!DOCTYPE html><html><body><p>Inicio</p></body></html>";
+/// Tres materias: la 101 se trae bien; la 102 no tiene evaluaciones; la
+/// 103, al bajarla, no da un Excel.
 const ASIGNATURAS: &str = r#"<!DOCTYPE html><html><body>
-<div class="bloc-assignatura"><a href="/go/Index.php?ctr=Subject/Items&id=101">
-  <div class="title">Matemáticas</div><div class="sub-title">3.º ESO A</div></a></div>
+<div class="panel panel-separador"><div class="title">Tercero de ESO</div></div>
+<div class="bloc-assignatura"><a href="/go/Index.php?ctr=Subject/Subject&id=101">
+  <div class="title">Matemáticas</div><div class="sub-title">3º E.S.O.-A</div></a></div>
+<div class="bloc-assignatura"><a href="/go/Index.php?ctr=Subject/Subject&id=102">
+  <div class="title">Música</div><div class="sub-title">3º E.S.O.-A</div></a></div>
+<div class="bloc-assignatura"><a href="/go/Index.php?ctr=Subject/Subject&id=103">
+  <div class="title">Tecnología</div><div class="sub-title">3º E.S.O.-B</div></a></div>
 </body></html>"#;
+const ITEMS_SIN_EVALUACIONES: &str = "<html><body><p>Sin evaluaciones</p></body></html>";
+const ITEMS_103: &str =
+    r#"<html><body><select name="trm"><option value="8">1ª evaluación</option></select></body></html>"#;
+const NO_ES_EXCEL: &str = "<html><body><p>Error al generar la plantilla</p></body></html>";
+pub const BAJAR_101: &str = "/assignatures/importar_notes_items.php?accio=descarregar_plantilla&assig=101&id_aval=7";
+const BAJAR_103: &str = "/assignatures/importar_notes_items.php?accio=descarregar_plantilla&assig=103&id_aval=8";
+
+/// La plantilla que da Clickedu, con dos alumnos inventados: la hoja
+/// `Worksheet` y `Id | Alumnos | Nota`, como las de verdad.
+pub fn plantilla_101() -> Vec<u8> {
+    let mut libro = rust_xlsxwriter::Workbook::new();
+    let hoja = libro.add_worksheet().set_name("Worksheet").unwrap();
+    for (c, t) in ["Id", "Alumnos", "Nota"].iter().enumerate() {
+        hoja.write_string(0, c as u16, *t).unwrap();
+    }
+    for (f, (id, nombre)) in [(5001, "Castro Ruiz, Lucía"), (5002, "Ortega Gil, Mateo")].iter().enumerate() {
+        hoja.write_number(f as u32 + 1, 0, *id as f64).unwrap();
+        hoja.write_string(f as u32 + 1, 1, *nombre).unwrap();
+    }
+    libro.save_to_buffer().unwrap()
+}
+
+fn excel(bytes: Vec<u8>) -> Respuesta {
+    Response::from_data(bytes)
+        .with_header(
+            Header::from_bytes("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                .unwrap(),
+        )
+        .with_header(
+            Header::from_bytes("Content-Disposition", "attachment; filename=\"evaluate_20261122_101500.xlsx\"")
+                .unwrap(),
+        )
+}
 
 const SIN_SESION: &str = "<html><body class='home'><script>alert('No ha iniciado sesión');
 window.location.href='/user.php?action=login';</script></body></html>";
@@ -133,7 +173,8 @@ fn responder(modo: Modo, metodo: &str, ruta: &str, cookies: &str, cuerpo: &str, 
     if modo == Modo::Caido {
         return pagina("Service Unavailable").with_status_code(503);
     }
-    if ruta.starts_with("/go/") && cookies.contains(DENTRO) {
+    let de_dentro_es = ruta.starts_with("/go/") || ruta.starts_with("/assignatures/");
+    if de_dentro_es && cookies.contains(DENTRO) {
         *de_dentro += 1;
         if modo == Modo::Caduca && *de_dentro > 2 {
             return pagina(SIN_SESION);
@@ -174,9 +215,15 @@ fn responder(modo: Modo, metodo: &str, ruta: &str, cookies: &str, cuerpo: &str, 
         ("GET", "/go/Index.php?ctr=Subject/Items&do=Index&id=101") if cookies.contains(DENTRO) => {
             Response::from_data(ITEMS_LATIN1).with_header(Header::from_bytes("Content-Type", "text/html").unwrap())
         }
+        ("GET", "/go/Index.php?ctr=Subject/Items&do=Index&id=102") if cookies.contains(DENTRO) => {
+            pagina(ITEMS_SIN_EVALUACIONES)
+        }
+        ("GET", "/go/Index.php?ctr=Subject/Items&do=Index&id=103") if cookies.contains(DENTRO) => pagina(ITEMS_103),
+        ("GET", BAJAR_101) if cookies.contains(DENTRO) => excel(plantilla_101()),
+        ("GET", BAJAR_103) if cookies.contains(DENTRO) => pagina(NO_ES_EXCEL),
         // Sin sesión, el de verdad no redirige: contesta 200 con un aviso y
         // manda a entrar con JS (visto el 2026-11-20).
-        ("GET", r) if r.starts_with("/go/") => pagina(SIN_SESION),
+        ("GET", r) if r.starts_with("/go/") || r.starts_with("/assignatures/") => pagina(SIN_SESION),
         _ => ir_a("/user.php?action=login", None),
     }
 }

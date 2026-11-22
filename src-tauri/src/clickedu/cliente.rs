@@ -223,17 +223,41 @@ impl Cliente {
         if !es_pagina_de_entrar(&primera.url, &primera.texto) {
             return Ok(primera);
         }
-        let credenciales = self.credenciales.lock().ok().and_then(|c| c.clone());
-        let Some(c) = credenciales else {
-            return Err("no se ha entrado en Clickedu".to_string().into());
-        };
-        self.entrar(&c.usuario, &c.contrasena, (&c.archivo.0, &c.archivo.1)).await?;
+        self.volver_a_entrar().await?;
         let segunda = self.abrir_una_vez(direccion).await?;
         if es_pagina_de_entrar(&segunda.url, &segunda.texto) {
             // Recién entrado y vuelve a mandar a entrar: no es la sesión.
             return Err(Fallo::NoEntiendo { paso: "abrir".into(), html: segunda.texto });
         }
         Ok(segunda)
+    }
+
+    /// Baja un fichero **de dentro** con `GET` y lo devuelve tal cual, como
+    /// [`Cliente::leer`]; si en vez del fichero llega la página de entrar,
+    /// **vuelve a entrar solo** y lo pide otra vez, como [`Cliente::abrir`].
+    /// Lo que llegue (un Excel o no) lo juzga quien lo pide.
+    pub async fn bajar(&self, direccion: &str) -> Result<Leida, Fallo> {
+        let manda_a_entrar =
+            |l: &Leida| !l.cuerpo.starts_with(b"PK") && es_pagina_de_entrar(&l.url, &decodificar(&l.cuerpo));
+        let primera = self.leer(direccion).await?;
+        if !manda_a_entrar(&primera) {
+            return Ok(primera);
+        }
+        self.volver_a_entrar().await?;
+        let segunda = self.leer(direccion).await?;
+        if manda_a_entrar(&segunda) {
+            return Err(Fallo::NoEntiendo { paso: "bajar".into(), html: decodificar(&segunda.cuerpo) });
+        }
+        Ok(segunda)
+    }
+
+    /// Vuelve a entrar con lo de la última vez: la sesión ha caducado.
+    async fn volver_a_entrar(&self) -> Result<(), Fallo> {
+        let credenciales = self.credenciales.lock().ok().and_then(|c| c.clone());
+        let Some(c) = credenciales else {
+            return Err("no se ha entrado en Clickedu".to_string().into());
+        };
+        self.entrar(&c.usuario, &c.contrasena, (&c.archivo.0, &c.archivo.1)).await
     }
 
     async fn abrir_una_vez(&self, direccion: &str) -> Result<Abierta, Fallo> {

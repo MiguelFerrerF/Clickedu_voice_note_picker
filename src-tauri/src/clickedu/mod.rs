@@ -14,6 +14,7 @@
 //! - [`huella`] — la forma de cada página, sin nombres, comparada con la
 //!   última buena: qué ha cambiado y dónde.
 //! - [`tapar`] — pasar textos y direcciones a su forma, sin nombres.
+//! - [`traer`] — traer las plantillas (H5): el nombre de cada fichero.
 //!
 //! El cliente se prueba contra un Clickedu falso con páginas inventadas
 //! ([`falso`]); las fichas y la huella, con páginas **de verdad,
@@ -30,6 +31,7 @@ pub mod cuenta;
 pub mod fichas;
 pub mod huella;
 pub mod tapar;
+pub mod traer;
 
 #[cfg(test)]
 pub(crate) mod falso;
