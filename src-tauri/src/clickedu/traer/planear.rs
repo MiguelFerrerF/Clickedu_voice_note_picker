@@ -10,8 +10,8 @@
 //! - Las notas de cada apartada (las de la sesión, por encima de su columna
 //!   «Nota») pasan, alumno por alumno y por su `Id`, a: lo recordado
 //!   (`traidas.json`), el mismo nombre, y si no, la nueva que tenga al menos
-//!   la mitad de sus alumnos (si quedan varias, la que lleve la primera
-//!   palabra de la materia en el nombre viejo). Si no queda una, **duda**: se
+//!   la mitad de sus alumnos **y** la primera palabra de su materia en el
+//!   nombre viejo. Si no queda una, **duda**: se
 //!   pregunta, y sin respuesta la vieja **se queda en la raíz**.
 
 use std::collections::{BTreeMap, HashMap, HashSet};
@@ -344,7 +344,7 @@ fn destino<'a>(
         Ok(p) => p.alumnos.iter().map(|a| a.id.as_str()).filter(|id| !id.is_empty()).collect(),
         Err(_) => notas.keys().map(String::as_str).collect(),
     };
-    let mut candidatas: Vec<(&Traida, &Plantilla)> = destinos
+    let candidatas: Vec<(&Traida, &Plantilla)> = destinos
         .iter()
         .filter(|(_, p)| {
             let estan = p.alumnos.iter().filter(|a| suyos.contains(a.id.as_str())).count();
@@ -352,20 +352,19 @@ fn destino<'a>(
         })
         .copied()
         .collect();
-    if candidatas.len() > 1 {
-        let viejo = plegar(&vieja.fichero);
-        let con_palabra: Vec<_> = candidatas
-            .iter()
-            .filter(|(t, _)| t.materia.nombre.split_whitespace().next().is_some_and(|p| viejo.contains(&plegar(p))))
-            .copied()
-            .collect();
-        if !con_palabra.is_empty() {
-            candidatas = con_palabra;
-        }
-    }
-    match candidatas.as_slice() {
+    // Y la materia, siempre: los alumnos de una del curso pasado están casi
+    // todos en otra materia de este (`biologia_1_ab_bach` → Química de 2º
+    // Bach, en la prueba real del 2026-11-22).
+    let viejo = plegar(&vieja.fichero);
+    let con_palabra: Vec<_> = candidatas
+        .iter()
+        .filter(|(t, _)| t.materia.nombre.split_whitespace().next().is_some_and(|p| viejo.contains(&plegar(p))))
+        .copied()
+        .collect();
+    match con_palabra.as_slice() {
         [(t, p)] => Ok((t, p, Por::Alumnos)),
-        _ => Err(candidatas.iter().map(|(t, _)| t.nombre.fichero.clone()).collect()),
+        [] => Err(candidatas.iter().map(|(t, _)| t.nombre.fichero.clone()).collect()),
+        varias => Err(varias.iter().map(|(t, _)| t.nombre.fichero.clone()).collect()),
     }
 }
 
@@ -577,5 +576,26 @@ mod tests {
         let otra = [raiz("otra.xlsx", Ok(plantilla(&[("91", Some(5.0))])))];
         let plan = planear(&traidas, &otra, &Sesion::default(), &Recordadas::default(), &HashMap::new());
         assert_eq!(plan.dudas[0].candidatas, [BIO, FQ]);
+    }
+
+    /// Una del curso pasado: sus alumnos están en otra materia de este. Con
+    /// los alumnos no basta: si la materia no es la suya, se pregunta.
+    #[test]
+    fn la_del_curso_pasado_se_pregunta() {
+        let traidas = [
+            traida("1", "Química", "QUÍMICA 1", con(plantilla(&ids(&["11", "12", "13", "14"])))),
+            traida("2", "Física y Química", "3º E.S.O.-A", con(plantilla(&ids(&["21", "22"])))),
+        ];
+        let vieja = [raiz("biologia_1_ab_bach.xlsx", Ok(plantilla(&[("11", Some(6.0)), ("12", None), ("13", None)])))];
+        let plan = planear(&traidas, &vieja, &Sesion::default(), &Recordadas::default(), &HashMap::new());
+        assert_eq!(plan.apartadas, []);
+        assert_eq!(
+            plan.dudas,
+            [Duda {
+                fichero: "biologia_1_ab_bach.xlsx".into(),
+                notas: 1,
+                candidatas: vec!["Química - 3º ESO.xlsx".into()]
+            }]
+        );
     }
 }

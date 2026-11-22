@@ -1196,8 +1196,9 @@ mantener: si se rompe, lo básico sigue funcionando.
      sesión, por encima de su columna «Nota»; con clave `fila:` no se
      pueden pasar y se cuentan): a dónde, por este orden: lo recordado
      (`clickedu\traidas.json`, `id → fichero`), el mismo nombre, y si no,
-     los `Id` (≥ 50 % de los suyos en la nueva) y, si quedan varias, la
-     primera palabra de la materia en el nombre viejo. Si no queda una,
+     los `Id` (≥ 50 % de los suyos en la nueva) **y siempre** la primera
+     palabra de la materia en el nombre viejo (antes, solo si quedaban
+     varias: lo cambió la prueba real, abajo). Si no queda una,
      **duda**: se pregunta, y sin respuesta la vieja **se queda en la
      raíz** (no se pierde nada en silencio).
   4. **`aplicar`** (fs): mover a `antiguas\‹AAAA-MM-DD›\` (si ya está,
@@ -1208,6 +1209,24 @@ mantener: si se rompe, lo básico sigue funcionando.
      `bajadas`.
   Para probar `bajar`, el Clickedu falso sirve Ítems y una descarga
   (`.xlsx` hecho con `rust_xlsxwriter`, como los tests de plantillas).
+- **Probado contra Clickedu de verdad** (2026-11-22, `cargo run --example
+  probar_traer [-- --aplicar]`: baja y planea contra la carpeta de verdad,
+  enseña el plan sin nombres de alumnos y, con `--aplicar`, lo hace en una
+  copia de la carpeta, `sesion.json` y `traidas.json`, en
+  `clickedu\probar-traer\copia\`). Las 10 materias, en 10 s y leídas
+  «bien»; los nombres, como la regla (9 nuevas y la pendiente vacía, que
+  no se guarda). En la copia: 9 escritas, las 6 de la v1 sin notas a
+  `antiguas`, ningún fallo, las 22 notas puestas siguen; y otra vuelta
+  sale todo «igual», sin nada que apartar. Lo que destapó:
+  - **Con los alumnos no basta**: `biologia_1_ab_bach.xlsx` (del curso
+    pasado, con 7 notas) iba a pasar sus notas a Química de 2º Bach,
+    porque sus alumnos han subido de curso y están casi todos ahí. Ahora
+    la materia cuenta siempre, y eso es una duda
+    (`la_del_curso_pasado_se_pregunta`).
+  - **Una duda que no se responde se pregunta cada vez**: esa y
+    `prueba_voz_inventada.xlsx` (la clase inventada, 15 notas) se quedan
+    en la raíz y vuelven a salir en cada traída. **Por decidir** con la
+    pantalla: qué respuesta tiene «no pasan a ninguna».
 - **Las pendientes de otros cursos** (decidido el 2026-11-22): se traen
   como las demás, pero **en la vista de materias van separadas**, en su
   propio grupo «Pendientes», al final: en Conexión, en Clases y en el

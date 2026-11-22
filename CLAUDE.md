@@ -25,14 +25,14 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > (2026-11-22): `clickedu::traer` (nombres, bajar, preparar, planear,
 > aplicar) y los comandos `traer_plantillas`, `confirmar_traer` y
 > `cancelar_traer`; probado contra el falso, y los nombres con las 10
-> reales. **Sin probar aún contra Clickedu de verdad.** Lo siguiente
-> (2026-11-22, el usuario): **primero una prueba real**, con un ejemplo
-> (`cargo run --example ...`, como `comparar_plantillas`) que entra con la
-> cuenta guardada, baja, prepara y planea contra la carpeta de verdad y
-> enseña el plan **sin nombres de alumnos** (ficheros, estados, recuentos);
-> aplicar, solo sobre una **copia** de la carpeta y de `sesion.json`.
-> **Luego la pantalla** (Conexión: el plan, confirmar la primera vez y las
-> dudas).
+> reales. **Probado contra Clickedu de verdad** (2026-11-22,
+> `cargo run --example probar_traer [-- --aplicar]`: el plan sin nombres
+> y, con `--aplicar`, hecho en una copia): bien, y destapó que con los
+> alumnos no basta (una del curso pasado pasaba sus notas a otra materia):
+> ahora la materia cuenta siempre. **Lo siguiente: la pantalla**
+> (Conexión: el plan, confirmar la primera vez y las dudas). **Por
+> decidir** con ella: una duda sin responder se pregunta en cada traída;
+> qué respuesta tiene «no pasan a ninguna» (`docs/01` H5).
 > **H4, cerrado** (2026-11-22, tabla).
 > En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
 > **H7, casi cerrado**: la `v2.0.0` está **publicada** (actualizador de
