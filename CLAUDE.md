@@ -33,9 +33,15 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > `TarjetaTraer` en Conexión, `docs/01` H5): el plan, las dudas con su
 > desplegable (a qué nueva o **a ninguna**; `replanear_traer` enseña lo
 > que se hará), «Hacerlo» y lo hecho; traer entra sola con la cuenta
-> guardada. **Lo siguiente**: que el usuario la pruebe a mano con Clickedu
-> de verdad (`npm run tauri:dev`; las plantillas y notas de este ordenador
-> son de prueba), las pendientes aparte en Clases y Calificar, y
+> guardada. **El usuario ya la ha probado a mano con Clickedu de verdad**
+> (2026-11-22, tras el commit `9a4635b`). **Lo primero tras el `/clear`:
+> revisar cómo ha ido**, sin sacar nombres de alumnos a la conversación:
+> en `%APPDATA%\es.gestornotas.app\`, los fallos de `traer_plantillas` /
+> `confirmar_traer` en `registro\casos-2026-11.jsonl`, `clickedu\traidas.json`
+> (`confirmada`), que `clickedu\bajadas\` esté vacía, `clickedu\paginas\`
+> y `clickedu\huellas\`; en la carpeta de plantillas, qué hay en la raíz y
+> en `antiguas\2026-11-22\` (solo nombres de fichero); y preguntarle qué
+> vio en pantalla. Después: las pendientes aparte en Clases y Calificar, y
 > encenderla fuera de desarrollo (`HAY_CLICKEDU`).
 > **H4, cerrado** (2026-11-22, tabla).
 > En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
