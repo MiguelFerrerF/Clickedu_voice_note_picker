@@ -26,9 +26,16 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > que se hará), «Hacerlo» y lo hecho; traer entra sola con la cuenta
 > guardada. **Probada a mano con Clickedu de verdad y revisada**
 > (2026-11-22, `docs/01` H5): bien, salvo un falso `leer_clase` en
-> Calificar, ya arreglado (`useClases`). Las pendientes, aparte en Clases
-> (2026-11-22). Siguiente: aparte en el desplegable de Calificar, y
-> encenderla fuera de desarrollo (`HAY_CLICKEDU`).
+> Calificar, ya arreglado (`useClases`); el desplegable de las viejas,
+> reescrito como acciones y **dado por bueno** por el usuario. Las
+> pendientes, aparte en Clases (por el nombre, `plantillas::es_pendiente`).
+> **Lo siguiente, en orden**: (1) las pendientes aparte en el desplegable
+> de Calificar; (2) encender Conexión fuera de desarrollo (`HAY_CLICKEDU`);
+> (3) cerrar H5 en la tabla. **La carpeta de este ordenador está como
+> antes de traer**, para volver a probarlo: las 8 plantillas viejas en la
+> raíz, las 22 notas de prueba en la sesión y sin `traidas.json` (sale «la
+> primera vez»); lo traído el 22, en
+> `%APPDATA%\es.gestornotas.app\clickedu\prueba-2026-11-22\`.
 > **H4, cerrado** (2026-11-22, tabla).
 > En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
 > **H7, casi cerrado**: la `v2.0.0` está **publicada** (actualizador de
