@@ -27,7 +27,7 @@ use crate::clickedu::guardar_pagina;
 use crate::clickedu::huella::{self, Huella};
 use crate::clickedu::tapar::Tapar;
 use crate::clickedu::traer::aplicar::{self, Hecho, Rutas};
-use crate::clickedu::traer::planear::{self, Contenido, EnLaRaiz, Plan, Traida};
+use crate::clickedu::traer::planear::{self, Contenido, EnLaRaiz, Plan, Respuesta, Traida};
 use crate::clickedu::traer::{self, Bajado, FalloBajada, FalloTraer};
 use crate::commands::{carpeta, en_segundo_plano, registro, ruta_sesion};
 use crate::registro::{ahora, fecha};
@@ -269,10 +269,11 @@ async fn traer_y_planear(app: &AppHandle, avance: &Channel<AvanceTraer>) -> Resu
     .map_err(FalloTraer::from)
 }
 
-/// Lo que espera, con las respuestas a las dudas (fichero viejo → nueva):
-/// se vuelve a planear con la carpeta y la sesión de ahora, y se hace.
+/// Lo que espera, con las respuestas (fichero viejo → a qué nueva pasan sus
+/// notas, o a ninguna): se vuelve a planear con la carpeta y la sesión de
+/// ahora, y se hace.
 #[tauri::command]
-pub async fn confirmar_traer(respuestas: HashMap<String, String>, app: AppHandle) -> Result<Traer, String> {
+pub async fn confirmar_traer(respuestas: HashMap<String, Respuesta>, app: AppHandle) -> Result<Traer, String> {
     en_segundo_plano(app.clone(), "confirmar_traer", move || {
         let traidas = app
             .state::<Traidas>()

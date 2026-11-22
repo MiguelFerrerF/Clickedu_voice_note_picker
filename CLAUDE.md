@@ -30,9 +30,10 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > y, con `--aplicar`, hecho en una copia): bien, y destapó que con los
 > alumnos no basta (una del curso pasado pasaba sus notas a otra materia):
 > ahora la materia cuenta siempre. **Lo siguiente: la pantalla**
-> (Conexión: el plan, confirmar la primera vez y las dudas). **Por
-> decidir** con ella: una duda sin responder se pregunta en cada traída;
-> qué respuesta tiene «no pasan a ninguna» (`docs/01` H5).
+> (Conexión: el plan, confirmar la primera vez y las dudas). **Decidido**
+> (2026-11-22): una duda es un aviso y se elige a qué nueva pasan sus
+> notas o **a ninguna** (la vieja a `antiguas`, sus notas descartadas y
+> contadas); las plantillas y notas de este ordenador son de prueba.
 > **H4, cerrado** (2026-11-22, tabla).
 > En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
 > **H7, casi cerrado**: la `v2.0.0` está **publicada** (actualizador de

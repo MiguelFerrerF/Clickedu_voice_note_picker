@@ -5,6 +5,7 @@
 //!
 //!     cargo run --example probar_traer              # solo el plan
 //!     cargo run --example probar_traer -- --aplicar # y lo hace, en una copia
+//!     cargo run --example probar_traer -- --aplicar --a-ninguna
 //!
 //! - Contra Clickedu, lo mismo que la app (`clickedu::traer::bajar`): la
 //!   página de materias y, de cada una, la de Ítems y la descarga. Solo
@@ -19,6 +20,8 @@
 //!   vuelta la sustituye.
 //! - Sin las huellas: la prueba no guarda nada en `clickedu\huellas`.
 //! - Las dudas no se responden: sus viejas se quedan en la raíz de la copia.
+//!   Con `--a-ninguna`, a todas se responde «a ninguna»: se apartan y sus
+//!   notas no pasan.
 
 use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
@@ -29,13 +32,15 @@ use gestor_de_notas_lib::clickedu::cliente::{self, Cliente};
 use gestor_de_notas_lib::clickedu::cuenta::{self, LlaveroWindows};
 use gestor_de_notas_lib::clickedu::fichas::Estado;
 use gestor_de_notas_lib::clickedu::traer::aplicar::{self, Hecho, Rutas, ANTIGUAS};
-use gestor_de_notas_lib::clickedu::traer::planear::{self, EstadoMateria, Plan};
+use gestor_de_notas_lib::clickedu::traer::planear::{self, EstadoMateria, Plan, Respuesta};
 use gestor_de_notas_lib::clickedu::traer::{self, Bajado};
 use gestor_de_notas_lib::registro;
 use gestor_de_notas_lib::sesion::{self, Cerrojo, Sesion};
 
 fn main() {
-    let aplicar_en_copia = std::env::args().skip(1).any(|a| a == "--aplicar");
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    let aplicar_en_copia = args.iter().any(|a| a == "--aplicar");
+    let a_ninguna = args.iter().any(|a| a == "--a-ninguna");
 
     let app = dirs::config_dir().expect("no se encuentra %APPDATA%").join("es.gestornotas.app");
     let carpeta_ce = app.join("clickedu");
@@ -86,9 +91,19 @@ fn main() {
         recordadas.materias.len(),
         if recordadas.confirmada { ", ya confirmada la primera vez" } else { ": sería la primera vez" }
     );
-    let plan = planear::planear(&traidas, &raiz, &s, &recordadas, &HashMap::new());
+    let mut plan = planear::planear(&traidas, &raiz, &s, &recordadas, &HashMap::new());
     println!("\n══ El plan, contra la carpeta de verdad");
     ensenar(&plan);
+    let respuestas: HashMap<String, Respuesta> = if a_ninguna {
+        plan.dudas.iter().map(|d| (d.fichero.clone(), Respuesta::Ninguna)).collect()
+    } else {
+        HashMap::new()
+    };
+    if !respuestas.is_empty() {
+        plan = planear::planear(&traidas, &raiz, &s, &recordadas, &respuestas);
+        println!("\n══ El plan, respondiendo «a ninguna» a las {} dudas", respuestas.len());
+        ensenar(&plan);
+    }
 
     if !aplicar_en_copia {
         let _ = std::fs::remove_dir_all(&bajadas);
@@ -180,6 +195,7 @@ fn ensenar(plan: &Plan) {
     println!("\nA «{ANTIGUAS}» ({}):", plan.apartadas.len());
     for a in &plan.apartadas {
         match &a.notas {
+            None if a.descartadas > 0 => println!("  {} · sus {} notas NO pasan (a ninguna)", a.fichero, a.descartadas),
             None => println!("  {} · sin notas", a.fichero),
             Some(p) => println!(
                 "  {} · sus notas → {} (por {:?}): pasan {}, ya no están en Clickedu {}, sin Id que sirva {}",

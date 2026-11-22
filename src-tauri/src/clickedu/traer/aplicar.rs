@@ -308,10 +308,11 @@ mod tests {
                 materia("4", "Vacia.xlsx", EstadoMateria::Vacia),
             ],
             apartadas: vec![
-                Apartada { fichero: "bio_v1.xlsx".into(), notas: paso("Bio - 3º ESO A.xlsx", &[("11", 7.0)]) },
+                Apartada { fichero: "bio_v1.xlsx".into(), notas: paso("Bio - 3º ESO A.xlsx", &[("11", 7.0)]), descartadas: 0 },
                 Apartada {
                     fichero: "Bio - 3º ESO A.xlsx".into(),
                     notas: paso("Bio - 3º ESO A.xlsx", &[("11", 1.0), ("12", 3.0)]),
+                    descartadas: 0,
                 },
             ],
             dudas: vec![],
@@ -320,7 +321,7 @@ mod tests {
         let mut plan = plan;
         c.en_raiz("otra.xlsx", "otra");
         plan.apartadas
-            .push(Apartada { fichero: "otra.xlsx".into(), notas: paso("Nueva.xlsx", &[("13", 2.0), ("14", 6.0)]) });
+            .push(Apartada { fichero: "otra.xlsx".into(), notas: paso("Nueva.xlsx", &[("13", 2.0), ("14", 6.0)]), descartadas: 0 });
 
         let hecho = aplicar(&plan, &c.rutas(), HOY, &Cerrojo::default());
         assert_eq!(hecho.fallos, []);
@@ -379,7 +380,7 @@ mod tests {
         guardar_json(&c.sesion, &s).unwrap();
         let plan = Plan {
             materias: vec![materia("1", "Bio.xlsx", EstadoMateria::Cambia { alumnos: 1 })],
-            apartadas: vec![Apartada { fichero: "Bio.xlsx".into(), notas: paso("Bio.xlsx", &[("11", 7.0)]) }],
+            apartadas: vec![Apartada { fichero: "Bio.xlsx".into(), notas: paso("Bio.xlsx", &[("11", 7.0)]), descartadas: 0 }],
             dudas: vec![],
         };
         let abierta = std::fs::OpenOptions::new().read(true).share_mode(1).open(c.plantillas.join("Bio.xlsx")).unwrap();

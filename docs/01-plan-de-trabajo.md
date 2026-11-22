@@ -1161,9 +1161,9 @@ mantener: si se rompe, lo básico sigue funcionando.
     aún no se ha escrito nada); el de una materia (sus Ítems no se
     entienden, no llega un Excel) no para las demás.
   - `Cliente::bajar`: la descarga también vuelve a entrar sola si caduca.
-  - Una duda se responde solo con **a qué nueva** van sus notas; sin
-    respuesta, se queda en la raíz. Se espera a confirmar la primera vez
-    **o si hay dudas**.
+  - Una duda se responde con **a qué nueva** van sus notas o **a
+    ninguna** (decidido el 2026-11-22, abajo); sin respuesta, se queda en
+    la raíz. Se espera a confirmar la primera vez **o si hay dudas**.
   - Un Excel abierto no se mueve: sus notas siguen en la sesión y la nueva
     de **su mismo nombre** no se escribe (probado abriéndolo sin compartir
     el borrado, como Excel).
@@ -1225,8 +1225,17 @@ mantener: si se rompe, lo básico sigue funcionando.
     (`la_del_curso_pasado_se_pregunta`).
   - **Una duda que no se responde se pregunta cada vez**: esa y
     `prueba_voz_inventada.xlsx` (la clase inventada, 15 notas) se quedan
-    en la raíz y vuelven a salir en cada traída. **Por decidir** con la
-    pantalla: qué respuesta tiene «no pasan a ninguna».
+    en la raíz y vuelven a salir en cada traída.
+- **«A ninguna»** (decidido por el usuario el 2026-11-22: sus plantillas
+  eran de prueba, del curso pasado, y sus notas también): una duda es un
+  aviso y el usuario elige; una de las respuestas es que **no pasan a
+  ninguna** (`Respuesta::Ninguna`). La vieja va a `antiguas` (su Excel,
+  intacto), la nueva queda limpia y sus notas de la sesión se descartan,
+  **contadas en el plan** (`Apartada::descartadas`). Vale también para una
+  que pasaría sola: la primera vez se enseña, y se puede decir que no.
+  Probado en la copia (`-- --aplicar --a-ninguna`): las 8 viejas a
+  `antiguas`, las 9 nuevas en la raíz, las 22 notas de prueba descartadas
+  y la segunda vuelta, limpia.
 - **Las pendientes de otros cursos** (decidido el 2026-11-22): se traen
   como las demás, pero **en la vista de materias van separadas**, en su
   propio grupo «Pendientes», al final: en Conexión, en Clases y en el

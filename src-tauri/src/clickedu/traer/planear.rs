@@ -13,6 +13,9 @@
 //!   la mitad de sus alumnos **y** la primera palabra de su materia en el
 //!   nombre viejo. Si no queda una, **duda**: se
 //!   pregunta, y sin respuesta la vieja **se queda en la raíz**.
+//! - Se puede responder **a ninguna** ([`Respuesta::Ninguna`]), a una duda
+//!   o a cualquier otra con notas: la vieja va a `antiguas` y sus notas no
+//!   pasan (se cuentan, en [`Apartada::descartadas`]).
 
 use std::collections::{BTreeMap, HashMap, HashSet};
 
@@ -123,8 +126,19 @@ impl EstadoMateria {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Apartada {
     pub fichero: String,
-    /// `None` si no tiene notas.
+    /// `None` si no tiene notas, o si se ha respondido que no pasan.
     pub notas: Option<Paso>,
+    /// Con nota y no pasan a ninguna: lo ha respondido el usuario.
+    pub descartadas: usize,
+}
+
+/// La respuesta a una vieja con notas: a qué nueva pasan, o a ninguna.
+#[derive(Debug, Clone, PartialEq, Deserialize)]
+#[serde(tag = "tipo", rename_all = "snake_case")]
+pub enum Respuesta {
+    Pasar { a: String },
+    /// No pasan: la vieja va a `antiguas` y sus notas se descartan.
+    Ninguna,
 }
 
 /// Las notas de una apartada que pasan a una nueva.
@@ -167,14 +181,15 @@ fn mismo(a: &str, b: &str) -> bool {
     a.to_lowercase() == b.to_lowercase()
 }
 
-/// Planea traer `traidas` a una carpeta con `raiz`. `respuestas`: a qué
-/// nueva van las notas de cada duda (fichero viejo → nuevo).
+/// Planea traer `traidas` a una carpeta con `raiz`. `respuestas`: qué se
+/// hace con las notas de cada vieja (fichero viejo → respuesta); manda
+/// sobre lo que se decidiría solo.
 pub fn planear(
     traidas: &[Traida],
     raiz: &[EnLaRaiz],
     sesion: &Sesion,
     recordadas: &Recordadas,
-    respuestas: &HashMap<String, String>,
+    respuestas: &HashMap<String, Respuesta>,
 ) -> Plan {
     let en_raiz = |fichero: &str| raiz.iter().find(|r| mismo(&r.fichero, fichero));
 
@@ -253,13 +268,18 @@ pub fn planear(
         }
         let (notas, sin_id) = notas_de(&vieja.fichero, vieja.lectura.as_ref().ok(), sesion);
         if notas.is_empty() && sin_id == 0 {
-            apartadas.push(Apartada { fichero: vieja.fichero.clone(), notas: None });
+            apartadas.push(Apartada { fichero: vieja.fichero.clone(), notas: None, descartadas: 0 });
+            continue;
+        }
+        if respuestas.get(&vieja.fichero) == Some(&Respuesta::Ninguna) {
+            let descartadas = notas.len() + sin_id;
+            apartadas.push(Apartada { fichero: vieja.fichero.clone(), notas: None, descartadas });
             continue;
         }
         match destino(vieja, &notas, &destinos, recordadas, respuestas) {
             Ok((t, plantilla, por)) => {
                 let paso = pasar(&notas, sin_id, &t.nombre.fichero, plantilla, por);
-                apartadas.push(Apartada { fichero: vieja.fichero.clone(), notas: Some(paso) });
+                apartadas.push(Apartada { fichero: vieja.fichero.clone(), notas: Some(paso), descartadas: 0 });
             }
             Err(candidatas) => dudas.push(Duda {
                 fichero: vieja.fichero.clone(),
@@ -324,9 +344,9 @@ fn destino<'a>(
     notas: &BTreeMap<String, f64>,
     destinos: &[(&'a Traida, &'a Plantilla)],
     recordadas: &Recordadas,
-    respuestas: &HashMap<String, String>,
+    respuestas: &HashMap<String, Respuesta>,
 ) -> Result<(&'a Traida, &'a Plantilla, Por), Vec<String>> {
-    if let Some(a) = respuestas.get(&vieja.fichero) {
+    if let Some(Respuesta::Pasar { a }) = respuestas.get(&vieja.fichero) {
         if let Some((t, p)) = destinos.iter().find(|(t, _)| mismo(&t.nombre.fichero, a)) {
             return Ok((t, p, Por::Respuesta));
         }
@@ -566,7 +586,7 @@ mod tests {
             [Duda { fichero: "mi clase.xlsx".into(), notas: 1, candidatas: vec![BIO.into(), FQ.into()] }]
         );
 
-        let respuestas = HashMap::from([("mi clase.xlsx".to_string(), FQ.to_string())]);
+        let respuestas = HashMap::from([("mi clase.xlsx".to_string(), Respuesta::Pasar { a: FQ.to_string() })]);
         let plan = planear(&traidas, &mia, &Sesion::default(), &Recordadas::default(), &respuestas);
         assert_eq!(plan.dudas, []);
         let paso = plan.apartadas[0].notas.as_ref().unwrap();
@@ -597,5 +617,25 @@ mod tests {
                 candidatas: vec!["Química - 3º ESO.xlsx".into()]
             }]
         );
+
+        // Respondida «a ninguna»: se aparta y sus notas no pasan, se cuentan.
+        let respuestas = HashMap::from([("biologia_1_ab_bach.xlsx".to_string(), Respuesta::Ninguna)]);
+        let plan = planear(&traidas, &vieja, &Sesion::default(), &Recordadas::default(), &respuestas);
+        assert_eq!(plan.dudas, []);
+        assert_eq!(
+            plan.apartadas,
+            [Apartada { fichero: "biologia_1_ab_bach.xlsx".into(), notas: None, descartadas: 1 }]
+        );
+    }
+
+    /// «A ninguna» también vale para una que pasaría sola: la primera vez se
+    /// enseña, y se puede decir que no.
+    #[test]
+    fn a_ninguna_manda_sobre_lo_que_pasaria_solo() {
+        let traidas = [traida("1", "Biología y Geología", "3º E.S.O.-A", con(plantilla(&ids(&["11", "12"]))))];
+        let vieja = [raiz(BIO, Ok(plantilla(&[("11", Some(6.0)), ("12", Some(7.0))])))];
+        let respuestas = HashMap::from([(BIO.to_string(), Respuesta::Ninguna)]);
+        let plan = planear(&traidas, &vieja, &Sesion::default(), &Recordadas::default(), &respuestas);
+        assert_eq!(plan.apartadas, [Apartada { fichero: BIO.into(), notas: None, descartadas: 2 }]);
     }
 }
