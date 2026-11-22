@@ -17,11 +17,25 @@ import type {Aviso} from '@modules/clases/tipos';
 import {t} from '@modules/i18n';
 
 export function Avisos({avisos}: {avisos: Aviso[]}) {
-  const [abiertos, setAbiertos] = useState(false);
-  const id = useId();
   if (avisos.length === 0) return null;
   return (
-    <div role="status" style={{marginBottom: 12}}>
+    <Plegados
+      rotulo={avisos.length === 1 ? t('avisos.plegados_uno') : t('avisos.plegados', {n: avisos.length})}
+      textos={avisos.map(avisoEnPalabras)}
+      style={{marginBottom: 12}}
+    />
+  );
+}
+
+/**
+ * La línea plegada con el punto ámbar y, al abrirla, `textos` debajo. La
+ * usan también los avisos de Clickedu (H5).
+ */
+export function Plegados({rotulo, textos, style}: {rotulo: string; textos: string[]; style?: React.CSSProperties}) {
+  const [abiertos, setAbiertos] = useState(false);
+  const id = useId();
+  return (
+    <div role="status" style={style}>
       <button
         type="button"
         className="linea-plegable"
@@ -41,7 +55,7 @@ export function Avisos({avisos}: {avisos: Aviso[]}) {
           cursor: 'pointer',
         }}>
         <Punto />
-        {avisos.length === 1 ? t('avisos.plegados_uno') : t('avisos.plegados', {n: avisos.length})}
+        {rotulo}
         <span
           style={{
             display: 'flex',
@@ -62,8 +76,8 @@ export function Avisos({avisos}: {avisos: Aviso[]}) {
             color: 'var(--text-secondary)',
             maxWidth: 760,
           }}>
-          {avisos.map((a, i) => (
-            <li key={i}>{avisoEnPalabras(a)}</li>
+          {textos.map((texto, i) => (
+            <li key={i}>{texto}</li>
           ))}
         </ul>
       )}

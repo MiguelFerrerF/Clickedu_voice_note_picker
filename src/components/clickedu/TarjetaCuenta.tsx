@@ -31,7 +31,8 @@ const ANCHO_CAMPOS = 420;
 
 type Modo = 'nueva' | 'contrasena';
 
-export function TarjetaCuenta() {
+/** `alCambiar`: si hay cuenta guardada, para lo de debajo (H5). */
+export function TarjetaCuenta({alCambiar}: {alCambiar?: (hay: boolean) => void}) {
   /** `undefined`: aún no se sabe; `null`: no hay. */
   const [cuenta, setCuenta] = useState<CuentaClickedu | null>();
   const [modo, setModo] = useState<Modo>();
@@ -50,6 +51,9 @@ export function TarjetaCuenta() {
       setFallo(String(e));
     });
   }, []);
+  useEffect(() => {
+    if (cuenta !== undefined) alCambiar?.(cuenta !== null);
+  }, [cuenta, alCambiar]);
   useEffect(() => {
     if (!encendido) return;
     const apagar = setTimeout(() => setEncendido(false), APAGAR_MS);
@@ -380,7 +384,7 @@ function Fallo({fallo}: {fallo: FalloClickedu | string}) {
   );
 }
 
-function mensaje(fallo: FalloClickedu | string): string {
+export function mensaje(fallo: FalloClickedu | string): string {
   if (typeof fallo === 'string') return fallo;
   switch (fallo.tipo) {
     case 'sin_conexion':

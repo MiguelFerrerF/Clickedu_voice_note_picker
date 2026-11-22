@@ -11,7 +11,9 @@
 //! - [`traer_plantillas`] (H5): baja una plantilla por materia y planea qué
 //!   hacer con ellas y con lo que ya hay en la carpeta. La primera vez, o
 //!   si hay dudas, **espera** a [`confirmar_traer`] (o a
-//!   [`cancelar_traer`]); si no, lo hace y lo cuenta.
+//!   [`cancelar_traer`]); si no, lo hace y lo cuenta. Sin sesión, entra
+//!   con la cuenta guardada. [`replanear_traer`] enseña lo que haría con
+//!   las respuestas de hasta ahora, sin hacerlo.
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
@@ -119,22 +121,7 @@ async fn entrar(
         .ok_or_else(|| "falta el archivo de seguridad: elígelo".to_string())?;
     let (nombre, bytes) = bloqueante(move || cuenta::leer_archivo(&ruta)).await?;
 
-    let cliente = Cliente::new(BASE)?;
-    if let Err(e) = cliente.entrar(&usuario, &contrasena, (&nombre, &bytes)).await {
-        // La página, en local: la que no se entiende, y la del archivo que
-        // no vale, para distinguir un día «caducado» de «incorrecto».
-        let pagina = match &e {
-            Fallo::NoEntiendo { paso, html } => Some((paso.clone(), html.clone())),
-            Fallo::Archivo { html } => Some(("archivo".to_string(), html.clone())),
-            _ => None,
-        };
-        if let Some((paso, html)) = pagina {
-            let c = carpeta.clone();
-            let _ = bloqueante(move || guardar_pagina(&c, &paso, &html, ahora())).await;
-        }
-        return Err(e);
-    }
-
+    let cliente = conectar(&carpeta, &usuario, &contrasena, (nombre.clone(), bytes.clone())).await?;
     let vista = bloqueante(move || {
         let archivo = nuevo.then_some((nombre.as_str(), bytes.as_slice()));
         cuenta::guardar(&carpeta, &LlaveroWindows, &usuario, &contrasena, archivo, ahora()).map(|g| g.vista())
@@ -142,6 +129,43 @@ async fn entrar(
     .await?;
     *app.state::<Sesion>().0.lock().await = Some(cliente);
     Ok(vista)
+}
+
+/// Un cliente nuevo que entra en Clickedu. Si no entra, la página va a
+/// local: la que no se entiende, y la del archivo que no vale, para
+/// distinguir un día «caducado» de «incorrecto».
+async fn conectar(
+    carpeta: &Path,
+    usuario: &str,
+    contrasena: &str,
+    (nombre, bytes): (String, Vec<u8>),
+) -> Result<Cliente, Fallo> {
+    let cliente = Cliente::new(BASE)?;
+    if let Err(e) = cliente.entrar(usuario, contrasena, (&nombre, &bytes)).await {
+        let pagina = match &e {
+            Fallo::NoEntiendo { paso, html } => Some((paso.clone(), html.clone())),
+            Fallo::Archivo { html } => Some(("archivo".to_string(), html.clone())),
+            _ => None,
+        };
+        if let Some((paso, html)) = pagina {
+            let c = carpeta.to_path_buf();
+            let _ = bloqueante(move || guardar_pagina(&c, &paso, &html, ahora())).await;
+        }
+        return Err(e);
+    }
+    Ok(cliente)
+}
+
+/// Entra con la cuenta guardada, sin volver a guardarla: la app entra sola
+/// cuando hace falta (H4). Sin cuenta, [`FalloTraer::SinEntrar`].
+async fn entrar_con_la_guardada(carpeta: &Path) -> Result<Cliente, FalloTraer> {
+    let c = carpeta.to_path_buf();
+    let Some(g) = bloqueante(move || cuenta::leer(&c, &LlaveroWindows)).await? else {
+        return Err(FalloTraer::SinEntrar);
+    };
+    let ruta = g.archivo.ok_or(FalloTraer::SinEntrar)?;
+    let archivo = bloqueante(move || cuenta::leer_archivo(&ruta)).await?;
+    Ok(conectar(carpeta, &g.usuario, &g.contrasena, archivo).await?)
 }
 
 /// Olvida la cuenta (la contraseña del Administrador de credenciales y la
@@ -198,7 +222,11 @@ async fn traer_y_planear(app: &AppHandle, avance: &Channel<AvanceTraer>) -> Resu
     let carpeta_ce = carpeta_clickedu(app)?;
     let bajado = {
         let sesion = app.state::<Sesion>();
-        let cogida = sesion.0.lock().await;
+        let mut cogida = sesion.0.lock().await;
+        // Recién abierta la app no hay sesión: se entra con la guardada.
+        if cogida.is_none() {
+            *cogida = Some(entrar_con_la_guardada(&carpeta_ce).await?);
+        }
         let Some(cliente) = cogida.as_ref() else { return Err(FalloTraer::SinEntrar) };
         traer::bajar(cliente, |hechas, total| {
             let _ = avance.send(AvanceTraer { hechas, total });
@@ -291,6 +319,23 @@ pub async fn confirmar_traer(respuestas: HashMap<String, Respuesta>, app: AppHan
         let hecho = hacer(&app, &plan, &plantillas, &carpeta_ce)?;
         let primera_vez = !recordadas.confirmada;
         Ok(Traer { plan, hecho: Some(hecho), primera_vez, estado_materias: None, cambios: vec![] })
+    })
+    .await
+}
+
+/// Lo que espera, planeado otra vez con las respuestas de hasta ahora, sin
+/// hacerlo: para enseñar a dónde pasan las notas antes de confirmar.
+#[tauri::command]
+pub async fn replanear_traer(respuestas: HashMap<String, Respuesta>, app: AppHandle) -> Result<Plan, String> {
+    en_segundo_plano(app.clone(), "replanear_traer", move || {
+        let cogidas = app.state::<Traidas>();
+        let cogidas = cogidas.0.lock().map_err(|e| e.to_string())?;
+        let traidas = cogidas.as_ref().ok_or("no hay nada traído que confirmar: vuelve a traer las plantillas")?;
+        let carpeta_ce = carpeta_clickedu(&app)?;
+        let raiz = traer::leer_raiz(&PathBuf::from(carpeta(&app)?.ruta))?;
+        let recordadas = aplicar::leer_recordadas(&carpeta_ce.join("traidas.json"))?;
+        let s = sesion::leer(&ruta_sesion(&app)?)?;
+        Ok(planear::planear(traidas, &raiz, &s, &recordadas, &respuestas))
     })
     .await
 }

@@ -109,6 +109,49 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu}) {
     clases: carpeta === 'llena' ? CLASES : [],
   });
 
+  // H5: lo traído de Clickedu, inventado. Las dudas respondidas pasan a
+  // apartadas, como en `planear`.
+  let respuestasTraer = {};
+  const materia = (id, nombre, grupo, curso, fichero, estado, extra = {}) => ({
+    materia: {id, nombre, grupo, curso},
+    fichero,
+    pendiente: false,
+    retoques: [],
+    avisos: [],
+    estado,
+    estado_evaluaciones: estado.alumnos !== undefined ? {estado: 'bien'} : null,
+    ...extra,
+  });
+  const BIO = 'Biología y Geología - 3º ESO A.xlsx';
+  const CAAP = `${largo.replace(' - 4t ESO B i C', '')} - 4º ESO B.xlsx`;
+  const MATERIAS_TRAER = [
+    materia('4102', 'Biología y Geología', '3º E.S.O.-A', 'Tercero de ESO', BIO, {tipo: 'nueva', alumnos: 26}),
+    materia('4107', 'Física y Química', 'FÍSICA Y QUÍMICA 1', 'Primero de Bachillerato', 'Física y Química - 1º Bach (FÍSICA Y QUÍMICA 1).xlsx', {tipo: 'igual', alumnos: 31}),
+    materia('4111', "Ciències Aplicades a l'Activitat Professional", '4º E.S.O.-B', 'Cuarto de ESO', CAAP, {tipo: 'cambia', alumnos: 24}, {
+      estado_evaluaciones: {estado: 'degradado', motivo: 'el desplegable de evaluaciones no está: se han leído de los enlaces'},
+    }),
+    materia('4120', 'Matemáticas', '2º Bach', 'Segundo de Bachillerato', 'Matemáticas - 2º Bach.xlsx', {
+      tipo: 'fallo',
+      fallo: {tipo: 'bajar', fallo: {tipo: 'no_es_excel', estado: 500, contenido: 'text/html'}},
+    }),
+    materia('4131', 'Física y Química 2º', 'PENDIENTE FÍSICA Y QUÍMICA 2ºESO', 'Tercero de ESO', 'Pendiente - Física y Química - 2º ESO.xlsx', {tipo: 'nueva', alumnos: 3}, {pendiente: true}),
+    materia('4132', 'Física y Química 1º', 'PENDIENTE FÍSICA Y QUÍMICA 1º', 'Segundo de Bachillerato', 'Pendiente - Física y Química - 1º Bach.xlsx', {tipo: 'vacia'}, {pendiente: true}),
+  ];
+  const planTraer = () => {
+    const apartadas = [
+      {fichero: 'biologia_3_a_eso.xlsx', notas: {a: BIO, por: 'alumnos', pasan: 12, sin_alumno: 1, sin_id: 0}, descartadas: 0},
+      {fichero: 'matematicas_3_b_eso.xlsx', notas: null, descartadas: 0},
+    ];
+    const dudas = [];
+    for (const [fichero, notas] of [['prueba_voz_inventada.xlsx', 15], ['biologia_1_ab_bach.xlsx', 7]]) {
+      const r = respuestasTraer[fichero];
+      if (!r) dudas.push({fichero, notas, candidatas: [BIO, CAAP]});
+      else if (r.tipo === 'ninguna') apartadas.push({fichero, notas: null, descartadas: notas});
+      else apartadas.push({fichero, notas: {a: r.a, por: 'respuesta', pasan: notas, sin_alumno: 0, sin_id: 0}, descartadas: 0});
+    }
+    return {materias: MATERIAS_TRAER, apartadas, dudas};
+  };
+
   window.__TAURI_EVENT_PLUGIN_INTERNALS__ = {unregisterListener() {}};
   // Los callbacks, por id: los `Channel` reciben por aquí (el nivel del micrófono).
   const callbacks = {};
@@ -264,6 +307,51 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu}) {
             elegido: 1795219200,
           };
         case 'olvidar_cuenta_clickedu':
+          return null;
+        // H5: traer las plantillas. La primera vez, con una duda; una que
+        // se lee de otra manera, una que falla, una pendiente vacía y, al
+        // hacerlo, una abierta en Excel que no se puede apartar.
+        case 'traer_plantillas': {
+          if (!clickedu) throw {tipo: 'sin_entrar'};
+          respuestasTraer = {};
+          const avisar = callbacks[args.avance.id];
+          for (let i = 1; i <= 3; i++) {
+            await new Promise((r) => setTimeout(r, 60));
+            avisar({index: i - 1, message: {hechas: i, total: 6}});
+          }
+          await new Promise((r) => setTimeout(r, 1500));
+          return {
+            plan: planTraer(),
+            hecho: null,
+            primeraVez: true,
+            estadoMaterias: {estado: 'bien'},
+            cambios: ['materias: el formulario «buscador» ya no está'],
+          };
+        }
+        case 'replanear_traer':
+          respuestasTraer = args.respuestas;
+          return planTraer();
+        case 'confirmar_traer': {
+          respuestasTraer = args.respuestas;
+          await new Promise((r) => setTimeout(r, 300));
+          const plan = planTraer();
+          const abierta = 'matematicas_3_b_eso.xlsx';
+          return {
+            plan,
+            hecho: {
+              escritas: plan.materias.filter((m) => ['nueva', 'cambia'].includes(m.estado.tipo)).map((m) => m.fichero),
+              movidas: plan.apartadas
+                .filter((a) => a.fichero !== abierta)
+                .map((a) => ({fichero: a.fichero, a: `antiguas\\2026-11-22\\${a.fichero}`})),
+              pasan: plan.apartadas.reduce((n, a) => n + (a.notas?.pasan ?? 0), 0),
+              fallos: [{tipo: 'mover', fichero: abierta, error: 'El proceso no tiene acceso al archivo (os error 32)'}],
+            },
+            primeraVez: true,
+            estadoMaterias: null,
+            cambios: [],
+          };
+        }
+        case 'cancelar_traer':
           return null;
         case 'exportar_clase':
           return {
@@ -632,6 +720,9 @@ const PRUEBAS = [
       const entrar = main.getByRole('button', {name: 'Entrar', exact: true});
       await entrar.waitFor();
       if (!(await entrar.isDisabled())) throw new Error('«Entrar» se puede pulsar sin nada escrito');
+      // H5: sin cuenta no se puede traer.
+      if (!(await main.getByRole('button', {name: 'Traer las plantillas'}).isDisabled()))
+        throw new Error('«Traer las plantillas» se puede pulsar sin cuenta');
       await paso('vacia');
       await main.getByLabel('Usuario').fill('profesora.fernandez.villalobos');
       await main.getByLabel('Contraseña', {exact: true}).fill('mala');
@@ -680,6 +771,33 @@ const PRUEBAS = [
       await page.getByRole('dialog').getByRole('button', {name: 'Olvidar', exact: true}).click();
       await main.getByRole('button', {name: 'Entrar', exact: true}).waitFor();
       await paso('olvidada');
+    },
+  },
+  {
+    // H5: traer las plantillas. El avance, la primera vez con dos dudas y
+    // los avisos, una duda respondida «a ninguna» y lo hecho, con la que
+    // está abierta en Excel.
+    nombre: 'clickedu-traer',
+    clickedu: true,
+    async probar(page, paso) {
+      await ir(page, 'Conexión', 'clickedu');
+      const main = page.locator('[data-pantalla="clickedu"]');
+      await main.getByRole('button', {name: 'Traer las plantillas'}).click();
+      await main.getByText('Bajando las plantillas').waitFor();
+      await paso('trayendo');
+      await main.getByText('Es la primera vez', {exact: false}).waitFor();
+      await paso('plan');
+      await main.getByRole('button', {name: 'avisos al leer Clickedu'}).click();
+      await paso('avisos');
+      await main.getByRole('button', {name: 'Sin decidir: se queda en la carpeta'}).first().click();
+      await page.waitForTimeout(150);
+      await paso('desplegable');
+      await page.getByRole('button', {name: 'A ninguna: se descartan'}).last().click();
+      await main.getByText('no pasan a ninguna', {exact: false}).waitFor();
+      await paso('respondida');
+      await main.getByRole('button', {name: 'Hacerlo'}).click();
+      await main.getByText('puestas en tu carpeta', {exact: false}).waitFor();
+      await paso('hecho');
     },
   },
   {

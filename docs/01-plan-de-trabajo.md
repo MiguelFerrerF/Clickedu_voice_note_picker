@@ -1240,7 +1240,30 @@ mantener: si se rompe, lo básico sigue funcionando.
   como las demás, pero **en la vista de materias van separadas**, en su
   propio grupo «Pendientes», al final: en Conexión, en Clases y en el
   desplegable de Calificar. Por el nombre (`Pendiente - …`) salen
-  también juntas en la carpeta.
+  también juntas en la carpeta. **En Conexión, hecho**; en Clases y en
+  Calificar, falta.
+- **La pantalla** (2026-11-22, `TarjetaTraer`, bajo «Tu cuenta»; falta
+  probarla a mano con Clickedu de verdad):
+  - «Traer las plantillas», con avance por materias. **Sin sesión, entra
+    sola con la cuenta guardada** (antes, recién abierta la app, fallaba
+    con «sin entrar»); sin cuenta, el botón, gris y desactivado.
+  - La primera vez o con dudas, el plan antes de tocar nada: la tabla de
+    materias (fichero; debajo, «En Clickedu: ‹materia› · ‹grupo› ·
+    ‹curso›», lo que pone tal cual; alumnos; qué pasa) con las pendientes
+    aparte, y **«Lo que ya hay en tu carpeta»**: cada vieja, a «antiguas»
+    y a dónde pasan sus notas y por qué. Cada una con notas lleva su
+    desplegable (las candidatas primero, otra nueva o **a ninguna**; si era
+    duda, también «sin decidir», que se queda en la carpeta), con el punto
+    ámbar mientras es duda. Responder **vuelve a planear** en el backend
+    (`replanear_traer`, sin hacer nada): lo que se enseña es lo que se
+    hará. Luego «Hacerlo» o «Cancelar».
+  - Hecho: el resumen en verde que se apaga; los fallos, en rojo con qué
+    hacer, también en su fila (la abierta en Excel, «no se ha podido
+    apartar»; la nueva no escrita; las notas que no han pasado).
+  - Los avisos de degradado, los de los nombres y lo que ha cambiado en la
+    huella, **plegados** con el punto ámbar (`Plegados`, sacado de
+    `Avisos`).
+  - Prueba de diseño `clickedu-traer`, con datos inventados.
 
 ### H6 · Subir notas a Clickedu
 

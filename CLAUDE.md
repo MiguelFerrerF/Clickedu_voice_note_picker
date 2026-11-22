@@ -29,11 +29,14 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > `cargo run --example probar_traer [-- --aplicar]`: el plan sin nombres
 > y, con `--aplicar`, hecho en una copia): bien, y destapó que con los
 > alumnos no basta (una del curso pasado pasaba sus notas a otra materia):
-> ahora la materia cuenta siempre. **Lo siguiente: la pantalla**
-> (Conexión: el plan, confirmar la primera vez y las dudas). **Decidido**
-> (2026-11-22): una duda es un aviso y se elige a qué nueva pasan sus
-> notas o **a ninguna** (la vieja a `antiguas`, sus notas descartadas y
-> contadas); las plantillas y notas de este ordenador son de prueba.
+> ahora la materia cuenta siempre. **La pantalla, hecha** (2026-11-22,
+> `TarjetaTraer` en Conexión, `docs/01` H5): el plan, las dudas con su
+> desplegable (a qué nueva o **a ninguna**; `replanear_traer` enseña lo
+> que se hará), «Hacerlo» y lo hecho; traer entra sola con la cuenta
+> guardada. **Lo siguiente**: que el usuario la pruebe a mano con Clickedu
+> de verdad (`npm run tauri:dev`; las plantillas y notas de este ordenador
+> son de prueba), las pendientes aparte en Clases y Calificar, y
+> encenderla fuera de desarrollo (`HAY_CLICKEDU`).
 > **H4, cerrado** (2026-11-22, tabla).
 > En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
 > **H7, casi cerrado**: la `v2.0.0` está **publicada** (actualizador de

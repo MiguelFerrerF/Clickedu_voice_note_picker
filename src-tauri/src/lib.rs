@@ -82,6 +82,7 @@ pub fn run() {
             commands::clickedu::olvidar_cuenta_clickedu,
             commands::clickedu::traer_plantillas,
             commands::clickedu::confirmar_traer,
+            commands::clickedu::replanear_traer,
             commands::clickedu::cancelar_traer,
         ])
         .setup(|app| {
