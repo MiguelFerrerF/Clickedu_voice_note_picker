@@ -22,34 +22,36 @@ export interface EstadoClases {
   error?: string;
   /**
    * Cuántas veces ha avisado la carpeta. Quien lea una plantilla la vuelve a
-   * leer cuando cambia.
+   * leer cuando cambia. Sube **con la lista nueva**, no con el aviso: si no,
+   * se releería con la lista de antes una clase que ya no está (al traer de
+   * Clickedu, la abierta se aparta a `antiguas`).
    */
   cambios: number;
 }
 
 export function useClases({contarNotas = false} = {}): EstadoClases {
-  const [estado, setEstado] = useState<Omit<EstadoClases, 'cambios'>>({});
-  const [cambios, setCambios] = useState(0);
+  const [estado, setEstado] = useState<EstadoClases>({cambios: 0});
+  const [avisos, setAvisos] = useState(0);
   const [notas, setNotas] = useState(0);
 
   useEffect(() => {
     let vivo = true;
     invoke<ListaClases>('listar_clases').then(
-      (lista) => vivo && setEstado({lista}),
-      (e) => vivo && setEstado((antes) => ({lista: antes.lista, error: String(e)})),
+      (lista) => vivo && setEstado({lista, cambios: avisos}),
+      (e) => vivo && setEstado((antes) => ({lista: antes.lista, error: String(e), cambios: avisos})),
     );
     return () => {
       vivo = false;
     };
-  }, [cambios, notas]);
+  }, [avisos, notas]);
 
   useEffect(() => {
-    const quitar = [listen(EVENTO_PLANTILLAS, () => setCambios((v) => v + 1))];
+    const quitar = [listen(EVENTO_PLANTILLAS, () => setAvisos((v) => v + 1))];
     if (contarNotas) quitar.push(listen(EVENTO_NOTAS, () => setNotas((v) => v + 1)));
     return () => {
       quitar.forEach((q) => q.then((f) => f()));
     };
   }, [contarNotas]);
 
-  return {...estado, cambios};
+  return estado;
 }

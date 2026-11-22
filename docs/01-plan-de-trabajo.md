@@ -1264,6 +1264,14 @@ mantener: si se rompe, lo básico sigue funcionando.
     huella, **plegados** con el punto ámbar (`Plegados`, sacado de
     `Avisos`).
   - Prueba de diseño `clickedu-traer`, con datos inventados.
+- **Probada a mano con Clickedu de verdad** (2026-11-22, revisada tras el
+  `/clear`): ningún fallo de traer ni de confirmar; `traidas.json`
+  confirmada; `bajadas` borrada; las 9 nuevas en la raíz y las 8 viejas
+  (con la clase inventada) en `antiguas\2026-11-22\`; la sesión, vacía,
+  como se eligió («a ninguna»). Salió **un falso fallo**, `leer_clase` de
+  la clase abierta en Calificar, que se había apartado: `useClases` subía
+  `cambios` con el aviso y Calificar la releía con la lista de antes.
+  Ahora sube con la lista nueva.
 
 ### H6 · Subir notas a Clickedu
 
