@@ -330,8 +330,8 @@ fn nombre(m: &Materia) -> Nombre {
             _ => (titulo.clone(), del_encabezado(&mut retoques)),
         };
         match curso {
-            Some(c) => format!("Pendiente - {materia} - {c}"),
-            None => format!("Pendiente - {materia}"),
+            Some(c) => format!("{}{materia} - {c}", plantillas::PENDIENTE),
+            None => format!("{}{materia}", plantillas::PENDIENTE),
         }
     } else {
         let materia = retocar(&m.nombre, &mut retoques);

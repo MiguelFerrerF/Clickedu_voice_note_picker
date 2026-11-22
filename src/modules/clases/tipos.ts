@@ -19,6 +19,8 @@ export interface Clase {
   fichero: string;
   /** El nombre legible, sacado del fichero. */
   nombre: string;
+  /** De otro curso (su fichero empieza por `Pendiente - `): va aparte. */
+  pendiente: boolean;
   lectura: Lectura;
 }
 

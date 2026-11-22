@@ -66,7 +66,8 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu}) {
     {fichero: 'fisica_2_bach.xlsx', nombre: 'Física 2.º Bachillerato', lectura: {tipo: 'mal', error: 'no es un Excel (.xlsx o .xls)'}},
     {fichero: 'matematicas_3_a_eso.xlsx', nombre: 'Matemáticas 3.º A ESO', lectura: bien(26, 8, 3)},
     {fichero: 'matematicas_3_b_eso.xlsx', nombre: 'Matemáticas 3.º B ESO', lectura: bien(25, 25)},
-  ];
+    {fichero: 'Pendiente - Física y Química - 2º ESO.xlsx', nombre: 'Pendiente - Física y Química - 2º ESO', lectura: bien(3, 1)},
+  ].map((c) => ({...c, pendiente: c.fichero.startsWith('Pendiente - ')}));
   const NOMBRES = [
     'Castro Molina, Lucía', 'Martínez Ruiz, Hugo', 'Ramos Ortega, Martina', 'Navarro Gil, Mateo',
     'Pérez Gómez, Irene', 'Ionescu, Ștefan', 'Nowak, Łukasz', 'Fernández de la Fuente Villalobos, María Inmaculada',

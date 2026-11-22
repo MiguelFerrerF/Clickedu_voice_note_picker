@@ -457,12 +457,23 @@ pub fn plegar(s: &str) -> String {
 // La carpeta
 // ─────────────────────────────────────────────────────────────────────────────
 
+/// Cómo empieza el nombre de una plantilla de pendientes: así las nombra
+/// traer de Clickedu (H5).
+pub const PENDIENTE: &str = "Pendiente - ";
+
+/// ¿Es de pendientes de otros cursos? Por su nombre.
+pub fn es_pendiente(fichero: &str) -> bool {
+    plegar(fichero).starts_with(&plegar(PENDIENTE))
+}
+
 /// Una clase de la lista: el fichero, su nombre legible y cómo ha ido leerla.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Clase {
     pub fichero: String,
     pub nombre: String,
+    /// De otro curso ([`es_pendiente`]): va aparte, en «Pendientes».
+    pub pendiente: bool,
     pub lectura: Lectura,
 }
 
@@ -501,7 +512,7 @@ pub fn listar(carpeta: &Path, calificados: impl Fn(&str, &Plantilla) -> usize) -
             Ok(p) => Lectura::Bien { alumnos: p.alumnos.len(), calificados: calificados(&fichero, &p), avisos: p.avisos.len() },
             Err(e) => Lectura::Mal { error: e.to_string() },
         };
-        clases.push(Clase { nombre: nombre_legible(&sin_extension), fichero, lectura });
+        clases.push(Clase { nombre: nombre_legible(&sin_extension), pendiente: es_pendiente(&fichero), fichero, lectura });
     }
     clases.sort_by(|a, b| plegar(&a.nombre).cmp(&plegar(&b.nombre)).then_with(|| a.fichero.cmp(&b.fichero)));
     Ok(clases)
@@ -526,6 +537,14 @@ mod tests {
         assert_eq!(nombre_legible("Matemàtiques - 3r ESO A"), "Matemàtiques - 3r ESO A");
         assert_eq!(nombre_legible("notas_trimestre_1"), "Notas trimestre 1");
         assert_eq!(nombre_legible("Tutoria"), "Tutoria");
+    }
+
+    #[test]
+    fn pendientes() {
+        assert!(es_pendiente("Pendiente - Física y Química - 2º ESO.xlsx"));
+        assert!(es_pendiente("pendiente - Lengua.xlsx"));
+        assert!(!es_pendiente("Física y Química - 3º ESO A.xlsx"));
+        assert!(!es_pendiente("pendientes_fisica.xlsx"));
     }
 
     #[test]

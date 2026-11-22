@@ -26,8 +26,9 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > que se hará), «Hacerlo» y lo hecho; traer entra sola con la cuenta
 > guardada. **Probada a mano con Clickedu de verdad y revisada**
 > (2026-11-22, `docs/01` H5): bien, salvo un falso `leer_clase` en
-> Calificar, ya arreglado (`useClases`). Siguiente: las pendientes aparte
-> en Clases y Calificar, y encenderla fuera de desarrollo (`HAY_CLICKEDU`).
+> Calificar, ya arreglado (`useClases`). Las pendientes, aparte en Clases
+> (2026-11-22). Siguiente: aparte en el desplegable de Calificar, y
+> encenderla fuera de desarrollo (`HAY_CLICKEDU`).
 > **H4, cerrado** (2026-11-22, tabla).
 > En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
 > **H7, casi cerrado**: la `v2.0.0` está **publicada** (actualizador de

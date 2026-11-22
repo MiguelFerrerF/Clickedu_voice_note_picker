@@ -1240,8 +1240,9 @@ mantener: si se rompe, lo básico sigue funcionando.
   como las demás, pero **en la vista de materias van separadas**, en su
   propio grupo «Pendientes», al final: en Conexión, en Clases y en el
   desplegable de Calificar. Por el nombre (`Pendiente - …`) salen
-  también juntas en la carpeta. **En Conexión, hecho**; en Clases y en
-  Calificar, falta.
+  también juntas en la carpeta. **En Conexión y en Clases, hecho** (en
+  Clases, por el nombre: `plantillas::es_pendiente`, el mismo prefijo con
+  el que las nombra traer); en Calificar, falta.
 - **La pantalla** (2026-11-22, `TarjetaTraer`, bajo «Tu cuenta»; falta
   probarla a mano con Clickedu de verdad):
   - «Traer las plantillas», con avance por materias. **Sin sesión, entra
