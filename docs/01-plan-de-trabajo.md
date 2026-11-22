@@ -1152,9 +1152,26 @@ mantener: si se rompe, lo básico sigue funcionando.
   - Las evaluaciones son **de cada curso**, no del colegio: 3º ESO tiene
     unos `id_aval`, 4º ESO otros, 1º Bach cuatro (con «JUNIO»). Hay que
     leerlas de cada materia (su página de Ítems).
-- **Cómo se monta** (esbozo del 2026-11-22, sin código aún):
-  `src-tauri/src/clickedu/traer.rs`, en cuatro partes, y los comandos en
-  `commands/clickedu.rs`.
+- **Cómo se monta** (esbozo del 2026-11-22; **ya en código** el mismo
+  día: `clickedu/traer.rs` con `nombres`, `bajar`, `preparar` y
+  `leer_raiz`; `traer/planear.rs` y `traer/aplicar.rs`; los comandos
+  `traer_plantillas`, `confirmar_traer` y `cancelar_traer`). Lo que
+  cambió al escribirlo:
+  - Un **fallo de conexión para todo** (lo de después fallaría igual, y
+    aún no se ha escrito nada); el de una materia (sus Ítems no se
+    entienden, no llega un Excel) no para las demás.
+  - `Cliente::bajar`: la descarga también vuelve a entrar sola si caduca.
+  - Una duda se responde solo con **a qué nueva** van sus notas; sin
+    respuesta, se queda en la raíz. Se espera a confirmar la primera vez
+    **o si hay dudas**.
+  - Un Excel abierto no se mueve: sus notas siguen en la sesión y la nueva
+    de **su mismo nombre** no se escribe (probado abriéndolo sin compartir
+    el borrado, como Excel).
+  - La huella de las evaluaciones, con la página de Ítems de la primera
+    materia: siempre la misma, para no comparar materias distintas.
+  - La fecha de `antiguas\‹AAAA-MM-DD›\`, en UTC (`registro::fecha`).
+
+  El esbozo:
   1. **`nombres`** (puro, con tests de `Materia` inventadas): `curso_corto`
      («Tercero de ESO» → `3º ESO`, «Primero de Bachillerato» → `1º Bach`;
      si no, tal cual y con aviso); `letra_de_grupo` (`3º E.S.O.-A` → `A`:

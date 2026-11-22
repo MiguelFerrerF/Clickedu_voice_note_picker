@@ -92,9 +92,13 @@ pub const BAJAR_101: &str = "/assignatures/importar_notes_items.php?accio=descar
 const BAJAR_103: &str = "/assignatures/importar_notes_items.php?accio=descarregar_plantilla&assig=103&id_aval=8";
 
 /// La plantilla que da Clickedu, con dos alumnos inventados: la hoja
-/// `Worksheet` y `Id | Alumnos | Nota`, como las de verdad.
+/// `Worksheet` y `Id | Alumnos | Nota`, como las de verdad. Con la fecha de
+/// creación fija: si no, dos llamadas pueden dar bytes distintos.
 pub fn plantilla_101() -> Vec<u8> {
+    use rust_xlsxwriter::{DocProperties, ExcelDateTime};
     let mut libro = rust_xlsxwriter::Workbook::new();
+    let creada = ExcelDateTime::from_ymd(2026, 11, 22).unwrap();
+    libro.set_properties(&DocProperties::new().set_creation_datetime(&creada));
     let hoja = libro.add_worksheet().set_name("Worksheet").unwrap();
     for (c, t) in ["Id", "Alumnos", "Nota"].iter().enumerate() {
         hoja.write_string(0, c as u16, *t).unwrap();

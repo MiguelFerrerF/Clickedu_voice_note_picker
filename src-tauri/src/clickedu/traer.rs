@@ -8,16 +8,28 @@
 //! - [`bajar`] — de cada materia, su primera evaluación y la plantilla de
 //!   esa evaluación (**la plantilla no cambia con la evaluación**,
 //!   comprobado el 2026-11-22). Solo red: no escribe nada.
+//! - [`preparar`] y [`leer_raiz`] — lo bajado y lo que ya hay en la
+//!   carpeta, leídos.
+//! - [`planear`] — qué se hace con cada materia y con lo que ya hay en la
+//!   carpeta, y a dónde pasan las notas. Puro.
+//! - [`aplicar`] — hacerlo: apartar a `antiguas`, escribir las nuevas y
+//!   pasar las notas.
 //!
 //! Clickedu llama a todas igual (`evaluate_‹AAAAMMDD›_‹HHMMSS›.xlsx`): el
 //! nombre del fichero no dice qué materia es, así que la regla es la única
 //! manera.
 
+use std::path::Path;
+
 use serde::Serialize;
 
 use super::cliente::{self, Cliente, Fallo};
 use super::fichas::{self, Estado, Evaluacion, Leido, Materia, Roto};
-use crate::plantillas::plegar;
+use crate::plantillas::{self, plegar, ErrorPlantilla};
+use planear::{Contenido, EnLaRaiz, FalloMateria, Traida};
+
+pub mod aplicar;
+pub mod planear;
 
 // ───────────────────────── Bajar ─────────────────────────
 
@@ -82,6 +94,10 @@ pub enum FalloTraer {
         #[serde(skip)]
         pagina: String,
     },
+    /// No se ha entrado en Clickedu en esta sesión de la app.
+    SinEntrar,
+    /// Lo demás: el disco, sobre todo.
+    Otro { detalle: String },
 }
 
 impl std::fmt::Display for FalloTraer {
@@ -90,7 +106,15 @@ impl std::fmt::Display for FalloTraer {
         match self {
             FalloTraer::Conexion { fallo } => fallo.fmt(f),
             FalloTraer::Materias { roto, .. } => roto.fmt(f),
+            FalloTraer::SinEntrar => f.write_str("no se ha entrado en Clickedu"),
+            FalloTraer::Otro { detalle } => f.write_str(detalle),
         }
+    }
+}
+
+impl From<String> for FalloTraer {
+    fn from(detalle: String) -> Self {
+        FalloTraer::Otro { detalle }
     }
 }
 
@@ -129,6 +153,59 @@ pub async fn bajar(cliente: &Cliente, mut progreso: impl FnMut(usize, usize)) ->
         progreso(i + 1, total);
     }
     Ok(Bajado { materias, pagina_materias, bajadas })
+}
+
+// ───────────────────────── Preparar ─────────────────────────
+
+/// Lo bajado, a `carpeta\‹fichero›` (`clickedu\bajadas\`) y leído, para
+/// [`planear`]. Una plantilla sin alumnos (una pendiente puede venir así:
+/// la hoja y nada más) es vacía y no se deja.
+pub fn preparar(bajadas: Vec<Bajada>, carpeta: &Path) -> Result<Vec<Traida>, String> {
+    std::fs::create_dir_all(carpeta).map_err(|e| format!("no se puede crear {}: {e}", carpeta.display()))?;
+    let materias: Vec<Materia> = bajadas.iter().map(|b| b.materia.clone()).collect();
+    let mut res = Vec::with_capacity(bajadas.len());
+    for (b, nombre) in bajadas.into_iter().zip(nombres(&materias)) {
+        let contenido = match b.resultado {
+            Err(fallo) => Contenido::Fallo(FalloMateria::Bajar { fallo }),
+            Ok(p) => {
+                let ruta = carpeta.join(&nombre.fichero);
+                std::fs::write(&ruta, &p.excel)
+                    .map_err(|e| format!("no se puede guardar lo bajado en {}: {e}", ruta.display()))?;
+                match plantillas::leer(&ruta) {
+                    Ok(plantilla) => Contenido::Plantilla { plantilla, estado_evaluaciones: p.estado_evaluaciones },
+                    Err(e) => {
+                        let _ = std::fs::remove_file(&ruta);
+                        match e {
+                            ErrorPlantilla::SinDatos | ErrorPlantilla::SinAlumnos => Contenido::Vacia,
+                            otro => Contenido::Fallo(FalloMateria::NoSeLee { error: otro.to_string() }),
+                        }
+                    }
+                }
+            }
+        };
+        res.push(Traida { materia: b.materia, nombre, contenido });
+    }
+    Ok(res)
+}
+
+/// Las plantillas de la raíz de `carpeta`, leídas: sin las subcarpetas
+/// (`antiguas` no cuenta). Si la carpeta no está, ninguna.
+pub fn leer_raiz(carpeta: &Path) -> Result<Vec<EnLaRaiz>, String> {
+    let entradas = match std::fs::read_dir(carpeta) {
+        Ok(e) => e,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => return Err(format!("no se puede leer {}: {e}", carpeta.display())),
+    };
+    let mut res = Vec::new();
+    for entrada in entradas.flatten() {
+        let fichero = entrada.file_name().to_string_lossy().into_owned();
+        if !entrada.file_type().is_ok_and(|t| t.is_file()) || !plantillas::es_plantilla(&fichero) {
+            continue;
+        }
+        res.push(EnLaRaiz { lectura: plantillas::leer(&entrada.path()).map_err(|e| e.to_string()), fichero });
+    }
+    res.sort_by(|a, b| a.fichero.cmp(&b.fichero));
+    Ok(res)
 }
 
 // ───────────────────────── Nombres ─────────────────────────
@@ -397,6 +474,59 @@ mod tests {
         let i = pedidas.iter().position(|p| *p == bajar).unwrap();
         assert_eq!(pedidas[i + 1], "POST /user.php?action=doLogin");
         assert_eq!(pedidas.iter().skip(i + 1).find(|p| p.contains("descarregar")), Some(&bajar));
+    }
+
+    #[test]
+    fn preparar_deja_las_buenas_y_no_las_vacias() {
+        let materia = |id: &str, nombre: &str| Materia {
+            id: id.into(),
+            nombre: nombre.into(),
+            grupo: "3º E.S.O.-A".into(),
+            curso: Some("Tercero de ESO".into()),
+        };
+        let bajada = |m: Materia, excel: Vec<u8>| Bajada {
+            materia: m,
+            pagina_items: String::new(),
+            resultado: Ok(Plantilla {
+                evaluacion: Evaluacion {
+                    id: "7".into(), nombre: "1ª".into(), desde: None, hasta: None, elegida: true
+                },
+                estado_evaluaciones: Estado::Bien,
+                excel,
+            }),
+        };
+        // Como la pendiente de verdad: la hoja «Worksheet» y nada más.
+        let mut libro = rust_xlsxwriter::Workbook::new();
+        libro.add_worksheet().set_name("Worksheet").unwrap();
+        let vacia = libro.save_to_buffer().unwrap();
+        let bajadas = vec![
+            bajada(materia("1", "Matemáticas"), falso::plantilla_101()),
+            bajada(materia("2", "Música"), vacia),
+            bajada(materia("3", "Tecnología"), b"PK no es un zip".to_vec()),
+            Bajada {
+                materia: materia("4", "Inglés"),
+                pagina_items: String::new(),
+                resultado: Err(FalloBajada::NoEsExcel { estado: 500, contenido: String::new() }),
+            },
+        ];
+        let dir = tempfile::tempdir().unwrap();
+        let traidas = preparar(bajadas, &dir.path().join("bajadas")).unwrap();
+        assert!(
+            matches!(&traidas[0].contenido, Contenido::Plantilla { plantilla, .. } if plantilla.alumnos.len() == 2)
+        );
+        assert!(matches!(traidas[1].contenido, Contenido::Vacia));
+        assert!(matches!(traidas[2].contenido, Contenido::Fallo(FalloMateria::NoSeLee { .. })));
+        assert!(matches!(traidas[3].contenido, Contenido::Fallo(FalloMateria::Bajar { .. })));
+        // Solo queda la buena, con su nombre.
+        let quedan: Vec<String> = std::fs::read_dir(dir.path().join("bajadas"))
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        assert_eq!(quedan, ["Matemáticas - 3º ESO A.xlsx"]);
+        // Y leída desde la raíz, igual.
+        let raiz = leer_raiz(&dir.path().join("bajadas")).unwrap();
+        assert_eq!(raiz[0].lectura.as_ref().unwrap().alumnos.len(), 2);
+        assert!(leer_raiz(&dir.path().join("no está")).unwrap().is_empty());
     }
 
     #[test]

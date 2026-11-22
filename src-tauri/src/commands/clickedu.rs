@@ -8,17 +8,30 @@
 //!   toma de la cuenta guardada. **Solo guarda si ha entrado.** La sesión
 //!   queda en [`Sesion`] para traer plantillas (H5) y subir notas (H6).
 //! - [`olvidar_cuenta_clickedu`]: borra la cuenta y cierra la sesión.
+//! - [`traer_plantillas`] (H5): baja una plantilla por materia y planea qué
+//!   hacer con ellas y con lo que ya hay en la carpeta. La primera vez, o
+//!   si hay dudas, **espera** a [`confirmar_traer`] (o a
+//!   [`cancelar_traer`]); si no, lo hace y lo cuenta.
 
-use std::path::PathBuf;
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 
-use tauri::{AppHandle, Manager};
+use serde::Serialize;
+use tauri::{ipc::Channel, AppHandle, Emitter, Manager};
 use tauri_plugin_dialog::DialogExt;
 
-use crate::clickedu::cliente::{Cliente, Fallo, BASE};
+use crate::clickedu::cliente::{self, Cliente, Fallo, BASE};
 use crate::clickedu::cuenta::{self, LlaveroWindows, Vista};
+use crate::clickedu::fichas::Estado;
 use crate::clickedu::guardar_pagina;
-use crate::commands::{en_segundo_plano, registro};
-use crate::registro::ahora;
+use crate::clickedu::huella::{self, Huella};
+use crate::clickedu::tapar::Tapar;
+use crate::clickedu::traer::aplicar::{self, Hecho, Rutas};
+use crate::clickedu::traer::planear::{self, Contenido, EnLaRaiz, Plan, Traida};
+use crate::clickedu::traer::{self, Bajado, FalloBajada, FalloTraer};
+use crate::commands::{carpeta, en_segundo_plano, registro, ruta_sesion};
+use crate::registro::{ahora, fecha};
+use crate::{sesion, vigilante};
 
 /// La sesión con Clickedu, si se ha entrado.
 #[derive(Default)]
@@ -140,4 +153,183 @@ pub async fn olvidar_cuenta_clickedu(app: AppHandle) -> Result<(), String> {
         cuenta::olvidar(&carpeta_clickedu(&app)?, &LlaveroWindows)
     })
     .await
+}
+
+// ───────────────────────── Traer las plantillas (H5) ─────────────────────────
+
+/// Lo traído que espera a que se confirme: la primera vez, o con dudas.
+#[derive(Default)]
+pub struct Traidas(pub std::sync::Mutex<Option<Vec<Traida>>>);
+
+/// El avance, por materias.
+#[derive(Clone, Serialize)]
+pub struct AvanceTraer {
+    pub hechas: usize,
+    pub total: usize,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Traer {
+    pub plan: Plan,
+    /// `None`: espera a que se confirme.
+    pub hecho: Option<Hecho>,
+    /// Es la primera vez: se enseña antes de hacerlo.
+    pub primera_vez: bool,
+    /// Cómo se han leído las materias; degradado, el aviso temprano.
+    pub estado_materias: Option<Estado>,
+    /// Lo que ha cambiado en la forma de las páginas desde la última buena,
+    /// sin nombres (`clickedu::huella`). También es aviso temprano.
+    pub cambios: Vec<String>,
+}
+
+/// Baja las plantillas de Clickedu y planea qué hacer. Si es la primera vez
+/// o hay dudas, espera a [`confirmar_traer`]; si no, lo hace.
+#[tauri::command]
+pub async fn traer_plantillas(app: AppHandle, avance: Channel<AvanceTraer>) -> Result<Traer, FalloTraer> {
+    let hecho = traer_y_planear(&app, &avance).await;
+    if let (Err(e), Ok(r)) = (&hecho, registro(&app)) {
+        r.fallo("traer_plantillas", &e.to_string());
+    }
+    hecho
+}
+
+async fn traer_y_planear(app: &AppHandle, avance: &Channel<AvanceTraer>) -> Result<Traer, FalloTraer> {
+    let carpeta_ce = carpeta_clickedu(app)?;
+    let bajado = {
+        let sesion = app.state::<Sesion>();
+        let cogida = sesion.0.lock().await;
+        let Some(cliente) = cogida.as_ref() else { return Err(FalloTraer::SinEntrar) };
+        traer::bajar(cliente, |hechas, total| {
+            let _ = avance.send(AvanceTraer { hechas, total });
+        })
+        .await
+    };
+    let bajado = match bajado {
+        Ok(b) => b,
+        Err(e) => {
+            // La página que no se entiende, en local, para mirarla.
+            let pagina = match &e {
+                FalloTraer::Materias { pagina, .. } => Some(("materias".to_string(), pagina.clone())),
+                FalloTraer::Conexion { fallo: Fallo::NoEntiendo { paso, html } } => Some((paso.clone(), html.clone())),
+                _ => None,
+            };
+            if let Some((paso, html)) = pagina {
+                let c = carpeta_ce.clone();
+                let _ = bloqueante(move || guardar_pagina(&c, &paso, &html, ahora())).await;
+            }
+            return Err(e);
+        }
+    };
+
+    let app = app.clone();
+    bloqueante(move || {
+        let Bajado { materias, pagina_materias, bajadas } = bajado;
+        let estado_materias = materias.estado.clone();
+        // Para la huella de las evaluaciones, la página de Ítems de la
+        // primera materia: siempre la misma, para no comparar materias
+        // distintas entre sí.
+        let items = bajadas.first().map(|b| {
+            let buena = match &b.resultado {
+                Ok(p) => p.estado_evaluaciones == Estado::Bien,
+                Err(FalloBajada::Evaluaciones { .. }) => false,
+                Err(FalloBajada::NoEsExcel { .. }) => true,
+            };
+            (traer::direccion_items(&b.materia.id), b.pagina_items.clone(), buena)
+        });
+
+        let traidas = traer::preparar(bajadas, &carpeta_ce.join("bajadas"))?;
+        let plantillas = PathBuf::from(carpeta(&app)?.ruta);
+        let raiz = traer::leer_raiz(&plantillas)?;
+
+        // La huella, con los nombres de las plantillas tapados.
+        let tapar = Tapar::new(nombres_de(&traidas, &raiz));
+        let url_materias = format!("{BASE}{}", cliente::ASIGNATURAS);
+        let buena = estado_materias == Estado::Bien;
+        let mut cambios =
+            comparar(&carpeta_ce, "materias", &huella::huella(&pagina_materias, &url_materias, &tapar), buena);
+        if let Some((direccion, html, buena)) = items {
+            let h = huella::huella(&html, &format!("{BASE}{direccion}"), &tapar);
+            cambios.extend(comparar(&carpeta_ce, "evaluaciones", &h, buena));
+        }
+
+        let recordadas = aplicar::leer_recordadas(&carpeta_ce.join("traidas.json"))?;
+        let s = sesion::leer(&ruta_sesion(&app)?)?;
+        let plan = planear::planear(&traidas, &raiz, &s, &recordadas, &HashMap::new());
+        let primera_vez = !recordadas.confirmada;
+        let hecho = if primera_vez || !plan.dudas.is_empty() {
+            *app.state::<Traidas>().0.lock().map_err(|e| e.to_string())? = Some(traidas);
+            None
+        } else {
+            Some(hacer(&app, &plan, &plantillas, &carpeta_ce)?)
+        };
+        Ok(Traer { plan, hecho, primera_vez, estado_materias: Some(estado_materias), cambios })
+    })
+    .await
+    .map_err(FalloTraer::from)
+}
+
+/// Lo que espera, con las respuestas a las dudas (fichero viejo → nueva):
+/// se vuelve a planear con la carpeta y la sesión de ahora, y se hace.
+#[tauri::command]
+pub async fn confirmar_traer(respuestas: HashMap<String, String>, app: AppHandle) -> Result<Traer, String> {
+    en_segundo_plano(app.clone(), "confirmar_traer", move || {
+        let traidas = app
+            .state::<Traidas>()
+            .0
+            .lock()
+            .map_err(|e| e.to_string())?
+            .take()
+            .ok_or("no hay nada traído que confirmar: vuelve a traer las plantillas")?;
+        let carpeta_ce = carpeta_clickedu(&app)?;
+        let plantillas = PathBuf::from(carpeta(&app)?.ruta);
+        let raiz = traer::leer_raiz(&plantillas)?;
+        let recordadas = aplicar::leer_recordadas(&carpeta_ce.join("traidas.json"))?;
+        let s = sesion::leer(&ruta_sesion(&app)?)?;
+        let plan = planear::planear(&traidas, &raiz, &s, &recordadas, &respuestas);
+        let hecho = hacer(&app, &plan, &plantillas, &carpeta_ce)?;
+        let primera_vez = !recordadas.confirmada;
+        Ok(Traer { plan, hecho: Some(hecho), primera_vez, estado_materias: None, cambios: vec![] })
+    })
+    .await
+}
+
+/// Olvida lo que esperaba a que se confirmara.
+#[tauri::command]
+pub async fn cancelar_traer(app: AppHandle) -> Result<(), String> {
+    en_segundo_plano(app.clone(), "cancelar_traer", move || {
+        app.state::<Traidas>().0.lock().map_err(|e| e.to_string())?.take();
+        let _ = std::fs::remove_dir_all(carpeta_clickedu(&app)?.join("bajadas"));
+        Ok(())
+    })
+    .await
+}
+
+/// Aplica `plan` y avisa a la interfaz: las clases y sus notas han cambiado.
+fn hacer(app: &AppHandle, plan: &Plan, plantillas: &Path, carpeta_ce: &Path) -> Result<Hecho, String> {
+    let (a, m, d) = fecha(ahora());
+    let (sesion, recordadas, bajadas) =
+        (ruta_sesion(app)?, carpeta_ce.join("traidas.json"), carpeta_ce.join("bajadas"));
+    let rutas = Rutas { plantillas, sesion: &sesion, recordadas: &recordadas, bajadas: &bajadas };
+    let hoy = format!("{a:04}-{m:02}-{d:02}");
+    let hecho = aplicar::aplicar(plan, &rutas, &hoy, &app.state::<sesion::Cerrojo>());
+    let _ = app.emit(vigilante::EVENTO, ());
+    let _ = app.emit(crate::commands::notas::EVENTO, ());
+    Ok(hecho)
+}
+
+/// Los nombres de los alumnos de lo traído y de lo que hay en la carpeta:
+/// lo que la huella ha de tapar.
+fn nombres_de(traidas: &[Traida], raiz: &[EnLaRaiz]) -> Vec<String> {
+    let de_traidas = traidas.iter().filter_map(|t| match &t.contenido {
+        Contenido::Plantilla { plantilla, .. } => Some(plantilla),
+        _ => None,
+    });
+    let de_raiz = raiz.iter().filter_map(|r| r.lectura.as_ref().ok());
+    de_traidas.chain(de_raiz).flat_map(|p| p.alumnos.iter().map(|a| a.nombre.clone())).collect()
+}
+
+/// Compara la huella con la última buena; si no se puede, sin cambios.
+fn comparar(carpeta: &Path, ficha: &str, ahora: &Huella, buena: bool) -> Vec<String> {
+    huella::comparar_y_guardar(carpeta, ficha, ahora, buena).unwrap_or_default()
 }
