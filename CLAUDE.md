@@ -13,23 +13,14 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
 > **Dónde se quedó (2026-11-22): toca H5** (traer las plantillas desde
-> Clickedu, `docs/01`): engancha las fichas a la pantalla Conexión, los
-> avisos de degradado/roto y la enciende fuera de desarrollo. **Decidido**
-> (2026-11-22, `docs/01` H5): manda Clickedu con una regla fija
-> (`‹Materia› - ‹Curso› ‹Grupo›.xlsx`, `Pendiente - …`), se sobrescribe,
-> lo viejo a `plantillas\antiguas\‹fecha›\` y las notas pasan por `Id`;
-> las pendientes, separadas en la lista. **Comprobado** (2026-11-22,
-> `comparar_plantillas`): la plantilla no cambia con la evaluación (22 de
-> 22 iguales); una por materia, y la evaluación se elige al subir (H6).
-> Una pendiente sin alumnos viene vacía: no se guarda. **Hecho**
-> (2026-11-22): `clickedu::traer` (nombres, bajar, preparar, planear,
-> aplicar) y los comandos `traer_plantillas`, `confirmar_traer` y
-> `cancelar_traer`; probado contra el falso, y los nombres con las 10
-> reales. **Probado contra Clickedu de verdad** (2026-11-22,
-> `cargo run --example probar_traer [-- --aplicar]`: el plan sin nombres
-> y, con `--aplicar`, hecho en una copia): bien, y destapó que con los
-> alumnos no basta (una del curso pasado pasaba sus notas a otra materia):
-> ahora la materia cuenta siempre. **La pantalla, hecha** (2026-11-22,
+> Clickedu, `docs/01`). **Decidido** (2026-11-22): manda Clickedu con una
+> regla fija (`‹Materia› - ‹Curso› ‹Grupo›.xlsx`, `Pendiente - …`), se
+> sobrescribe, lo viejo a `plantillas\antiguas\‹fecha›\` y las notas pasan
+> por `Id`; una plantilla por materia (no cambia con la evaluación, que se
+> elige al subir, H6). **Hecho**: `clickedu::traer` y sus comandos,
+> probados contra el falso y contra Clickedu de verdad (`cargo run
+> --example probar_traer [-- --aplicar]`, que destapó que la materia ha de
+> contar siempre, no solo los alumnos). **La pantalla, hecha** (2026-11-22,
 > `TarjetaTraer` en Conexión, `docs/01` H5): el plan, las dudas con su
 > desplegable (a qué nueva o **a ninguna**; `replanear_traer` enseña lo
 > que se hará), «Hacerlo» y lo hecho; traer entra sola con la cuenta
