@@ -30,8 +30,8 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > reescrito como acciones y **dado por bueno** por el usuario. Las
 > pendientes, aparte en Clases (por el nombre, `plantillas::es_pendiente`).
 > Las pendientes aparte, también en el desplegable de Calificar (2026-11-23).
-> **Lo siguiente, en orden**: (1) encender Conexión fuera de desarrollo
-> (`HAY_CLICKEDU`); (2) cerrar H5 en la tabla. **La carpeta de este ordenador está como
+> Conexión, ya encendida también fuera de desarrollo (2026-11-23).
+> **Lo siguiente**: cerrar H5 en la tabla. **La carpeta de este ordenador está como
 > antes de traer**, para volver a probarlo: las 8 plantillas viejas en la
 > raíz, las 22 notas de prueba en la sesión y sin `traidas.json` (sale «la
 > primera vez»); lo traído el 22, en
@@ -61,8 +61,8 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > colegio (con el archivo nuevo, la filtrada ya deja entrar: hay que cambiarla).
 > **En espera** (`docs/01`, HUI): con lo que traigan H4–H8, volver a mirar
 > la distribución de cada pantalla, que ya ocupa la ventana entera.
-> Estadísticas y Conexión están escondidas en `Sidebar` (`HAY_ESTADISTICAS`,
-> `HAY_CLICKEDU`): se encienden al hacerlas. El audio **no se guarda** (D8);
+> Estadísticas está escondida en `Sidebar` (`HAY_ESTADISTICAS`): se
+> enciende al hacerla. El audio **no se guarda** (D8);
 > lo dictado se mide en local con `cargo run --example medir_registro` (solo
 > cuenta, sin nombres). El campo «Probar el dictado» se queda, solo en
 > desarrollo. Para ver plantillas reales sin sacar datos de alumnos:

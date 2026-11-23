@@ -1247,6 +1247,8 @@ mantener: si se rompe, lo básico sigue funcionando.
   el que las nombra traer). **En Calificar, hecho** (2026-11-23): el
   `Dropdown` admite un `grupo` por opción y pinta su encabezado; sin clase
   elegida, se abre la primera de las normales, no una pendiente.
+- **Conexión, encendida fuera de desarrollo** (2026-11-23): fuera
+  `HAY_CLICKEDU` del `Sidebar`; la sección de Clickedu sale siempre.
 - **La pantalla** (2026-11-22, `TarjetaTraer`, bajo «Tu cuenta»; falta
   probarla a mano con Clickedu de verdad):
   - «Traer las plantillas», con avance por materias. **Sin sesión, entra

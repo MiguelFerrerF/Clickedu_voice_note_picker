@@ -16,9 +16,9 @@
  * al arrancar, esto es para no esperar. Si no hay nada que enseñar en el
  * diálogo, lo que sale se queda escrito junto a la versión.
  *
- * Lo que aún no hace nada no se enseña (HUI): Estadísticas sale en H8 y la
- * sección de Clickedu al cerrar H4 (en desarrollo, ya). Sus pantallas
- * siguen ahí.
+ * Lo que aún no hace nada no se enseña (HUI): Estadísticas sale en H8 (su
+ * pantalla sigue ahí). La sección de Clickedu, desde H5, que trae las
+ * plantillas.
  */
 
 import {useState} from 'react';
@@ -33,13 +33,8 @@ import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
 import type {PantallaId} from '@/types/pantalla';
 
-/**
- * A `true` cuando tengan algo: Estadísticas en H8, Clickedu al cerrar H4.
- * Clickedu, mientras, **solo en desarrollo**: la cuenta ya se puede probar,
- * pero sin Clickedu de verdad aún no se sabe si entra.
- */
+/** A `true` cuando tenga algo, en H8. (Clickedu se encendió con H5.) */
 const HAY_ESTADISTICAS = false;
-const HAY_CLICKEDU = import.meta.env.DEV;
 
 export interface SidebarProps {
   pantalla: PantallaId;
@@ -115,11 +110,9 @@ export function Sidebar({pantalla, setPantalla, alEncontrar}: SidebarProps) {
           {HAY_ESTADISTICAS && entrada('estadisticas', ICONOS.estadisticas, t('nav.estadisticas'))}
         </SidebarSection>
 
-        {HAY_CLICKEDU && (
-          <SidebarSection id="clickedu" titulo={t('nav.clickedu_seccion')}>
-            {entrada('clickedu', ICONOS.clickedu, t('nav.clickedu'))}
-          </SidebarSection>
-        )}
+        <SidebarSection id="clickedu" titulo={t('nav.clickedu_seccion')}>
+          {entrada('clickedu', ICONOS.clickedu, t('nav.clickedu'))}
+        </SidebarSection>
 
         <SidebarSection id="aplicacion" titulo={t('nav.aplicacion')}>
           {entrada('ajustes', ICONOS.ajustes, t('nav.ajustes'))}
