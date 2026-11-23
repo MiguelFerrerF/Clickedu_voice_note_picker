@@ -1103,7 +1103,8 @@ prueba de diseño en verde. Quedan dos matices, ninguno frena H6:
 
 - [x] Asignaturas y evaluaciones; descargar las plantillas que falten, con
       progreso. (La evaluación no cuenta para traer: una plantilla por
-      materia; se elige al subir, H6.)
+      materia. Se iba a elegir al subir; **desde el 2026-11-23, el ítem
+      se elige al calificar**, H6.)
 
 **Los nombres y la carpeta** (decidido por el usuario el 2026-11-22):
 
@@ -1297,6 +1298,34 @@ prueba de diseño en verde. Quedan dos matices, ninguno frena H6:
   dice qué le pasa al Excel y a sus notas con lo elegido.
 
 ### H6 · Subir notas a Clickedu
+
+**El ítem se elige al calificar** (decidido por el usuario el
+2026-11-23; reabre lo de H5, «la evaluación se elige al subir»). Lo más
+intuitivo es que el profesor sepa desde el principio a qué ítem van las
+notas que dicta:
+
+- **Clases**: cada materia se despliega y enseña sus ítems por
+  evaluación, con su ponderación y una marca discreta si ya tiene notas
+  en Clickedu. Pulsar un ítem abre Calificar en él.
+- **Calificar**: el título dice materia, ítem y evaluación («Química 2A ·
+  Parcial 2ª (2ª ev.)»); el desplegable del título cambia de ítem.
+- **Subir**: un resumen (ítem, cuántas notas, cuántas vacías) y el aviso
+  si el ítem ya tenía notas (lo de «no pisar notas», abajo).
+- **Sin ítem** (sin conexión, o sin haber traído aún): Calificar como
+  hasta ahora y el ítem se pide al subir.
+- **Por debajo**: la sesión pasa a ser por (clase, ítem), no por clase;
+  los ítems se guardan al traer (salen de la página de importar), para
+  que se vean sin conexión.
+
+Orden: esto en el plan; luego lo visual, con la prueba de diseño; luego la
+subida en la app (subir → importar → comprobar con `GetGrades`, y el test
+de `subir` contra el Clickedu falso).
+
+**Lo hecho a mano** (2026-11-23, `probar_subir`, `docs/03`): en el ítem de
+prueba 42700 de Química 2 (2ª ev.), subir, importar (las 10 notas, en
+`nota_mod`; las otras 21 filas, iguales) y eliminar lo subido, que **no
+quita lo importado**. El ítem lo borra el usuario a mano cuando quiera
+(se lleva sus notas).
 
 - [ ] Elegir asignatura, evaluación e ítem; subir; **comprobar** que entraron
       (con `GetGrades`, `docs/03`). **La primera subida, en Química 2A**

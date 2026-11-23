@@ -16,9 +16,12 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > `docs/01`). **H5, cerrado** (2026-11-23, tabla): se trae con una regla
 > fija (`‹Materia› - ‹Curso› ‹Grupo›.xlsx`, `Pendiente - …`), lo viejo a
 > `plantillas\antiguas\‹fecha›\` y las notas pasan por `Id`; la
-> evaluación se elige al subir. La primera subida de H6, **en Química 2A**,
-> en un ítem de prueba con ponderación 0 (2026-11-23): el alta de ítems,
-> antes solo leyendo y el primer `POST` con visto bueno. **La carpeta de este
+> evaluación se elegía al subir: **desde el 2026-11-23, el ítem se elige
+> al calificar** (Clases despliega los ítems; sesión por clase e ítem;
+> `docs/01`, H6). Toca lo visual de eso, con la prueba de diseño, y luego
+> la subida en la app. Subir, importar y eliminar lo subido, ya probados
+> a mano en el ítem de prueba 42700 de Química 2 (`probar_subir`,
+> `docs/03`); ese ítem lo borra el usuario. **La carpeta de este
 > ordenador está como antes de traer**, para volver a probarlo: las 8
 > plantillas viejas en la raíz, las 22 notas de prueba en la sesión y sin
 > `traidas.json` (sale «la primera vez»); lo traído el 22, en
