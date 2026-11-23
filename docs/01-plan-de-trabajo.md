@@ -1346,6 +1346,15 @@ de `subir` contra el Clickedu falso).
       Probado con `probar_traer` contra Clickedu de verdad: las 10
       materias y sus ítems, en 42 s. **La ponderación aún
       no se lee** (está en la tabla de Ítems, sin ficha): va vacía.
+- [x] **Clases por evaluación** (2026-11-23): arriba se elige la
+      evaluación; se juntan por su nombre normalizado («2ª evaluación»),
+      porque su número cambia de una etapa a otra, y sale la «hoy» (la en
+      curso en más clases). Cada clase traída, **plegada** al principio, con
+      «N ítems» en gris junto al nombre (no en «Con nota», que es de las
+      notas); desplegada, sus ítems (ponderación, lo calificado en la app,
+      «n de total con nota» en Clickedu) y «Calificar sin ítem». Sin ítems
+      en esa evaluación, una fila que abre sin ítem. Lo no traído, como
+      antes. La fecha de los ítems, una vez, bajo la tabla.
 
 **Lo hecho a mano** (2026-11-23, `probar_subir`, `docs/03`): en el ítem de
 prueba 42700 de Química 2 (2ª ev.), subir, importar (las 10 notas, en

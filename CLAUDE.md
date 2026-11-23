@@ -19,7 +19,8 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > evaluación se elegía al subir: **desde el 2026-11-23, el ítem se elige
 > al calificar** (Clases despliega los ítems; sesión por clase e ítem;
 > `docs/01`, H6). Lo visual y el backend, hechos (`clickedu::items`,
-> `items.json`, la sesión por ítem, `items` en `listar_clases`; `docs/01`);
+> `items.json`, la sesión por ítem, `items` en `listar_clases`; Clases por
+> evaluación, con las clases plegadas; `docs/01`);
 > toca **la subida en la app** (subir → importar → `GetGrades`, y el
 > test de `subir` contra el falso). La ponderación aún no se lee. Sin ítem, un
 > solo juego de notas por clase, como la v1 (opción «a»). Subir, importar y eliminar lo subido, ya probados

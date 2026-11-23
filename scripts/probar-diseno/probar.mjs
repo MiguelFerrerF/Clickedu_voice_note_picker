@@ -70,30 +70,44 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
     {fichero: 'matematicas_3_b_eso.xlsx', nombre: 'Matemáticas 3.º B ESO', lectura: bien(25, 25)},
     {fichero: 'Pendiente - Física y Química - 2º ESO.xlsx', nombre: 'Pendiente - Física y Química - 2º ESO', lectura: bien(3, 1)},
   ].map((c) => ({...c, pendiente: c.fichero.startsWith('Pendiente - ')}));
-  // H6: los ítems, por evaluación. En Matemáticas 3.º A, la 1.ª ya subida,
-  // la 2.ª en curso (con un nombre largo y uno sin ponderación) y la 3.ª
-  // sin ítems; la de nombre largo, con dos.
+  // H6: los ítems, por evaluación, con los nombres de Clickedu («1ª
+  // evaluación»; los números, distintos por etapa). En Matemáticas 3.º A, la
+  // 1.ª ya subida, la 2.ª en curso (con un nombre largo y uno sin
+  // ponderación) y la 3.ª sin ítems; Biología, de Bachillerato, con «JUNIO»
+  // y sin ítems aún en la 2.ª; Matemáticas 3.º B, sin traer.
   const item = (id, nombre, ponderacion, enClickedu = 0, calificados = 0) => ({id, nombre, ponderacion, enClickedu, calificados});
   const ev = (id, nombre, enCurso, lista) => ({id, nombre, enCurso, items: lista});
   const ITEMS = {
     'matematicas_3_a_eso.xlsx': [
-      ev('322', 'Primera evaluación', false, [
+      ev('331', '1ª evaluación', false, [
         item('41810', 'Examen tema 1', 40, 26, 26),
         item('41811', 'Examen tema 2', 40, 26, 26),
         item('41812', 'Cuaderno', 20, 25),
       ]),
-      ev('323', 'Segunda evaluación', true, [
+      ev('332', '2ª evaluación', true, [
         item('42690', 'Examen tema 3', 40, 0, 8),
         item('42691', 'Proyecto: la estadística del patio, con encuestas a todos los cursos del instituto', 20),
         item('42692', 'Cuaderno', 10, 4),
         item('42693', 'Actitud en clase', null),
       ]),
-      ev('324', 'Tercera evaluación', false, []),
+      ev('333', '3ª evaluación', false, []),
     ],
     [`${largo}.xlsx`]: [
-      ev('323', 'Segona avaluació', true, [item('42710', 'Pràctica de laboratori 2', 50, 0, 12), item('42711', 'Examen', 50)]),
+      ev('331', '1ª evaluación', false, [item('41900', 'Pràctica de laboratori 1', 50, 31)]),
+      ev('332', '2ª evaluación', true, [item('42710', 'Pràctica de laboratori 2', 50, 0, 12), item('42711', 'Examen', 50)]),
+      ev('333', '3ª evaluación', false, []),
     ],
-    'Pendiente - Física y Química - 2º ESO.xlsx': [ev('330', 'Pendientes', true, [item('42800', 'Cuadernillo de recuperación', 100, 0, 1)])],
+    'biologia_1_ab_bach.xlsx': [
+      ev('318', '1ª evaluación', false, [item('41700', 'Examen', 70, 18), item('41701', 'Informe de prácticas', 30, 17)]),
+      ev('319', '2ª evaluación', true, []),
+      ev('320', '3ª evaluación', false, []),
+      ev('321', 'JUNIO', false, []),
+    ],
+    'Pendiente - Física y Química - 2º ESO.xlsx': [
+      ev('334', '1ª evaluación', false, []),
+      ev('335', '2ª evaluación', true, [item('42800', 'Cuadernillo de recuperación', 100, 0, 1)]),
+      ev('336', '3ª evaluación', false, []),
+    ],
   };
   if (items)
     for (const c of CLASES) if (ITEMS[c.fichero]) c.items = {traidos: 1795392000, evaluaciones: ITEMS[c.fichero]};
@@ -638,25 +652,31 @@ const PRUEBAS = [
     async probar(page, paso) {
       await ir(page, 'Clases', 'clases');
       const main = page.locator('[data-pantalla="clases"]');
+      // La de hoy, elegida sola, con las clases plegadas; se despliegan dos.
+      await main.getByRole('radio', {name: /2ª evaluación/, checked: true}).waitFor();
+      await paso('hoy');
       await main.locator('.fila-clase').filter({hasText: 'Matemáticas 3.º A ESO'}).click();
+      await main.locator('.fila-clase').filter({hasText: 'Ciències Aplicades'}).click();
       await main.getByRole('button', {name: /Examen tema 3/}).waitFor();
-      await main.locator('.fila-clase').filter({hasText: 'Segona avaluació'}).waitFor({state: 'detached'});
       await page.waitForTimeout(200);
-      await paso('desplegada');
-      await main.getByRole('button', {name: /Primera evaluación/}).click();
+      await paso('desplegadas');
+      await main.getByRole('radio', {name: /1ª evaluación/}).click();
       await main.getByRole('button', {name: /Examen tema 1/}).waitFor();
-      await page.waitForTimeout(200);
-      await paso('dos-evaluaciones');
+      await paso('otra-evaluacion');
+      await main.getByRole('radio', {name: /JUNIO/}).click();
+      await main.getByText('Sin esta evaluación').first().waitFor();
+      await paso('junio');
+      await main.getByRole('radio', {name: /2ª evaluación/}).click();
       await main.getByRole('button', {name: /Examen tema 3/}).click();
       const calificar = page.locator('[data-pantalla="calificar"]');
       await calificar.locator('h1', {hasText: 'Examen tema 3'}).waitFor();
-      await calificar.getByText('Segunda evaluación · 40 %').waitFor();
+      await calificar.getByText('2ª evaluación · 40 %').waitFor();
       await paso('en-un-item');
       await calificar.getByRole('button', {name: 'Examen tema 3'}).click();
       await page.waitForTimeout(150);
       await paso('desplegable-item');
       await page.getByRole('button', {name: /^Proyecto/}).last().click();
-      await calificar.getByText('Segunda evaluación · 20 %').waitFor();
+      await calificar.getByText('2ª evaluación · 20 %').waitFor();
       // El galón, que gira al cerrar la lista: ya quieto.
       await page.waitForTimeout(250);
       await paso('item-largo');
