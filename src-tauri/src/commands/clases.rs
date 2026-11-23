@@ -11,11 +11,11 @@ use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_dialog::DialogExt;
 
 use crate::ajustes::{self, CarpetaPlantillas};
-use crate::clickedu::items::{self, ItemsClase, ItemsMateria};
+use crate::clickedu::items::{self, Contados, ItemsClase, ItemsMateria};
 use crate::clickedu::traer::aplicar;
 use crate::commands::clickedu::carpeta_clickedu;
 use crate::commands::{carpeta, en_segundo_plano, leer_ajustes, registro, ruta_ajustes, ruta_sesion};
-use crate::plantillas::{self, Clase, Plantilla};
+use crate::plantillas::{self, Clase, Nota, Plantilla};
 use crate::registro::{ahora, fecha};
 use crate::sesion::{self, Juego, Puestas};
 use crate::vigilante::{self, Vigilante};
@@ -49,7 +49,7 @@ pub async fn listar_clases(app: AppHandle) -> Result<ListaClases, String> {
         let de_materias = items_por_fichero(&app);
         // Las notas de cada ítem (en la sesión y en Clickedu) se cuentan con
         // la plantilla, que solo se lee una vez: dentro de `listar`.
-        let contados: RefCell<HashMap<String, HashMap<String, (usize, usize)>>> = RefCell::default();
+        let contados: RefCell<HashMap<String, HashMap<String, Contados>>> = RefCell::default();
         let clases = if carpeta.existe {
             plantillas::listar(Path::new(&carpeta.ruta), |f, p| {
                 if let Some(m) = de_materias.get(&f.to_lowercase()) {
@@ -58,9 +58,19 @@ pub async fn listar_clases(app: AppHandle) -> Result<ListaClases, String> {
                         .iter()
                         .flat_map(|e| &e.items)
                         .map(|i| {
-                            let calificados = sesion::calificados(p, &sesion.puestas_de(Juego::Item(&i.id)));
-                            let en_clickedu = items::en_la_clase(i, p.alumnos.iter().map(|a| a.id.as_str()));
-                            (i.id.clone(), (calificados, en_clickedu))
+                            let puestas = sesion.puestas_de(Juego::Item(&i.id));
+                            let solo_clickedu = p
+                                .alumnos
+                                .iter()
+                                .filter(|a| i.notas.contains_key(&a.id))
+                                .filter(|a| !matches!(sesion::nota_de(a, &puestas), Nota::Valor(_)))
+                                .count();
+                            let contados = Contados {
+                                calificados: sesion::calificados(p, &puestas),
+                                en_clickedu: items::en_la_clase(i, p.alumnos.iter().map(|a| a.id.as_str())),
+                                solo_clickedu,
+                            };
+                            (i.id.clone(), contados)
                         })
                         .collect();
                     contados.borrow_mut().insert(f.to_string(), por_item);
@@ -79,7 +89,7 @@ pub async fn listar_clases(app: AppHandle) -> Result<ListaClases, String> {
             .map(|clase| {
                 let items = de_materias.get(&clase.fichero.to_lowercase()).map(|m| {
                     let de_la_clase = contados.get(&clase.fichero);
-                    items::para_clases(m, &hoy, |i| de_la_clase.and_then(|c| c.get(&i.id)).copied().unwrap_or((0, 0)))
+                    items::para_clases(m, &hoy, |i| de_la_clase.and_then(|c| c.get(&i.id)).copied().unwrap_or_default())
                 });
                 ClaseConItems { clase, items }
             })

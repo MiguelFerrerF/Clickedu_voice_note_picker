@@ -372,7 +372,7 @@ function Bloque({c, evaluacion, abrir, ultima, abierta, alternar}: BloqueProps) 
             )}
           </span>
           <span />
-          <Avance n={i.calificados} total={alumnos} enClickedu={i.enClickedu} />
+          <Avance n={i.calificados} total={alumnos} enClickedu={i.enClickedu} soloClickedu={i.soloClickedu} />
           <span />
           <Galon />
         </button>
@@ -400,7 +400,18 @@ function Bloque({c, evaluacion, abrir, ultima, abierta, alternar}: BloqueProps) 
  * Clickedu al traer: es un dato, no un evento (`docs/02` §3). Va a la
  * izquierda para que las barras sigan en columna.
  */
-function Avance({n, total, enClickedu = 0}: {n: number; total: number; enClickedu?: number}) {
+function Avance({
+  n,
+  total,
+  enClickedu = 0,
+  soloClickedu = 0,
+}: {
+  n: number;
+  total: number;
+  enClickedu?: number;
+  /** Los que la tienen en Clickedu y no en la app: la barra los sigue, en turquesa apagado. */
+  soloClickedu?: number;
+}) {
   const texto = t('clases.con_nota', {n, total});
   return (
     <span style={{display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10, minWidth: 0}}>
@@ -412,7 +423,11 @@ function Avance({n, total, enClickedu = 0}: {n: number; total: number; enClicked
         </span>
       )}
       <span role="img" aria-label={texto} title={texto} style={{display: 'flex', flexShrink: 0}}>
-        <BarraAvance fraccion={total > 0 ? n / total : 0} ancho={72} />
+        <BarraAvance
+          fraccion={total > 0 ? n / total : 0}
+          enClickedu={total > 0 ? soloClickedu / total : 0}
+          ancho={72}
+        />
       </span>
     </span>
   );

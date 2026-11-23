@@ -75,7 +75,9 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
   // 1.ª ya subida, la 2.ª en curso (con un nombre largo y uno sin
   // ponderación) y la 3.ª sin ítems; Biología, de Bachillerato, con «JUNIO»
   // y sin ítems aún en la 2.ª; Matemáticas 3.º B, sin traer.
-  const item = (id, nombre, ponderacion, enClickedu = 0, calificados = 0) => ({id, nombre, ponderacion, enClickedu, calificados});
+  // Sin decir cuántos solo en Clickedu, los que no se han calificado en la app.
+  const item = (id, nombre, ponderacion, enClickedu = 0, calificados = 0, soloClickedu = Math.max(0, enClickedu - calificados)) =>
+    ({id, nombre, ponderacion, enClickedu, calificados, soloClickedu});
   const ev = (id, nombre, enCurso, lista) => ({id, nombre, enCurso, items: lista});
   const ITEMS = {
     'matematicas_3_a_eso.xlsx': [
@@ -85,7 +87,7 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
         item('41812', 'Cuaderno', 20, 25),
       ]),
       ev('332', '2ª evaluación', true, [
-        item('42690', 'Examen tema 3', 40, 8, 8),
+        item('42690', 'Examen tema 3', 40, 8, 8, 4),
         item('42691', 'Proyecto: la estadística del patio, con encuestas a todos los cursos del instituto', 20),
         item('42692', 'Cuaderno', 10, 4),
         item('42693', 'Actitud en clase', null),

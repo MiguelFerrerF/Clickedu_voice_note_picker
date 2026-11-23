@@ -1365,7 +1365,9 @@ de `subir` contra el Clickedu falso).
       la de Clickedu tachada junto al nombre y el punto ámbar: **al
       subir, se pisaría**; igual, nada. Encima, «· N en Clickedu» y
       «● N cambiarían», que lleva a la siguiente (`docs/02` §3). Es la
-      copia de cuando se trajo: al subir se vuelve a leer.
+      copia de cuando se trajo: al subir se vuelve a leer. **La barra**
+      (pedido del usuario): tras lo de la app, en turquesa, lo que solo
+      está en Clickedu, en turquesa apagado; un ítem subido entero, llena.
 
 **Lo hecho a mano** (2026-11-23, `probar_subir`, `docs/03`): en el ítem de
 prueba 42700 de Química 2 (2ª ev.), subir, importar (las 10 notas, en

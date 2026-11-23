@@ -199,12 +199,23 @@ pub struct ItemClase {
     pub en_clickedu: usize,
     /// Cuántos tienen nota en la sesión de este ítem.
     pub calificados: usize,
+    /// Cuántos la tienen en Clickedu y no en la app: la barra los pinta
+    /// aparte, en turquesa apagado.
+    pub solo_clickedu: usize,
+}
+
+/// Lo contado de un ítem en una clase.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct Contados {
+    pub calificados: usize,
+    pub en_clickedu: usize,
+    pub solo_clickedu: usize,
 }
 
 /// Los de `materia` para Clases: la evaluación de `hoy` (`AAAA-MM-DD`)
 /// marcada, y de cada ítem, `contar(item)`: cuántos de la clase tienen nota
-/// en la sesión y cuántos en Clickedu.
-pub fn para_clases(materia: &ItemsMateria, hoy: &str, contar: impl Fn(&ItemGuardado) -> (usize, usize)) -> ItemsClase {
+/// en la sesión y en Clickedu.
+pub fn para_clases(materia: &ItemsMateria, hoy: &str, contar: impl Fn(&ItemGuardado) -> Contados) -> ItemsClase {
     ItemsClase {
         traidos: materia.traidos,
         evaluaciones: materia
@@ -221,13 +232,14 @@ pub fn para_clases(materia: &ItemsMateria, hoy: &str, contar: impl Fn(&ItemGuard
                     .items
                     .iter()
                     .map(|i| {
-                        let (calificados, en_clickedu) = contar(i);
+                        let c = contar(i);
                         ItemClase {
                             id: i.id.clone(),
                             nombre: i.nombre.clone(),
                             ponderacion: i.ponderacion,
-                            en_clickedu,
-                            calificados,
+                            en_clickedu: c.en_clickedu,
+                            calificados: c.calificados,
+                            solo_clickedu: c.solo_clickedu,
                         }
                     })
                     .collect(),
@@ -328,11 +340,17 @@ mod tests {
 
     #[test]
     fn para_clases_marca_la_de_hoy_y_cuenta_la_sesion() {
-        let c = para_clases(&materia(7, "9001"), "2026-11-23", |i| if i.id == "9001" { (5, 3) } else { (0, 0) });
+        let c = para_clases(&materia(7, "9001"), "2026-11-23", |i| {
+            if i.id == "9001" {
+                Contados { calificados: 5, en_clickedu: 3, solo_clickedu: 1 }
+            } else {
+                Contados::default()
+            }
+        });
         assert_eq!(c.traidos, 7);
         assert_eq!(c.evaluaciones.iter().map(|e| e.en_curso).collect::<Vec<_>>(), [false, true]);
         let i = &c.evaluaciones[1].items[0];
-        assert_eq!((i.en_clickedu, i.calificados), (3, 5));
+        assert_eq!((i.en_clickedu, i.calificados, i.solo_clickedu), (3, 5, 1));
         let json = serde_json::to_value(&c).unwrap();
         assert_eq!(json["evaluaciones"][1]["enCurso"], true);
         assert_eq!(json["evaluaciones"][1]["items"][0]["enClickedu"], 3);

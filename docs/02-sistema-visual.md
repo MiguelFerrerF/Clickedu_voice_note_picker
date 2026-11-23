@@ -82,7 +82,7 @@ library-app, aplicada a las notas:
 | Recién dictada | Verde, con el micrófono, y su fila teñida de verde (en `oklab`: en `oklch` sale azul), **y se apaga sola** | Es un evento: «acaba de entrar por voz» |
 | Dictado dudoso | La nota no cambia; al lado del nombre, la propuesta con **borde discontinuo** + `--accent-wash` («¿6.8?»), y la pregunta en el panel del dictado | Provisional: espera que elijas |
 | Valor que no es nota | Rojo, con anillo | Error de verdad: `12`, `abc` |
-| Con nota en Clickedu y no en la app (H6, en un ítem) | La de Clickedu en gris (`--text-tertiary`) en lugar del «—», con «En Clickedu: 7.5» al pasar | Es un dato, no un evento |
+| Con nota en Clickedu y no en la app (H6, en un ítem) | La de Clickedu en gris (`--text-tertiary`) en lugar del «—», con «En Clickedu: 7.5» al pasar; en la barra de avance (Clases y Calificar), su tramo sigue al de la app en **turquesa apagado** (`color-mix` de `--accent` con `--bg-sunk`, sin token nuevo): un ítem ya subido entero sale con la barra llena | Es progreso ya hecho, no un evento |
 | La de la app, igual que la de Clickedu | Como cualquier nota | Al subir no cambia nada |
 | **La de la app, distinta de la de Clickedu** | La de Clickedu **tachada** y en gris junto al nombre, con el punto `--warn`; encima, «● N cambiarían», que lleva a la siguiente | Excepción: al subir, **se pisaría**. Ámbar, no rojo (no es un error) ni discontinuo (no es provisional) |
 

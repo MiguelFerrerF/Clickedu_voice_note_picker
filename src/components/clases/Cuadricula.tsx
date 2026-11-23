@@ -106,6 +106,7 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
   const sinNota = notas.map((n, i) => (n.tipo === 'vacia' ? i : -1)).filter((i) => i >= 0);
   const frentes = alumnos.map((a, i) => frenteAClickedu(notas[i], enClickedu?.[a.id]));
   const conClickedu = frentes.filter((f) => f.tipo !== 'nada').length;
+  const soloClickedu = frentes.filter((f) => f.tipo === 'solo_clickedu').length;
   const cambiarian = frentes.map((f, i) => (f.tipo === 'cambiaria' ? i : -1)).filter((i) => i >= 0);
 
   /** Al siguiente de `cuales` tras el último tocado; del final, vuelve al principio. */
@@ -144,6 +145,7 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
         total={alumnos.length}
         siguiente={sinNota.length > 0 ? () => irAlSiguiente(sinNota) : undefined}
         conClickedu={conClickedu}
+        soloClickedu={soloClickedu}
         cambiarian={cambiarian.length}
         siguienteCambiaria={() => irAlSiguiente(cambiarian)}
       />
@@ -269,6 +271,7 @@ function Avance({
   total,
   siguiente,
   conClickedu,
+  soloClickedu,
   cambiarian,
   siguienteCambiaria,
 }: {
@@ -277,6 +280,8 @@ function Avance({
   siguiente?: () => void;
   /** En un ítem (H6): cuántos tienen nota en Clickedu, y cuántas cambiarían al subir. */
   conClickedu: number;
+  /** Los que la tienen en Clickedu y no aquí: la barra los sigue, en turquesa apagado. */
+  soloClickedu: number;
   cambiarian: number;
   siguienteCambiaria: () => void;
 }) {
@@ -295,7 +300,7 @@ function Avance({
         }}>
         <span style={{display: 'inline-flex', alignItems: 'center', gap: 16}}>
           <span style={{display: 'inline-flex', alignItems: 'center', gap: 10}}>
-            <BarraAvance fraccion={fraccion} ancho={120} />
+            <BarraAvance fraccion={fraccion} enClickedu={total > 0 ? soloClickedu / total : 0} ancho={120} />
             <span style={{fontSize: 13, color: 'var(--text-secondary)', whiteSpace: 'nowrap'}}>
               {t('cuadricula.con_nota', {n: conNota, total})}
             </span>
