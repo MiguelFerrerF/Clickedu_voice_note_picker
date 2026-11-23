@@ -15,6 +15,8 @@
 //!   última buena: qué ha cambiado y dónde.
 //! - [`tapar`] — pasar textos y direcciones a su forma, sin nombres.
 //! - [`traer`] — traer las plantillas (H5): el nombre de cada fichero.
+//! - [`items`] — los ítems de cada materia, leídos al traer y guardados
+//!   para calificar por ítem (H6).
 //!
 //! El cliente se prueba contra un Clickedu falso con páginas inventadas
 //! ([`falso`]); las fichas y la huella, con páginas **de verdad,
@@ -30,6 +32,7 @@ pub mod cliente;
 pub mod cuenta;
 pub mod fichas;
 pub mod huella;
+pub mod items;
 pub mod tapar;
 pub mod traer;
 

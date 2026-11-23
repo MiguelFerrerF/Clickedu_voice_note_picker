@@ -88,6 +88,14 @@ const ITEMS_SIN_EVALUACIONES: &str = "<html><body><p>Sin evaluaciones</p></body>
 const ITEMS_103: &str =
     r#"<html><body><select name="trm"><option value="8">1ª evaluación</option></select></body></html>"#;
 const NO_ES_EXCEL: &str = "<html><body><p>Error al generar la plantilla</p></body></html>";
+/// La página de importar de la 101, en su evaluación: dos ítems.
+const IMPORTAR_101: &str = r#"<html><body><select name="id_criteri_avaluacio"><option value="">---</option>
+<option value="9001">Examen 1</option><option value="9002">Trabajo</option></select></body></html>"#;
+/// Lo puesto en la 101: un alumno en el Examen 1, otro en blanco, y la nota
+/// final.
+const NOTAS_101: &str = r#"[{"id_alumne":"5001","id_criteri":"9001","nota":null,"nota_mod":"7.5","type":0},
+{"id_alumne":"5002","id_criteri":"9001","nota":"","nota_mod":null,"type":0},
+{"id_alumne":"5001","id_criteri":"101","nota":"7","nota_mod":null,"type":114}]"#;
 pub const BAJAR_101: &str = "/assignatures/importar_notes_items.php?accio=descarregar_plantilla&assig=101&id_aval=7";
 const BAJAR_103: &str = "/assignatures/importar_notes_items.php?accio=descarregar_plantilla&assig=103&id_aval=8";
 
@@ -225,6 +233,12 @@ fn responder(modo: Modo, metodo: &str, ruta: &str, cookies: &str, cuerpo: &str, 
         ("GET", "/go/Index.php?ctr=Subject/Items&do=Index&id=103") if cookies.contains(DENTRO) => pagina(ITEMS_103),
         ("GET", BAJAR_101) if cookies.contains(DENTRO) => excel(plantilla_101()),
         ("GET", BAJAR_103) if cookies.contains(DENTRO) => pagina(NO_ES_EXCEL),
+        ("GET", "/assignatures/importar_notes_items.php?assig=101&id_aval=7") if cookies.contains(DENTRO) => {
+            pagina(IMPORTAR_101)
+        }
+        ("GET", "/go/Index.php?ctr=Evaluate/EvaluateTermly&do=GetGrades&id=101&trm=7") if cookies.contains(DENTRO) => {
+            pagina(NOTAS_101)
+        }
         // Sin sesión, el de verdad no redirige: contesta 200 con un aviso y
         // manda a entrar con JS (visto el 2026-11-20).
         ("GET", r) if r.starts_with("/go/") || r.starts_with("/assignatures/") => pagina(SIN_SESION),

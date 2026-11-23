@@ -36,7 +36,8 @@ export type Respuesta =
  * se ha entendido (hasta que lo cierras o se dicta otra cosa).
  */
 export interface Pendiente {
-  fichero: string;
+  /** La clase y su ítem: el `juego` de Calificar (H6). */
+  juego: string;
   dictado: Dictado;
 }
 
@@ -47,7 +48,8 @@ export interface Pendiente {
  * `null` si se había quitado.
  */
 export interface Apuntado {
-  fichero: string;
+  /** La clase y su ítem: el `juego` de Calificar (H6). */
+  juego: string;
   dictado: Dictado;
   clave: string;
   nota: number;

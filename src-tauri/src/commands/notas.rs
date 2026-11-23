@@ -7,16 +7,23 @@ use crate::commands::clases::leer_plantilla;
 use crate::commands::{carpeta_notas, en_segundo_plano, ruta_sesion};
 use crate::exportar::{self, Exportado};
 use crate::plantillas;
-use crate::sesion::{self, Cerrojo};
+use crate::sesion::{self, Cerrojo, Juego};
 
 /// Lo que recibe la interfaz cuando cambia una nota: la lista de Clases
 /// vuelve a contar las notas.
 pub const EVENTO: &str = "notas-cambiadas";
 
-/// Pone la nota del alumno `clave` de la clase `fichero`, o la quita con
-/// `None`, y la guarda al momento. Devuelve la nota tal como ha quedado.
+/// Pone la nota del alumno `clave` de la clase `fichero` (en el ítem `item`
+/// si lo hay, H6), o la quita con `None`, y la guarda al momento. Devuelve
+/// la nota tal como ha quedado.
 #[tauri::command]
-pub async fn poner_nota(fichero: String, clave: String, nota: Option<f64>, app: AppHandle) -> Result<Option<f64>, String> {
+pub async fn poner_nota(
+    fichero: String,
+    item: Option<String>,
+    clave: String,
+    nota: Option<f64>,
+    app: AppHandle,
+) -> Result<Option<f64>, String> {
     en_segundo_plano(app.clone(), "poner_nota", move || {
         if !plantillas::es_plantilla(&fichero) {
             return Err(format!("«{fichero}» no es una plantilla"));
@@ -24,7 +31,7 @@ pub async fn poner_nota(fichero: String, clave: String, nota: Option<f64>, app: 
         let ruta = ruta_sesion(&app)?;
         let cerrojo = app.state::<Cerrojo>();
         let _cogido = cerrojo.0.lock().map_err(|e| e.to_string())?;
-        let puesta = sesion::poner(&ruta, &fichero, &clave, nota)?;
+        let puesta = sesion::poner(&ruta, Juego::de(&fichero, item.as_deref()), &clave, nota)?;
         let _ = app.emit(EVENTO, ());
         Ok(puesta)
     })
@@ -34,27 +41,28 @@ pub async fn poner_nota(fichero: String, clave: String, nota: Option<f64>, app: 
 /// Devuelve al alumno `clave` a la nota de su plantilla (deshacer un
 /// dictado sobre un alumno que no se había tocado).
 #[tauri::command]
-pub async fn devolver_nota(fichero: String, clave: String, app: AppHandle) -> Result<(), String> {
+pub async fn devolver_nota(fichero: String, item: Option<String>, clave: String, app: AppHandle) -> Result<(), String> {
     en_segundo_plano(app.clone(), "devolver_nota", move || {
         let ruta = ruta_sesion(&app)?;
         let cerrojo = app.state::<Cerrojo>();
         let _cogido = cerrojo.0.lock().map_err(|e| e.to_string())?;
-        sesion::devolver(&ruta, &fichero, &clave)?;
+        sesion::devolver(&ruta, Juego::de(&fichero, item.as_deref()), &clave)?;
         let _ = app.emit(EVENTO, ());
         Ok(())
     })
     .await
 }
 
-/// Exporta la clase `fichero` a `Documentos\Gestor de Notas\notas`.
+/// Exporta la clase `fichero`, con las notas del ítem `item` si lo hay (H6),
+/// a `Documentos\Gestor de Notas\notas`.
 #[tauri::command]
-pub async fn exportar_clase(fichero: String, app: AppHandle) -> Result<Exportado, String> {
+pub async fn exportar_clase(fichero: String, item: Option<String>, app: AppHandle) -> Result<Exportado, String> {
     en_segundo_plano(app.clone(), "exportar_clase", move || {
         let plantilla = leer_plantilla(&app, &fichero)?;
         let puestas = {
             let cerrojo = app.state::<Cerrojo>();
             let _cogido = cerrojo.0.lock().map_err(|e| e.to_string())?;
-            sesion::leer(&ruta_sesion(&app)?)?.puestas(&fichero)
+            sesion::leer(&ruta_sesion(&app)?)?.puestas_de(Juego::de(&fichero, item.as_deref()))
         };
         exportar::exportar(&plantilla, &puestas, &fichero, &carpeta_notas(&app)?).map_err(|e| e.to_string())
     })

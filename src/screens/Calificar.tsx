@@ -86,27 +86,32 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
   const clases = [...todas.filter((c) => !c.pendiente), ...todas.filter((c) => c.pendiente)];
   const actual = clases.find((c) => c.fichero === clase) ?? clases[0];
 
-  // La clase abierta, leída de nuevo si cambia la clase, la carpeta avisa o
-  // una nota no se ha podido guardar.
-  const [abierta, setAbierta] = useState<{fichero: string; clase?: ClaseAbierta; error?: string}>();
+  // Cada ítem es otro juego de notas (H6): el juego es la clase y su ítem
+  // (vacío, sin ítem). `|` no puede ir en un nombre de fichero.
+  const itemActual = (actual && buscarItem(actual.items, items[actual.fichero])?.item.id) ?? null;
+  const juegoActual = actual ? `${actual.fichero}|${itemActual ?? ''}` : undefined;
+
+  // La clase abierta, leída de nuevo si cambia la clase o el ítem, la
+  // carpeta avisa o una nota no se ha podido guardar.
+  const [abierta, setAbierta] = useState<{juego: string; clase?: ClaseAbierta; error?: string}>();
   const [releer, setReleer] = useState(0);
   useEffect(() => {
-    if (!actual) return;
+    if (!actual || !juegoActual) return;
     let vivo = true;
-    invoke<ClaseAbierta>('leer_clase', {fichero: actual.fichero}).then(
-      (c) => vivo && setAbierta({fichero: actual.fichero, clase: c}),
-      (e) => vivo && setAbierta({fichero: actual.fichero, error: String(e)}),
+    invoke<ClaseAbierta>('leer_clase', {fichero: actual.fichero, item: itemActual}).then(
+      (c) => vivo && setAbierta({juego: juegoActual, clase: c}),
+      (e) => vivo && setAbierta({juego: juegoActual, error: String(e)}),
     );
     return () => {
       vivo = false;
     };
-  }, [actual?.fichero, cambios, releer]);
+  }, [juegoActual, cambios, releer]);
 
   const [resultado, setResultado] = useState<Resultado>();
   const [encendido, setEncendido] = useState(false);
   const [exportando, setExportando] = useState(false);
-  // Otra clase: lo dicho era de la de antes.
-  useEffect(() => setResultado(undefined), [actual?.fichero]);
+  // Otra clase u otro ítem: lo dicho era de lo de antes.
+  useEffect(() => setResultado(undefined), [juegoActual]);
   useEffect(() => {
     if (resultado?.tipo !== 'exportado') return;
     const apagar = setTimeout(() => setEncendido(false), APAGAR_MS);
@@ -128,7 +133,7 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
   // que tarda Whisper es raro, y la nota sería de la otra.
   const recibir = useRef<(fichero: string, d: Dictado) => void>(() => {});
   const dictando = useDictado({
-    activo: visible && !!actual && abierta?.fichero === actual.fichero && !!abierta.clase,
+    activo: visible && !!actual && !!abierta?.clase && abierta.juego === juegoActual,
     fichero: actual?.fichero,
     alDictar: (f, d) => recibir.current(f, d),
   });
@@ -154,8 +159,10 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
 
   const fichero = actual.fichero;
   const elegido = buscarItem(actual.items, items[fichero]);
-  const abiertaAhora = abierta?.fichero === fichero ? abierta.clase : undefined;
-  const errorClase = abierta?.fichero === fichero ? abierta.error : undefined;
+  const item = elegido?.item.id ?? null;
+  const juego = `${fichero}|${item ?? ''}`;
+  const abiertaAhora = abierta?.juego === juego ? abierta.clase : undefined;
+  const errorClase = abierta?.juego === juego ? abierta.error : undefined;
   const alumnos = abiertaAhora?.plantilla.alumnos ?? [];
   const puestas = abiertaAhora?.puestas ?? {};
   const notas = alumnos.map((a) => notaDe(a, puestas));
@@ -165,13 +172,13 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
   // pulsar, se dice cuál.
   const hayQueExportar = !!abiertaAhora && notas.some((n) => n.tipo !== 'vacia');
 
-  const pendienteAqui = pendiente?.fichero === fichero ? pendiente.dictado : undefined;
-  const apuntadosAqui = apuntados.filter((a) => a.fichero === fichero);
+  const pendienteAqui = pendiente?.juego === juego ? pendiente.dictado : undefined;
+  const apuntadosAqui = apuntados.filter((a) => a.juego === juego);
   const propuestas =
     pendienteAqui?.tipo === 'duda'
       ? Object.fromEntries(pendienteAqui.alumnos.map((c) => [c, pendienteAqui.notas]))
       : undefined;
-  const prefijo = `${fichero}|`; // `|` no puede ir en un nombre de fichero
+  const prefijo = `${juego}|`;
   const dictadas = new Set(
     Object.keys(encendidas)
       .filter((k) => k.startsWith(prefijo))
@@ -181,9 +188,9 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
   function poner(clave: string, nota: number | null) {
     setResultado(undefined);
     setAbierta((a) =>
-      a?.fichero === fichero && a.clase ? {...a, clase: {...a.clase, puestas: {...a.clase.puestas, [clave]: nota}}} : a,
+      a?.juego === juego && a.clase ? {...a, clase: {...a.clase, puestas: {...a.clase.puestas, [clave]: nota}}} : a,
     );
-    invoke('poner_nota', {fichero, clave, nota}).catch((e) => {
+    invoke('poner_nota', {fichero, item, clave, nota}).catch((e) => {
       setResultado({tipo: 'fallo', texto: t('calificar.no_se_guarda', {error: String(e)})});
       setReleer((r) => r + 1);
     });
@@ -197,7 +204,7 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
     const dictada = apuntadosAqui.find((a) => a.clave === clave);
     if (dictada) {
       responder(dictada.dictado, {tipo: 'corregida', nota});
-      setApuntados((l) => l.filter((a) => a.fichero !== fichero || a.clave !== clave));
+      setApuntados((l) => l.filter((a) => a.juego !== juego || a.clave !== clave));
     }
     apagar(clave);
     poner(clave, nota);
@@ -206,25 +213,25 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
   /** Vuelve a la nota de la plantilla: olvida lo puesto en la sesión. */
   function devolver(clave: string) {
     setAbierta((a) => {
-      if (a?.fichero !== fichero || !a.clase) return a;
+      if (a?.juego !== juego || !a.clase) return a;
       const {[clave]: _, ...puestas} = a.clase.puestas;
       return {...a, clase: {...a.clase, puestas}};
     });
-    invoke('devolver_nota', {fichero, clave}).catch((e) => {
+    invoke('devolver_nota', {fichero, item, clave}).catch((e) => {
       setResultado({tipo: 'fallo', texto: t('calificar.no_se_guarda', {error: String(e)})});
       setReleer((r) => r + 1);
     });
   }
 
   function encender(clave: string) {
-    const k = `${fichero}|${clave}`;
+    const k = `${juego}|${clave}`;
     const vez = ++veces.current;
     setEncendidas((e) => ({...e, [k]: vez}));
     setTimeout(() => setEncendidas((e) => (e[k] === vez ? sin(e, k) : e)), APAGAR_MS);
   }
 
   function apagar(clave: string) {
-    const k = `${fichero}|${clave}`;
+    const k = `${juego}|${clave}`;
     setEncendidas((e) => (k in e ? sin(e, k) : e));
   }
 
@@ -239,10 +246,10 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
   function apuntar(clave: string, nota: number, dictado: Dictado) {
     const antes = clave in puestas ? puestas[clave] : undefined;
     poner(clave, nota);
-    const nuevo: Apuntado = {fichero, dictado, clave, nota, antes};
+    const nuevo: Apuntado = {juego, dictado, clave, nota, antes};
     setApuntados((l) => [
-      ...[nuevo, ...l.filter((a) => a.fichero === fichero)].slice(0, ULTIMOS),
-      ...l.filter((a) => a.fichero !== fichero),
+      ...[nuevo, ...l.filter((a) => a.juego === juego)].slice(0, ULTIMOS),
+      ...l.filter((a) => a.juego !== juego),
     ]);
     setPendiente(undefined);
     encender(clave);
@@ -252,7 +259,7 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
   /** Lo nuevo sustituye a lo que esperaba: una duda sin contestar se queda sin respuesta. */
   function alDictar(d: Dictado) {
     if (d.tipo === 'seguro') return apuntar(d.alumno, d.nota, d);
-    setPendiente({fichero, dictado: d});
+    setPendiente({juego, dictado: d});
     if (d.tipo === 'duda') traerAVista(d.alumnos[0]);
   }
   recibir.current = (f, d) => {
@@ -319,7 +326,7 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
       return;
     }
     setExportando(true);
-    invoke<Exportado>('exportar_clase', {fichero})
+    invoke<Exportado>('exportar_clase', {fichero, item})
       .then(
         (exportado) => {
           setResultado({tipo: 'exportado', exportado});

@@ -1332,6 +1332,21 @@ Orden: esto en el plan; luego lo visual, con la prueba de diseño; luego la
 subida en la app (subir → importar → comprobar con `GetGrades`, y el test
 de `subir` contra el Clickedu falso).
 
+- [x] **Lo visual** (`c504d4e`, la prueba `clases-items`).
+- [x] **Por debajo** (2026-11-23): al traer, de cada evaluación, la página
+      de importar (los ítems) y `GetGrades` (cuántos alumnos tienen ya
+      nota en cada uno), a `clickedu\items.json` por `id` de materia
+      (`clickedu::items`); se guardan sin esperar a confirmar, porque son
+      una copia de Clickedu. Los que no se entienden van con los cambios
+      (el aviso temprano), sin parar lo demás. `listar_clases` los cruza
+      con `traidas.json` y manda `items`. **La sesión, por ítem**: sus
+      notas van por el `id` del ítem (único en Clickedu y de una sola
+      materia), no por el fichero, así que traer otra vez, que aparta y
+      renombra plantillas, no las toca; sin ítem, por fichero, como antes.
+      Probado con `probar_traer` contra Clickedu de verdad: las 10
+      materias y sus ítems, en 42 s. **La ponderación aún
+      no se lee** (está en la tabla de Ítems, sin ficha): va vacía.
+
 **Lo hecho a mano** (2026-11-23, `probar_subir`, `docs/03`): en el ítem de
 prueba 42700 de Química 2 (2ª ev.), subir, importar (las 10 notas, en
 `nota_mod`; las otras 21 filas, iguales) y eliminar lo subido, que **no

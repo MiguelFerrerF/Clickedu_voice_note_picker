@@ -1,7 +1,7 @@
 /**
  * Lo que devuelven los comandos de las Clases (H1) y de las notas (H2). Es el
  * espejo de `src-tauri/src/plantillas.rs`, `ajustes.rs`, `sesion.rs`,
- * `exportar.rs` y `commands/`: si cambia allí, cambia aquí.
+ * `exportar.rs`, `clickedu/items.rs` y `commands/`: si cambia allí, cambia aquí.
  */
 
 export interface CarpetaPlantillas {
@@ -24,10 +24,9 @@ export interface Clase {
   /**
    * Sus ítems de Clickedu, guardados al traer (H6). `null` si no se han
    * traído nunca (quien no se conecta, o una plantilla puesta a mano): se
-   * califica sin ítem, como en la v1. Opcional mientras `listar_clases`
-   * no lo mande (lo visual de H6 va antes que el backend).
+   * califica sin ítem, como en la v1. Es `clickedu::items::ItemsClase`.
    */
-  items?: ItemsClase | null;
+  items: ItemsClase | null;
 }
 
 /** Los ítems de una clase, por evaluación, tal como estaban al traer (H6). */

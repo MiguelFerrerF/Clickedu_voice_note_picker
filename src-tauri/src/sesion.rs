@@ -1,4 +1,5 @@
-//! La sesión (H2): las notas que llevas puestas, clase por clase.
+//! La sesión (H2): las notas que llevas puestas, clase por clase, y desde
+//! H6 también ítem por ítem ([`Juego`]).
 //!
 //! **La plantilla no se escribe nunca** (D4): lo que se pone en la cuadrícula
 //! vive aquí, en `sesion.json`, en la carpeta de la app
@@ -30,15 +31,58 @@ pub type Puestas = BTreeMap<String, Option<f64>>;
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Sesion {
-    /// Por fichero de plantilla.
+    /// Sin ítem, por fichero de plantilla: un solo juego de notas por clase,
+    /// como la v1.
     #[serde(default)]
     pub clases: BTreeMap<String, Puestas>,
+    /// Por ítem de Clickedu (su id, H6). El id de un ítem es único en
+    /// Clickedu y es de una sola materia, y las claves son los `Id` de sus
+    /// alumnos: no depende del nombre del fichero, así que traer otra vez
+    /// las plantillas (que las aparta y las renombra) no las toca.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub items: BTreeMap<String, Puestas>,
+}
+
+/// En qué se califica una clase: sin ítem (como la v1) o en un ítem de
+/// Clickedu (H6).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Juego<'a> {
+    /// El fichero de la plantilla.
+    SinItem(&'a str),
+    /// El id del ítem.
+    Item(&'a str),
+}
+
+impl<'a> Juego<'a> {
+    /// El de `fichero`, en el ítem `item` si lo hay.
+    pub fn de(fichero: &'a str, item: Option<&'a str>) -> Self {
+        match item {
+            Some(i) => Juego::Item(i),
+            None => Juego::SinItem(fichero),
+        }
+    }
 }
 
 impl Sesion {
-    /// Las notas puestas de `fichero`; ninguna si no se ha tocado.
+    /// Las notas puestas de `fichero`, sin ítem; ninguna si no se ha tocado.
     pub fn puestas(&self, fichero: &str) -> Puestas {
-        self.clases.get(fichero).cloned().unwrap_or_default()
+        self.puestas_de(Juego::SinItem(fichero))
+    }
+
+    /// Las notas puestas de `juego`; ninguna si no se ha tocado.
+    pub fn puestas_de(&self, juego: Juego) -> Puestas {
+        let (mapa, clave) = match juego {
+            Juego::SinItem(f) => (&self.clases, f),
+            Juego::Item(i) => (&self.items, i),
+        };
+        mapa.get(clave).cloned().unwrap_or_default()
+    }
+
+    fn mapa_mut<'j>(&mut self, juego: Juego<'j>) -> (&mut BTreeMap<String, Puestas>, &'j str) {
+        match juego {
+            Juego::SinItem(f) => (&mut self.clases, f),
+            Juego::Item(i) => (&mut self.items, i),
+        }
     }
 }
 
@@ -58,28 +102,30 @@ pub fn leer(ruta: &Path) -> Result<Sesion, String> {
     }
 }
 
-/// Pone (o quita, con `None`) la nota del alumno `clave` de la clase
-/// `fichero` y guarda la sesión de una vez. La nota ha de pasar
-/// [`validar`]. Quien llama tiene el [`Cerrojo`].
-pub fn poner(ruta: &Path, fichero: &str, clave: &str, nota: Option<f64>) -> Result<Option<f64>, String> {
+/// Pone (o quita, con `None`) la nota del alumno `clave` en `juego` y
+/// guarda la sesión de una vez. La nota ha de pasar [`validar`]. Quien
+/// llama tiene el [`Cerrojo`].
+pub fn poner(ruta: &Path, juego: Juego, clave: &str, nota: Option<f64>) -> Result<Option<f64>, String> {
     let nota = nota.map(validar).transpose().map_err(|e| e.to_string())?;
     let mut sesion = leer(ruta)?;
-    sesion.clases.entry(fichero.to_string()).or_default().insert(clave.to_string(), nota);
+    let (mapa, de) = sesion.mapa_mut(juego);
+    mapa.entry(de.to_string()).or_default().insert(clave.to_string(), nota);
     guardar_json(ruta, &sesion).map_err(|e| format!("no se puede guardar la nota en {}: {e}", ruta.display()))?;
     Ok(nota)
 }
 
-/// Devuelve al alumno `clave` de `fichero` a la nota de la plantilla:
+/// Devuelve al alumno `clave` de `juego` a la nota de la plantilla:
 /// olvida lo puesto en la sesión. Es deshacer un dictado (H3b) sobre un
 /// alumno que no se había tocado. Quien llama tiene el [`Cerrojo`].
-pub fn devolver(ruta: &Path, fichero: &str, clave: &str) -> Result<(), String> {
+pub fn devolver(ruta: &Path, juego: Juego, clave: &str) -> Result<(), String> {
     let mut sesion = leer(ruta)?;
-    let Some(puestas) = sesion.clases.get_mut(fichero) else { return Ok(()) };
+    let (mapa, de) = sesion.mapa_mut(juego);
+    let Some(puestas) = mapa.get_mut(de) else { return Ok(()) };
     if puestas.remove(clave).is_none() {
         return Ok(());
     }
     if puestas.is_empty() {
-        sesion.clases.remove(fichero);
+        mapa.remove(de);
     }
     guardar_json(ruta, &sesion).map_err(|e| format!("no se puede guardar en {}: {e}", ruta.display()))
 }
@@ -172,10 +218,11 @@ mod tests {
         let ruta = dir.path().join("app").join("sesion.json");
         assert_eq!(leer(&ruta).unwrap(), Sesion::default());
 
-        assert_eq!(poner(&ruta, "mates.xlsx", "1001", Some(7.5)), Ok(Some(7.5)));
-        poner(&ruta, "mates.xlsx", "fila:9", None).unwrap();
-        poner(&ruta, "bio.xlsx", "2001", Some(10.0)).unwrap();
-        assert!(poner(&ruta, "bio.xlsx", "2001", Some(11.0)).is_err());
+        let (mates, bio) = (Juego::SinItem("mates.xlsx"), Juego::SinItem("bio.xlsx"));
+        assert_eq!(poner(&ruta, mates, "1001", Some(7.5)), Ok(Some(7.5)));
+        poner(&ruta, mates, "fila:9", None).unwrap();
+        poner(&ruta, bio, "2001", Some(10.0)).unwrap();
+        assert!(poner(&ruta, bio, "2001", Some(11.0)).is_err());
 
         let s = leer(&ruta).unwrap();
         assert_eq!(s.puestas("mates.xlsx").get("1001"), Some(&Some(7.5)));
@@ -185,16 +232,38 @@ mod tests {
         assert!(!ruta.with_extension("json.tmp").exists());
 
         // Devolver a la de la plantilla no es quitarla.
-        devolver(&ruta, "mates.xlsx", "1001").unwrap();
-        devolver(&ruta, "bio.xlsx", "2001").unwrap();
-        devolver(&ruta, "otra.xlsx", "1").unwrap();
+        devolver(&ruta, mates, "1001").unwrap();
+        devolver(&ruta, bio, "2001").unwrap();
+        devolver(&ruta, Juego::SinItem("otra.xlsx"), "1").unwrap();
         let s = leer(&ruta).unwrap();
         assert_eq!(s.puestas("mates.xlsx").get("1001"), None);
         assert_eq!(s.puestas("mates.xlsx").get("fila:9"), Some(&None));
         assert!(!s.clases.contains_key("bio.xlsx"));
 
         std::fs::write(&ruta, "{ medio json").unwrap();
-        assert!(poner(&ruta, "mates.xlsx", "1001", Some(3.0)).is_err());
+        assert!(poner(&ruta, mates, "1001", Some(3.0)).is_err());
         assert_eq!(std::fs::read_to_string(&ruta).unwrap(), "{ medio json");
+    }
+
+    #[test]
+    fn cada_item_es_otro_juego_de_notas() {
+        let dir = tempfile::tempdir().unwrap();
+        let ruta = dir.path().join("sesion.json");
+        // Una sesión de antes de H6, sin `items`, se lee igual.
+        std::fs::write(&ruta, r#"{"clases":{"bio.xlsx":{"2001":7.0}}}"#).unwrap();
+        assert_eq!(leer(&ruta).unwrap().puestas("bio.xlsx").get("2001"), Some(&Some(7.0)));
+
+        poner(&ruta, Juego::de("bio.xlsx", Some("42700")), "2001", Some(4.5)).unwrap();
+        poner(&ruta, Juego::de("bio.xlsx", Some("42701")), "2001", Some(9.0)).unwrap();
+        let s = leer(&ruta).unwrap();
+        assert_eq!(s.puestas("bio.xlsx").get("2001"), Some(&Some(7.0)));
+        assert_eq!(s.puestas_de(Juego::Item("42700")).get("2001"), Some(&Some(4.5)));
+        assert_eq!(s.puestas_de(Juego::Item("42701")).get("2001"), Some(&Some(9.0)));
+
+        devolver(&ruta, Juego::Item("42700"), "2001").unwrap();
+        let s = leer(&ruta).unwrap();
+        assert!(!s.items.contains_key("42700"));
+        assert_eq!(s.puestas_de(Juego::Item("42701")).len(), 1);
+        assert_eq!(s.puestas("bio.xlsx").len(), 1);
     }
 }

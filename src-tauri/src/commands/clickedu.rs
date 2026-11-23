@@ -15,7 +15,7 @@
 //!   con la cuenta guardada. [`replanear_traer`] enseña lo que haría con
 //!   las respuestas de hasta ahora, sin hacerlo.
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
 
 use serde::Serialize;
@@ -27,6 +27,7 @@ use crate::clickedu::cuenta::{self, LlaveroWindows, Vista};
 use crate::clickedu::fichas::Estado;
 use crate::clickedu::guardar_pagina;
 use crate::clickedu::huella::{self, Huella};
+use crate::clickedu::items::{self, ItemsMateria};
 use crate::clickedu::tapar::Tapar;
 use crate::clickedu::traer::aplicar::{self, Hecho, Rutas};
 use crate::clickedu::traer::planear::{self, Contenido, EnLaRaiz, Plan, Respuesta, Traida};
@@ -40,7 +41,7 @@ use crate::{sesion, vigilante};
 pub struct Sesion(pub tauri::async_runtime::Mutex<Option<Cliente>>);
 
 /// `%APPDATA%\es.gestornotas.app\clickedu`.
-fn carpeta_clickedu(app: &AppHandle) -> Result<PathBuf, String> {
+pub(crate) fn carpeta_clickedu(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(app.path().app_config_dir().map_err(|e| e.to_string())?.join("clickedu"))
 }
 
@@ -266,6 +267,24 @@ async fn traer_y_planear(app: &AppHandle, avance: &Channel<AvanceTraer>) -> Resu
             (traer::direccion_items(&b.materia.id), b.pagina_items.clone(), buena)
         });
 
+        // Los ítems (H6), guardados ya: son una copia de Clickedu y no
+        // tocan nada del profesor, así que no esperan a confirmar. Los que
+        // no se entienden se cuentan con los cambios, el aviso temprano.
+        let traidos = ahora();
+        let mut nuevos = BTreeMap::new();
+        let mut items_rotos = Vec::new();
+        for b in &bajadas {
+            match b.resultado.as_ref().map(|p| &p.items) {
+                Ok(Ok(evaluaciones)) => {
+                    let m = ItemsMateria { traidos, evaluaciones: evaluaciones.clone() };
+                    nuevos.insert(b.materia.id.clone(), m);
+                }
+                Ok(Err(roto)) => items_rotos.push(format!("{} {}: {roto}", b.materia.nombre, b.materia.grupo)),
+                Err(_) => {}
+            }
+        }
+        items::guardar(&carpeta_ce.join(items::FICHERO), nuevos)?;
+
         let traidas = traer::preparar(bajadas, &carpeta_ce.join("bajadas"))?;
         let plantillas = PathBuf::from(carpeta(&app)?.ruta);
         let raiz = traer::leer_raiz(&plantillas)?;
@@ -280,6 +299,7 @@ async fn traer_y_planear(app: &AppHandle, avance: &Channel<AvanceTraer>) -> Resu
             let h = huella::huella(&html, &format!("{BASE}{direccion}"), &tapar);
             cambios.extend(comparar(&carpeta_ce, "evaluaciones", &h, buena));
         }
+        cambios.extend(items_rotos);
 
         let recordadas = aplicar::leer_recordadas(&carpeta_ce.join("traidas.json"))?;
         let s = sesion::leer(&ruta_sesion(&app)?)?;

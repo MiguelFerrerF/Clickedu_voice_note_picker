@@ -8,7 +8,8 @@
 //!     cargo run --example probar_traer -- --aplicar --a-ninguna
 //!
 //! - Contra Clickedu, lo mismo que la app (`clickedu::traer::bajar`): la
-//!   página de materias y, de cada una, la de Ítems y la descarga. Solo
+//!   página de materias y, de cada una, la de Ítems, la descarga y, por
+//!   evaluación, la de importar y `GetGrades` (los ítems, H6). Solo
 //!   `GET`.
 //! - Lo bajado va a `%APPDATA%\es.gestornotas.app\clickedu\probar-traer\bajadas\`,
 //!   no a la `bajadas` de la app.
@@ -73,6 +74,26 @@ fn main() {
     }))
     .unwrap_or_else(|e| panic!("no se ha podido traer: {e}"));
     println!("{} materias, leídas {}.", materias.dato.len(), estado(&materias.estado));
+
+    // Los ítems (H6): cuántos por evaluación y cuántos con notas en
+    // Clickedu. Sin nombres: los de los ítems los pone el profesor.
+    println!("\n══ Los ítems");
+    for b in &lo_bajado {
+        let Ok(p) = &b.resultado else { continue };
+        match &p.items {
+            Ok(evaluaciones) => {
+                let partes: Vec<String> = evaluaciones
+                    .iter()
+                    .map(|e| {
+                        let con_notas = e.items.iter().filter(|i| i.en_clickedu > 0).count();
+                        format!("{}: {} ítems, {con_notas} con notas", e.nombre, e.items.len())
+                    })
+                    .collect();
+                println!("  {} {} · {}", b.materia.nombre, b.materia.grupo, partes.join(" · "));
+            }
+            Err(roto) => println!("  {} {} · NO SE ENTIENDEN: {roto}", b.materia.nombre, b.materia.grupo),
+        }
+    }
 
     // Preparar y planear, contra la carpeta de verdad (solo leyendo).
     let traidas = traer::preparar(lo_bajado, &bajadas).unwrap_or_else(|e| panic!("{e}"));

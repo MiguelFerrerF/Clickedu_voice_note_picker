@@ -7,7 +7,8 @@
 //!   `Pendiente - ‹Materia› - ‹Curso›.xlsx`). Puro.
 //! - [`bajar`] — de cada materia, su primera evaluación y la plantilla de
 //!   esa evaluación (**la plantilla no cambia con la evaluación**,
-//!   comprobado el 2026-11-22). Solo red: no escribe nada.
+//!   comprobado el 2026-11-22), y los ítems de todas sus evaluaciones
+//!   ([`super::items`], H6). Solo red: no escribe nada.
 //! - [`preparar`] y [`leer_raiz`] — lo bajado y lo que ya hay en la
 //!   carpeta, leídos.
 //! - [`planear`] — qué se hace con cada materia y con lo que ya hay en la
@@ -25,6 +26,7 @@ use serde::Serialize;
 
 use super::cliente::{self, Cliente, Fallo};
 use super::fichas::{self, Estado, Evaluacion, Leido, Materia, Roto};
+use super::items::{self, EvaluacionItems};
 use crate::plantillas::{self, plegar, ErrorPlantilla};
 use planear::{Contenido, EnLaRaiz, FalloMateria, Traida};
 
@@ -67,6 +69,9 @@ pub struct Plantilla {
     pub estado_evaluaciones: Estado,
     /// El `.xlsx`, tal cual.
     pub excel: Vec<u8>,
+    /// Los ítems de cada evaluación (H6). Que no se entiendan no quita la
+    /// plantilla.
+    pub items: Result<Vec<EvaluacionItems>, Roto>,
 }
 
 /// Por qué no se ha podido bajar la plantilla de una materia. No para las
@@ -125,7 +130,8 @@ impl From<Fallo> for FalloTraer {
 }
 
 /// Baja la plantilla de cada materia, una tras otra, con la sesión de
-/// `cliente`. `progreso(hechas, total)` tras cada materia.
+/// `cliente`, y sus ítems si la plantilla ha llegado. `progreso(hechas,
+/// total)` tras cada materia.
 pub async fn bajar(cliente: &Cliente, mut progreso: impl FnMut(usize, usize)) -> Result<Bajado, FalloTraer> {
     let pagina_materias = cliente.abrir(cliente::ASIGNATURAS).await?.texto;
     let materias = match fichas::materias(&pagina_materias) {
@@ -140,10 +146,11 @@ pub async fn bajar(cliente: &Cliente, mut progreso: impl FnMut(usize, usize)) ->
             Err(roto) => Err(FalloBajada::Evaluaciones { roto }),
             Ok(Leido { dato, estado }) => {
                 // `evaluaciones` no da nunca la lista vacía: sería roto.
-                let evaluacion = dato.into_iter().next().expect("al menos una evaluación");
+                let evaluacion = dato.first().expect("al menos una evaluación").clone();
                 let leida = cliente.bajar(&direccion_plantilla(&materia.id, &evaluacion.id)).await?;
                 if leida.estado == 200 && leida.cuerpo.starts_with(b"PK") {
-                    Ok(Plantilla { evaluacion, estado_evaluaciones: estado, excel: leida.cuerpo })
+                    let items = items::bajar(cliente, &materia.id, &dato).await?;
+                    Ok(Plantilla { evaluacion, estado_evaluaciones: estado, excel: leida.cuerpo, items })
                 } else {
                     Err(FalloBajada::NoEsExcel { estado: leida.estado, contenido: leida.tipo })
                 }
@@ -456,6 +463,12 @@ mod tests {
         assert_eq!(p.excel, falso::plantilla_101());
         assert_eq!(buena.materia.nombre, "Matemáticas");
         assert!(buena.pagina_items.contains("1ª evaluación"));
+        // Sus ítems, con cuántos tienen ya nota en Clickedu.
+        let evaluaciones = p.items.as_ref().unwrap();
+        assert_eq!(evaluaciones.len(), 1);
+        let items: Vec<_> =
+            evaluaciones[0].items.iter().map(|i| (i.id.as_str(), i.nombre.as_str(), i.en_clickedu)).collect();
+        assert_eq!(items, [("9001", "Examen 1", 1), ("9002", "Trabajo", 0)]);
         assert!(
             matches!(&sin_evaluaciones.resultado, Err(FalloBajada::Evaluaciones { roto }) if roto.ficha == "evaluaciones")
         );
@@ -493,6 +506,7 @@ mod tests {
                 },
                 estado_evaluaciones: Estado::Bien,
                 excel,
+                items: Ok(vec![]),
             }),
         };
         // Como la pendiente de verdad: la hoja «Worksheet» y nada más.

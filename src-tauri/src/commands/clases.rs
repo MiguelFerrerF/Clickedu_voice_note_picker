@@ -2,6 +2,8 @@
 //! una, y elegir la carpeta. Lo que hacen está en [`crate::plantillas`] y
 //! [`crate::ajustes`].
 
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use serde::Serialize;
@@ -9,35 +11,103 @@ use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_dialog::DialogExt;
 
 use crate::ajustes::{self, CarpetaPlantillas};
-use crate::commands::{carpeta, en_segundo_plano, leer_ajustes, ruta_ajustes, ruta_sesion};
+use crate::clickedu::items::{self, ItemsClase, ItemsMateria};
+use crate::clickedu::traer::aplicar;
+use crate::commands::clickedu::carpeta_clickedu;
+use crate::commands::{carpeta, en_segundo_plano, leer_ajustes, registro, ruta_ajustes, ruta_sesion};
 use crate::plantillas::{self, Clase, Plantilla};
-use crate::sesion::{self, Puestas};
+use crate::registro::{ahora, fecha};
+use crate::sesion::{self, Juego, Puestas};
 use crate::vigilante::{self, Vigilante};
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ListaClases {
     pub carpeta: CarpetaPlantillas,
-    pub clases: Vec<Clase>,
+    pub clases: Vec<ClaseConItems>,
+}
+
+/// Una clase y sus ítems de Clickedu (H6).
+#[derive(Debug, Serialize)]
+pub struct ClaseConItems {
+    #[serde(flatten)]
+    pub clase: Clase,
+    /// Los guardados al traer, si la clase es de una materia traída;
+    /// `None` si no (quien no se conecta, o una plantilla puesta a mano):
+    /// se califica sin ítem, como en la v1.
+    pub items: Option<ItemsClase>,
 }
 
 /// Las clases de la carpeta de plantillas, con las notas de la sesión
-/// contadas. Si la carpeta no existe, sin clases y `carpeta.existe` a
-/// `false`.
+/// contadas (sin ítem y en cada ítem). Si la carpeta no existe, sin clases
+/// y `carpeta.existe` a `false`.
 #[tauri::command]
 pub async fn listar_clases(app: AppHandle) -> Result<ListaClases, String> {
     en_segundo_plano(app.clone(), "listar_clases", move || {
         let carpeta = carpeta(&app)?;
         let sesion = sesion::leer(&ruta_sesion(&app)?)?;
+        let de_materias = items_por_fichero(&app);
+        // Las notas de cada ítem se cuentan con la plantilla, que solo se
+        // lee una vez: dentro de `listar`.
+        let contados: RefCell<HashMap<String, HashMap<String, usize>>> = RefCell::default();
         let clases = if carpeta.existe {
-            plantillas::listar(Path::new(&carpeta.ruta), |f, p| sesion::calificados(p, &sesion.puestas(f)))
-                .map_err(|e| format!("no se puede leer la carpeta {}: {e}", carpeta.ruta))?
+            plantillas::listar(Path::new(&carpeta.ruta), |f, p| {
+                if let Some(m) = de_materias.get(&f.to_lowercase()) {
+                    let por_item = m
+                        .evaluaciones
+                        .iter()
+                        .flat_map(|e| &e.items)
+                        .map(|i| (i.id.clone(), sesion::calificados(p, &sesion.puestas_de(Juego::Item(&i.id)))))
+                        .collect();
+                    contados.borrow_mut().insert(f.to_string(), por_item);
+                }
+                sesion::calificados(p, &sesion.puestas(f))
+            })
+            .map_err(|e| format!("no se puede leer la carpeta {}: {e}", carpeta.ruta))?
         } else {
             Vec::new()
         };
+        let (a, m, d) = fecha(ahora());
+        let hoy = format!("{a:04}-{m:02}-{d:02}");
+        let contados = contados.into_inner();
+        let clases = clases
+            .into_iter()
+            .map(|clase| {
+                let items = de_materias.get(&clase.fichero.to_lowercase()).map(|m| {
+                    let de_la_clase = contados.get(&clase.fichero);
+                    items::para_clases(m, &hoy, |i| de_la_clase.and_then(|c| c.get(i)).copied().unwrap_or(0))
+                });
+                ClaseConItems { clase, items }
+            })
+            .collect();
         Ok(ListaClases { carpeta, clases })
     })
     .await
+}
+
+/// Los ítems guardados al traer, por fichero (en minúsculas: Windows no
+/// las distingue), cruzando `items.json` con `traidas.json`. Si no se
+/// pueden leer, sin ítems y apuntado en el registro: la lista de clases
+/// sale igual.
+fn items_por_fichero(app: &AppHandle) -> HashMap<String, ItemsMateria> {
+    let leidos = carpeta_clickedu(app).and_then(|c| {
+        let recordadas = aplicar::leer_recordadas(&c.join("traidas.json"))?;
+        let guardados = items::leer(&c.join(items::FICHERO))?;
+        Ok((recordadas, guardados))
+    });
+    match leidos {
+        Ok((recordadas, mut guardados)) => recordadas
+            .materias
+            .into_iter()
+            .filter_map(|(id, fichero)| guardados.materias.remove(&id).map(|m| (fichero.to_lowercase(), m)))
+            .collect(),
+        Err(e) => {
+            if let Ok(r) = registro(app) {
+                r.fallo("listar_clases", &e);
+            }
+            HashMap::new()
+        }
+    }
 }
 
 /// Una clase abierta para calificar: la plantilla tal cual y las notas que
@@ -49,12 +119,13 @@ pub struct ClaseAbierta {
     pub puestas: Puestas,
 }
 
-/// Lee la plantilla `fichero` de la carpeta y sus notas de la sesión.
+/// Lee la plantilla `fichero` de la carpeta y sus notas de la sesión: las
+/// del ítem `item` si lo hay (H6), o las de sin ítem.
 #[tauri::command]
-pub async fn leer_clase(fichero: String, app: AppHandle) -> Result<ClaseAbierta, String> {
+pub async fn leer_clase(fichero: String, item: Option<String>, app: AppHandle) -> Result<ClaseAbierta, String> {
     en_segundo_plano(app.clone(), "leer_clase", move || {
         let plantilla = leer_plantilla(&app, &fichero)?;
-        let puestas = sesion::leer(&ruta_sesion(&app)?)?.puestas(&fichero);
+        let puestas = sesion::leer(&ruta_sesion(&app)?)?.puestas_de(Juego::de(&fichero, item.as_deref()));
         Ok(ClaseAbierta { plantilla, puestas })
     })
     .await
