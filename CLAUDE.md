@@ -16,8 +16,9 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > `docs/01`). **H5, cerrado** (2026-11-23, tabla): se trae con una regla
 > fija (`‹Materia› - ‹Curso› ‹Grupo›.xlsx`, `Pendiente - …`), lo viejo a
 > `plantillas\antiguas\‹fecha›\` y las notas pasan por `Id`; la
-> evaluación se elige al subir. Antes de nada en H6, **dónde se sube la
-> primera vez** (lo dice la propietaria de la cuenta). **La carpeta de este
+> evaluación se elige al subir. La primera subida de H6, **en Química 2A**,
+> en un ítem de prueba con ponderación 0 (2026-11-23): el alta de ítems,
+> antes solo leyendo y el primer `POST` con visto bueno. **La carpeta de este
 > ordenador está como antes de traer**, para volver a probarlo: las 8
 > plantillas viejas en la raíz, las 22 notas de prueba en la sesión y sin
 > `traidas.json` (sale «la primera vez»); lo traído el 22, en
@@ -39,8 +40,7 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > privado, que rompe los actualizadores. **Lo básico es traer y subir**;
 > mirar Clickedu (ítems, rúbricas…) va aparte, en H10, solo leyendo y tras
 > H6; qué enseña, se decide más adelante (`docs/01`, la frontera,
-> 2026-11-21). La primera subida (H6), donde diga la propietaria de la
-> cuenta. Dentro de Clickedu, **nunca `/` ni
+> 2026-11-21). Dentro de Clickedu, **nunca `/` ni
 > `user.php`: cierran la sesión**. La cuenta del usuario ya está guardada en la app. Clickedu no distingue «caducado» de
 > «incorrecto». La contraseña filtrada la cambia el administrador del
 > colegio (con el archivo nuevo, la filtrada ya deja entrar: hay que cambiarla).

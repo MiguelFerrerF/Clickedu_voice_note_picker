@@ -1299,10 +1299,14 @@ prueba de diseño en verde. Quedan dos matices, ninguno frena H6:
 ### H6 · Subir notas a Clickedu
 
 - [ ] Elegir asignatura, evaluación e ítem; subir; **comprobar** que entraron
-      (con `GetGrades`, `docs/03`). **La primera subida, en un sitio de
-      prueba** que dirá la propietaria de la cuenta (pendiente,
-      2026-11-20): un ítem de prueba con ponderación 0 y sin que lo vean
-      las familias, o una materia de pruebas del colegio.
+      (con `GetGrades`, `docs/03`). **La primera subida, en Química 2A**
+      (lo dijo la propietaria de la cuenta, 2026-11-23), en un **ítem de
+      prueba con ponderación 0** y sin que lo vean las familias, si
+      Clickedu lo deja. Claude puede crearlo **solo si es sin riesgo**:
+      el alta de ítems está sin investigar (`docs/03`), así que antes se
+      mira solo leyendo, se enseña al usuario qué se va a mandar y se
+      espera su visto bueno al primer `POST`. Al acabar, se decide con él
+      si se borra.
 - [ ] **No pisar notas** (2026-11-21): antes de subir, leer con
       `GetGrades` las notas que ya hay en ese ítem y avisar de qué alumnos
       ya tienen nota en Clickedu y cuál cambiaría («¿la cambio?»). Va en
