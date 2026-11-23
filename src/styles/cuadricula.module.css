@@ -63,6 +63,20 @@
   background: var(--bg-card);
 }
 
+/* Publicada (H6): la misma que en Clickedu, en gris y sin caja, como la
+   que solo está allí. Al pasar por la fila o al escribir, la caja vuelve y
+   el color, también: se puede cambiar como cualquier otra. */
+.publicada:not(:focus) {
+  color: var(--text-tertiary);
+  border-color: transparent;
+  background: transparent;
+}
+
+.fila:hover .publicada:not(:focus) {
+  border-color: var(--border-strong);
+  background: var(--bg-card);
+}
+
 .nota:hover {
   border-color: color-mix(in oklch, var(--border-strong) 55%, var(--accent));
 }

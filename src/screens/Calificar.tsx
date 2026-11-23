@@ -437,7 +437,16 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
         }
       />
       {subiendo && actual.items && (
-        <DialogoSubir fichero={fichero} item={item} items={actual.items} onClose={() => setSubiendo(false)} />
+        <DialogoSubir
+          fichero={fichero}
+          item={item}
+          items={actual.items}
+          onClose={() => {
+            // Lo subido ya está en Clickedu: se vuelve a leer para que salga publicado.
+            setSubiendo(false);
+            setReleer((r) => r + 1);
+          }}
+        />
       )}
       {errorClase && <Fallo texto={t('calificar.no_se_lee', {error: errorClase})} />}
       {resultado?.tipo === 'fallo' && <Fallo texto={resultado.texto} />}

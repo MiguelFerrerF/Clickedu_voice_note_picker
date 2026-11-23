@@ -59,16 +59,24 @@ pub async fn listar_clases(app: AppHandle) -> Result<ListaClases, String> {
                         .flat_map(|e| &e.items)
                         .map(|i| {
                             let puestas = sesion.puestas_de(Juego::Item(&i.id));
-                            let solo_clickedu = p
-                                .alumnos
-                                .iter()
-                                .filter(|a| i.notas.contains_key(&a.id))
-                                .filter(|a| !matches!(sesion::nota_de(a, &puestas), Nota::Valor(_)))
-                                .count();
+                            // Publicada: en Clickedu y, aquí, nada o lo mismo.
+                            // Por subir: aquí una nota que allí no está igual.
+                            let (mut publicadas, mut por_subir) = (0, 0);
+                            for a in &p.alumnos {
+                                let alli = i.notas.get(&a.id).filter(|t| !t.trim().is_empty());
+                                let numero = alli.and_then(|t| crate::clickedu::subir::numero(t));
+                                match sesion::nota_de(a, &puestas) {
+                                    Nota::Valor(v) if numero.is_some_and(|c| (v - c).abs() < 0.005) => publicadas += 1,
+                                    Nota::Valor(_) => por_subir += 1,
+                                    _ if alli.is_some() => publicadas += 1,
+                                    _ => {}
+                                }
+                            }
                             let contados = Contados {
                                 calificados: sesion::calificados(p, &puestas),
                                 en_clickedu: items::en_la_clase(i, p.alumnos.iter().map(|a| a.id.as_str())),
-                                solo_clickedu,
+                                publicadas,
+                                por_subir,
                             };
                             (i.id.clone(), contados)
                         })

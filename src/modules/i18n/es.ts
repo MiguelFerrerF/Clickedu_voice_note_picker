@@ -113,6 +113,7 @@ const es = {
   'cuadricula.cambiarian': '{n} cambiarían',
   'cuadricula.cambiarian_ayuda': 'Ir al siguiente alumno que ya tiene otra nota en Clickedu: al subir, se cambiaría',
   'cuadricula.en_clickedu': 'En Clickedu: {nota}',
+  'cuadricula.publicada': 'Ya está en Clickedu',
   'cuadricula.pisaria': 'En Clickedu tiene {antes}: al subir, se cambiaría por {nueva}',
   'cuadricula.siguiente': 'Siguiente sin nota',
   'cuadricula.siguiente_ayuda': 'Lleva al próximo alumno sin nota, desde el último que has tocado',

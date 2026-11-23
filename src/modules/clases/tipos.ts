@@ -54,8 +54,10 @@ export interface ItemClickedu {
   enClickedu: number;
   /** Cuántos tienen nota en la sesión de este ítem. */
   calificados: number;
-  /** Cuántos la tienen en Clickedu y no en la app: la barra los pinta aparte. */
-  soloClickedu: number;
+  /** Cuántos están publicados: en Clickedu y, en la app, ninguna o la misma. La barra los pinta aparte. */
+  publicadas: number;
+  /** Cuántos tienen en la app una nota que no está igual en Clickedu: lo que queda por subir. */
+  porSubir: number;
 }
 
 /** El ítem en el que se califica una clase. */

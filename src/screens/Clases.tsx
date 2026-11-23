@@ -372,7 +372,13 @@ function Bloque({c, evaluacion, abrir, ultima, abierta, alternar}: BloqueProps) 
             )}
           </span>
           <span />
-          <Avance n={i.calificados} total={alumnos} enClickedu={i.enClickedu} soloClickedu={i.soloClickedu} />
+          <Avance
+            n={i.calificados}
+            total={alumnos}
+            enClickedu={i.enClickedu}
+            publicadas={i.publicadas}
+            porSubir={i.porSubir}
+          />
           <span />
           <Galon />
         </button>
@@ -404,13 +410,16 @@ function Avance({
   n,
   total,
   enClickedu = 0,
-  soloClickedu = 0,
+  publicadas = 0,
+  porSubir,
 }: {
   n: number;
   total: number;
   enClickedu?: number;
-  /** Los que la tienen en Clickedu y no en la app: la barra los sigue, en turquesa apagado. */
-  soloClickedu?: number;
+  /** Los publicados (en Clickedu, y en la app nada o lo mismo): la barra los sigue, en turquesa apagado. */
+  publicadas?: number;
+  /** En un ítem, lo que queda por subir: lo único en turquesa. Sin ítem, todas las notas. */
+  porSubir?: number;
 }) {
   const texto = t('clases.con_nota', {n, total});
   return (
@@ -424,8 +433,8 @@ function Avance({
       )}
       <span role="img" aria-label={texto} title={texto} style={{display: 'flex', flexShrink: 0}}>
         <BarraAvance
-          fraccion={total > 0 ? n / total : 0}
-          enClickedu={total > 0 ? soloClickedu / total : 0}
+          fraccion={total > 0 ? (porSubir ?? n) / total : 0}
+          enClickedu={total > 0 ? publicadas / total : 0}
           ancho={72}
         />
       </span>

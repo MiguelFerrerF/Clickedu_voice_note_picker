@@ -106,7 +106,10 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
   const sinNota = notas.map((n, i) => (n.tipo === 'vacia' ? i : -1)).filter((i) => i >= 0);
   const frentes = alumnos.map((a, i) => frenteAClickedu(notas[i], enClickedu?.[a.id]));
   const conClickedu = frentes.filter((f) => f.tipo !== 'nada').length;
-  const soloClickedu = frentes.filter((f) => f.tipo === 'solo_clickedu').length;
+  // Publicada (H6): en Clickedu y, aquí, nada o lo mismo. Sale en gris y la
+  // barra la pinta apagada; en turquesa, solo lo que queda por subir.
+  const publicadas = frentes.filter((f) => f.tipo === 'solo_clickedu' || f.tipo === 'igual').length;
+  const porSubir = conNota - frentes.filter((f) => f.tipo === 'igual').length;
   const cambiarian = frentes.map((f, i) => (f.tipo === 'cambiaria' ? i : -1)).filter((i) => i >= 0);
 
   /** Al siguiente de `cuales` tras el último tocado; del final, vuelve al principio. */
@@ -145,7 +148,8 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
         total={alumnos.length}
         siguiente={sinNota.length > 0 ? () => irAlSiguiente(sinNota) : undefined}
         conClickedu={conClickedu}
-        soloClickedu={soloClickedu}
+        publicadas={publicadas}
+        porSubir={porSubir}
         cambiarian={cambiarian.length}
         siguienteCambiaria={() => irAlSiguiente(cambiarian)}
       />
@@ -218,9 +222,7 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
                   title={t('cuadricula.pisaria', {antes: pisaria, nueva: notaComoTexto(notas[i])})}
                   style={{display: 'inline-flex', alignItems: 'center', gap: 6}}>
                   <Punto />
-                  <s style={{fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-tertiary)'}}>
-                    {pisaria}
-                  </s>
+                  <s style={{fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-tertiary)'}}>{pisaria}</s>
                 </span>
               )}
               {propuesta?.map((n) => (
@@ -248,6 +250,7 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
           nombre={nombre}
           nota={notas[i]}
           deClickedu={frente.tipo === 'solo_clickedu' ? frente.texto : undefined}
+          publicada={frente.tipo === 'igual'}
           dictada={dictadas?.has(a.clave) ?? false}
           poner={(n) => poner(a.clave, n)}
           alEnfocar={() => (ultimo.current = i)}
@@ -271,7 +274,8 @@ function Avance({
   total,
   siguiente,
   conClickedu,
-  soloClickedu,
+  publicadas,
+  porSubir,
   cambiarian,
   siguienteCambiaria,
 }: {
@@ -281,11 +285,12 @@ function Avance({
   /** En un ítem (H6): cuántos tienen nota en Clickedu, y cuántas cambiarían al subir. */
   conClickedu: number;
   /** Los que la tienen en Clickedu y no aquí: la barra los sigue, en turquesa apagado. */
-  soloClickedu: number;
+  publicadas: number;
+  porSubir: number;
   cambiarian: number;
   siguienteCambiaria: () => void;
 }) {
-  const fraccion = total > 0 ? conNota / total : 0;
+  const fraccion = total > 0 ? porSubir / total : 0;
   const [teclado, setTeclado] = useState(false);
   return (
     <>
@@ -300,7 +305,7 @@ function Avance({
         }}>
         <span style={{display: 'inline-flex', alignItems: 'center', gap: 16}}>
           <span style={{display: 'inline-flex', alignItems: 'center', gap: 10}}>
-            <BarraAvance fraccion={fraccion} enClickedu={total > 0 ? soloClickedu / total : 0} ancho={120} />
+            <BarraAvance fraccion={fraccion} enClickedu={total > 0 ? publicadas / total : 0} ancho={120} />
             <span style={{fontSize: 13, color: 'var(--text-secondary)', whiteSpace: 'nowrap'}}>
               {t('cuadricula.con_nota', {n: conNota, total})}
             </span>
@@ -399,6 +404,8 @@ interface CampoNotaProps {
   nota: Nota;
   /** Sin nota aquí, la que tiene en Clickedu (H6): en gris en lugar del «—». */
   deClickedu?: string;
+  /** La misma que en Clickedu (H6): ya publicada, en gris como la de allí. */
+  publicada: boolean;
   /** Recién dictada: en verde, con el micrófono. */
   dictada: boolean;
   poner: (nota: number | null) => void;
@@ -413,6 +420,7 @@ function CampoNota({
   nombre,
   nota,
   deClickedu,
+  publicada,
   dictada,
   poner,
   setMotivo,
@@ -457,7 +465,14 @@ function CampoNota({
         inputMode="decimal"
         autoComplete="off"
         spellCheck={false}
-        className={[styles.nota, verde ? styles.dictada : '', mal ? styles.mal : ''].filter(Boolean).join(' ')}
+        className={[
+          styles.nota,
+          verde ? styles.dictada : '',
+          mal ? styles.mal : '',
+          publicada && !verde && borrador === null ? styles.publicada : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
         value={borrador ?? notaComoTexto(nota)}
         placeholder={deClickedu ?? '—'}
         aria-label={t('cuadricula.nota_de', {nombre})}
@@ -467,7 +482,9 @@ function CampoNota({
             ? t('cuadricula.no_es_nota')
             : deClickedu !== undefined
               ? t('cuadricula.en_clickedu', {nota: deClickedu})
-              : undefined
+              : publicada
+                ? t('cuadricula.publicada')
+                : undefined
         }
         onFocus={(e) => {
           alEnfocar();

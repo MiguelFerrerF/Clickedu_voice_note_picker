@@ -215,9 +215,12 @@ pub struct ItemClase {
     pub en_clickedu: usize,
     /// Cuántos tienen nota en la sesión de este ítem.
     pub calificados: usize,
-    /// Cuántos la tienen en Clickedu y no en la app: la barra los pinta
-    /// aparte, en turquesa apagado.
-    pub solo_clickedu: usize,
+    /// Cuántos están publicados: con nota en Clickedu y, en la app, ninguna
+    /// o la misma. La barra los pinta aparte, en turquesa apagado.
+    pub publicadas: usize,
+    /// Cuántos tienen en la app una nota que no está en Clickedu (nueva o
+    /// distinta): lo que queda por subir, en turquesa.
+    pub por_subir: usize,
 }
 
 /// Lo contado de un ítem en una clase.
@@ -225,7 +228,8 @@ pub struct ItemClase {
 pub struct Contados {
     pub calificados: usize,
     pub en_clickedu: usize,
-    pub solo_clickedu: usize,
+    pub publicadas: usize,
+    pub por_subir: usize,
 }
 
 /// Los de `materia` para Clases: la evaluación de `hoy` (`AAAA-MM-DD`)
@@ -255,7 +259,8 @@ pub fn para_clases(materia: &ItemsMateria, hoy: &str, contar: impl Fn(&ItemGuard
                             ponderacion: i.ponderacion,
                             en_clickedu: c.en_clickedu,
                             calificados: c.calificados,
-                            solo_clickedu: c.solo_clickedu,
+                            publicadas: c.publicadas,
+                            por_subir: c.por_subir,
                         }
                     })
                     .collect(),
@@ -358,7 +363,7 @@ mod tests {
     fn para_clases_marca_la_de_hoy_y_cuenta_la_sesion() {
         let c = para_clases(&materia(7, "9001"), "2026-11-23", |i| {
             if i.id == "9001" {
-                Contados { calificados: 5, en_clickedu: 3, solo_clickedu: 1 }
+                Contados { calificados: 5, en_clickedu: 3, publicadas: 1, por_subir: 4 }
             } else {
                 Contados::default()
             }
@@ -366,7 +371,7 @@ mod tests {
         assert_eq!(c.traidos, 7);
         assert_eq!(c.evaluaciones.iter().map(|e| e.en_curso).collect::<Vec<_>>(), [false, true]);
         let i = &c.evaluaciones[1].items[0];
-        assert_eq!((i.en_clickedu, i.calificados, i.solo_clickedu), (3, 5, 1));
+        assert_eq!((i.en_clickedu, i.calificados, i.publicadas, i.por_subir), (3, 5, 1, 4));
         let json = serde_json::to_value(&c).unwrap();
         assert_eq!(json["evaluaciones"][1]["enCurso"], true);
         assert_eq!(json["evaluaciones"][1]["items"][0]["enClickedu"], 3);
