@@ -304,6 +304,47 @@ impl Cliente {
         }
         Ok(())
     }
+
+    /// Sube un fichero por `POST` *multipart* a una dirección **de este
+    /// Clickedu** (`/ruta?…`), con `campos` de texto y el fichero en
+    /// `fichero` (campo, nombre, contenido). **Escribe**: no se repite solo
+    /// si la sesión ha caducado; si Clickedu manda a entrar, es un fallo, y
+    /// quien llama decide.
+    pub async fn subir(
+        &self,
+        direccion: &str,
+        campos: &[(&str, &str)],
+        fichero: (&str, &str, Vec<u8>),
+    ) -> Result<Abierta, Fallo> {
+        if !direccion.starts_with('/') {
+            return Err(format!("{direccion} no es de Clickedu").into());
+        }
+        let (campo, nombre, contenido) = fichero;
+        let parte = Part::bytes(contenido)
+            .file_name(nombre.to_string())
+            .mime_str("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            .map_err(|e| e.to_string())?;
+        let formulario =
+            campos.iter().fold(Form::new(), |f, (n, v)| f.text(n.to_string(), v.to_string())).part(campo.to_string(), parte);
+        let r = self
+            .http
+            .post(self.url(direccion))
+            .header(ORIGIN, &self.base)
+            .header(REFERER, self.url(direccion))
+            .multipart(formulario)
+            .send()
+            .await
+            .map_err(sin_conexion)?;
+        if !r.status().is_success() {
+            return Err(Fallo::Servidor { codigo: r.status().as_u16() });
+        }
+        let url = r.url().to_string();
+        let texto = decodificar(&r.bytes().await.map_err(sin_conexion)?);
+        if es_pagina_de_entrar(&url, &texto) {
+            return Err(Fallo::NoEntiendo { paso: "subir".into(), html: texto });
+        }
+        Ok(Abierta { url, texto })
+    }
 }
 
 /// Lo que devuelve [`Cliente::abrir`]: una página de dentro, ya como texto.

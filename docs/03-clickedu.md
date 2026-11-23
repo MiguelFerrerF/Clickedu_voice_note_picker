@@ -124,10 +124,36 @@ notas: ‹materia›»), enlazada desde «Evaluar». **Como en la v1:**
 - El formulario: `POST …?accio=carregar_plantilla&assig=N&id_aval=T`,
   *multipart*, con `id_criteri_avaluacio` (el ítem), `v_arxiu_importar`
   (el fichero) y `BotoGenerar`.
-- `accio=esborrar_arxiu&assig=…` sale solo en el JS. **No había ficheros
-  subidos**, así que la lista de subidos y su enlace `accio=importar_notes`
-  (el paso que importa de verdad en la v1) **no se han visto**: H6 los
-  tendrá que mirar la primera vez, a mano y con el usuario.
+- **La acción del formulario es relativa** (`importar_notes_items.php?accio=…`,
+  sin `/assignatures/`): `fichas::importar` la devuelve tal cual y quien
+  sube la resuelve.
+
+**Subir no es importar** (la primera subida, 2026-11-23, `cargo run
+--example probar_subir`, en el ítem de prueba de Química 2; abajo, «Qué
+cambia del plan»). Son tres pasos, y los tres escriben:
+
+1. **Subir**: el `POST` de `carregar_plantilla` responde con
+   `alert("Archivo subido correctamente.")` y el fichero sale en la tabla
+   «Importación de datos» (Núm., Archivo, Ítem evaluativo, fecha y usuario
+   de creación y de ejecución, Acciones; vacía, «No hay datos»). El nombre
+   lo cambia Clickedu (`notas_prueba_42700xlsx`, sin el punto). **Las
+   notas aún no están**: `GetGrades` no cambia.
+2. **Importar**: el enlace `accio=importar_notes&assig=N&id_aval=T&id=S`
+   de esa fila (`S`, el número del subido; un `GET`) responde con
+   `alert("Importación correcta")`. La fila gana fecha y usuario de
+   ejecución y **pierde el enlace de importar**: quedan `accio=veure`,
+   «Descargar» y «Eliminar». Las notas, **en `nota_mod`** (10 de 10
+   iguales, `nota` nula, `type` 0); el resto de `GetGrades`, idéntico.
+3. **Eliminar** no es un enlace: es `<a class="BotoEsborrarImportacio"
+   cgap="N" aval="T" ind="S">`, y el JS, tras un `confirm`, va a
+   `accio=esborrar_arxiu&assig=N&id_aval=T&id=S` (`GET`):
+   `alert("Eliminado correctamente")`. **Borrar lo subido no quita las
+   notas importadas**: siguen en `nota_mod`. Para quitarlas, hay que
+   borrar el ítem o ponerlas a mano.
+
+`accio=veure` no se ha abierto (puede enseñar nombres). La respuesta de
+cada paso es un `alert` en un `<script>`: es lo que hay que leer para
+saber si fue bien.
 
 **La plantilla** (`.xlsx`, 7 KB): hoja «Worksheet», cabecera en la fila 1
 «Id | Alumnos | Nota», 30 alumnos, ids solo cifras, nombres «Apellidos,
@@ -170,16 +196,47 @@ alumnos × 11), con `evalObjectCalc_…` (las calculadas),
   plantilla. Es JSON con nombres de campo: más resistente que el HTML.
   **`type`** dice qué es cada fila: `0`, la nota de un ítem; `114`, la
   nota final de la evaluación (con el id de la materia como `id_criteri`);
-  la otra forma trae `120`. **Las notas de los ítems van sobre todo en
-  `nota_mod`** (177 filas, frente a 30 con `nota`; en la final, las dos):
-  parece que `nota` es la calculada y `nota_mod` la puesta. Falta
-  confirmarlo con la primera subida (H6). Contado en las páginas
-  anonimizadas, sin nombres.
+  la otra forma trae `120`, y en Química 2 sale también `112`. **Las
+  notas de los ítems van sobre todo en `nota_mod`** (177 filas, frente a
+  30 con `nota`; en la final, las dos): `nota` es la calculada y
+  `nota_mod` la puesta, **confirmado con la primera subida** (H6,
+  2026-11-23, arriba). Contado en las páginas anonimizadas, sin nombres.
 - `do=GetInfoEvalObjects` (también JSON): `{id_alumne, quantitat_ok,
   type}` por alumno; no hace falta.
 - La misma página es un formulario `POST …do=Save` (`#FormEvaluate`):
   **otra forma de poner notas**, sin Excel. Más frágil y más peligrosa
   (manda la cuadrícula entera): no es el plan, pero conviene saberlo.
+
+## Dar de alta un ítem
+
+Mirado solo leyendo el 2026-11-23 (`cargo run --example mirar_alta_item
+-- --materia N`, en Química 2), para el ítem de prueba de H6. **La app no
+da de alta ítems**: sube a los que ya hay. Esto es para saber qué toca
+cada cosa.
+
+- «Nuevo ítem» es `ctr=Subject/Item/ItemDefault&do=New&id=N` (`GET`, el
+  formulario). Se guarda con `POST …ItemDefault&do=Save&id=N&it=&trm=`
+  (`#formulari_items`, sin fichero): `v_nom` (Nombre), `v_codi_criteri`
+  (Código), `i_ordre`, `id_avaluacio` (la evaluación, el `trm`),
+  `tipus_avaluacio[]` (`1` nota numérica, `2` cuantificadores),
+  `ind_visible_pm` («Visible a padres»), `ind_text_associat`,
+  `tipus_item` (`0` ítem, `1` evaluación suspendida, `2` ponderada) y los
+  de asistencia. Editar es lo mismo con `it=` y `trm=`.
+- **El alta no tiene ponderación.** Se pone en la tabla de Ítems
+  (`percent_‹it›_‹it›_0`), que la guarda por AJAX con
+  `Evaluate/EvaluateTermly&do=SavePercentage`. Un ítem con la ponderación
+  vacía es posible (había uno, «Recuperación…»).
+- Las casillas de la tabla de Ítems (`CheckEdicioRapida`) **escriben al
+  marcarlas**: `ItemDefault&do=ChangeVisiblePm`, `ChangeTextAssociat`…
+  (`POST` con `item` y `valor`).
+- Borrar: `Subject/Item/Item&do=Delete&id=N&it=I` es un **`GET`** (con un
+  `confirm` en JS); en la edición, «Forzar eliminación» va por
+  `Academic/AssesmentsItemsDeleteAjax&do=delete`. Borrar un ítem borra sus
+  notas.
+- Al elegir la evaluación, el formulario pide por `POST` los ítems de los
+  que puede colgar (`do=StructureItems`, `itemPare[]`); en este colegio no
+  es obligatorio (`config_crear_items = 1`): sin elegir, cuelga de la nota
+  final, como los demás.
 
 ## Idioma y textos
 
@@ -230,13 +287,14 @@ salir de materias, Ítems, `EvaluateTermly`, importar y `GetGrades`, y
 `substitu`, `assistenc`, `sessio`, `fitxa`): `evalObject_` y `GetGrades`,
 arriba.
 
-**Sin mirar todavía**: la página de importar con un fichero subido y
-confirmar que la nota subida va en `nota_mod` (las dos, en H6, con el
-usuario: es escribir). **Dónde probarlo** (2026-11-20): desde la cuenta no se crean
+**Mirado en la primera subida** (H6, 2026-11-23, con el usuario): la
+página de importar con un fichero subido, y que la nota va en
+`nota_mod` (arriba, «Importar notas»). **Dónde** (2026-11-20): desde la cuenta no se crean
 materias, solo ítems («Nuevo ítem», `Subject/Item/ItemDefault&do=New`, y
-`do=Delete`). El usuario lo habla con la propietaria de la cuenta: qué
-materia y grupo usar; un ítem «PRUEBA – borrar» con ponderación 0 y sin
-que lo vean las familias, o una materia de pruebas del administrador.
+`do=Delete`). Se hace en **Química 2** (2026-11-23), en un ítem «PRUEBA
+Gestor de Notas - borrar» de la 2ª evaluación, sin ponderación y sin
+«Visible a padres», **creado a mano** en el navegador (arriba, «Dar de
+alta un ítem»).
 
 ## Cuando Clickedu cambie
 
