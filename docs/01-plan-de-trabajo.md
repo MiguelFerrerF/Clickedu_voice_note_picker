@@ -1313,6 +1313,17 @@ notas que dicta:
   si el ítem ya tenía notas (lo de «no pisar notas», abajo).
 - **Sin ítem** (sin conexión, o sin haber traído aún): Calificar como
   hasta ahora y el ítem se pide al subir.
+  - **Quien nunca entra en Clickedu** trabaja como con la v1: baja las
+    plantillas de la web, califica, exporta el Excel y lo importa a mano
+    (eligiendo allí el ítem). Clases no despliega nada y dice, discreto,
+    que conectándose se ven los ítems.
+  - **Quien entró alguna vez y hoy no tiene conexión** ve los ítems
+    guardados al traer (con su fecha) y califica por ítem; sube al
+    volver la conexión.
+  - **Sin ítem, un solo juego de notas por clase** (decidido por el
+    usuario el 2026-11-23, la opción «a»): como la v1, entre un examen y
+    otro se exporta y se vacía. Los ítems «a mano» (con nombre libre,
+    sin Clickedu detrás), a la cola de lo superfluo.
 - **Por debajo**: la sesión pasa a ser por (clase, ítem), no por clase;
   los ítems se guardan al traer (salen de la página de importar), para
   que se vean sin conexión.
@@ -1394,7 +1405,9 @@ adivinarlo.
 ## La cola de lo superfluo
 
 Solo si sobra tiempo y alguien lo pide: tema oscuro, sonidos de
-acierto/error, el «modo ráfaga», otros idiomas.
+acierto/error, el «modo ráfaga», otros idiomas. Los ítems «a mano» para
+quien no se conecta (varios juegos de notas por clase sin Clickedu; al
+subir, se pregunta a qué ítem va cada uno; H6, 2026-11-23).
 
 ## Lo que no se va a hacer
 
