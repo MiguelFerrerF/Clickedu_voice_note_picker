@@ -469,6 +469,11 @@ mod tests {
         let items: Vec<_> =
             evaluaciones[0].items.iter().map(|i| (i.id.as_str(), i.nombre.as_str(), i.en_clickedu)).collect();
         assert_eq!(items, [("9001", "Examen 1", 1), ("9002", "Trabajo", 0)]);
+        // Y la nota de cada uno: la puesta a mano; la vacía, no.
+        assert_eq!(
+            evaluaciones[0].items[0].notas,
+            std::collections::BTreeMap::from([("5001".to_string(), "7.5".to_string())])
+        );
         assert!(
             matches!(&sin_evaluaciones.resultado, Err(FalloBajada::Evaluaciones { roto }) if roto.ficha == "evaluaciones")
         );

@@ -85,7 +85,7 @@ fn main() {
                 let partes: Vec<String> = evaluaciones
                     .iter()
                     .map(|e| {
-                        let con_notas = e.items.iter().filter(|i| i.en_clickedu > 0).count();
+                        let con_notas = e.items.iter().filter(|i| !i.notas.is_empty()).count();
                         format!("{}: {} ítems, {con_notas} con notas", e.nombre, e.items.len())
                     })
                     .collect();

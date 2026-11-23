@@ -21,6 +21,12 @@
  * - **Encima** (HUI), cuántos tienen nota, con una barra fina (turquesa:
  *   es progreso), «Siguiente sin nota» y el ⓘ que abre las teclas
  *   (`Teclado`): debajo de la tabla, con 30 alumnos, no se veían.
+ * - **En un ítem de Clickedu** (H6), la nota que ya tenía allí cada alumno
+ *   al traer (`frenteAClickedu`). Sin nota en la app, en gris en lugar del
+ *   «—»: es un dato, no un evento. Con otra nota en la app, la de Clickedu
+ *   tachada junto al nombre y el punto ámbar: **al subir, se pisaría**, que
+ *   es una excepción (`docs/02` §3). Igual, nada. Encima, cuántos la tienen
+ *   en Clickedu y cuántas cambiarían, que lleva a la siguiente.
  *
  * Lo que se está escribiendo vive en cada campo hasta que se guarda; la nota
  * guardada vive en Calificar, que es quien la manda al backend.
@@ -29,13 +35,14 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import {BarraAvance} from '@components/clases/BarraAvance';
+import {Punto} from '@components/clases/Avisos';
 import {ID_TECLADO, Teclado} from '@components/clases/Teclado';
 import {ALTO_PANEL} from '@components/dictado/PanelDictado';
 import {Button} from '@components/ui/Button';
 import {Icon, ICONOS} from '@components/ui/Icon';
 import type {Alumno, Nota, Puestas} from '@modules/clases/tipos';
 import {t} from '@modules/i18n';
-import {leerEscrita, notaComoTexto, notaDe, type MotivoMal} from '@modules/notas/nota';
+import {frenteAClickedu, leerEscrita, notaComoTexto, notaDe, type MotivoMal} from '@modules/notas/nota';
 import styles from '@styles/cuadricula.module.css';
 
 const COLUMNAS = '36px minmax(0, 1fr) 84px';
@@ -72,9 +79,11 @@ export interface CuadriculaProps {
   elegir?: (clave: string, nota: number) => void;
   /** Trae a la vista la fila de `clave`; cada `vez` nueva, otra vez. */
   ver?: {clave: string; vez: number};
+  /** En un ítem (H6), las notas que ya tenían en Clickedu, por `id` de alumno. */
+  enClickedu?: Readonly<Record<string, string>> | null;
 }
 
-export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegir, ver}: CuadriculaProps) {
+export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegir, ver, enClickedu}: CuadriculaProps) {
   const campos = useRef<(HTMLInputElement | null)[]>([]);
   const filas = useRef<Record<string, HTMLDivElement | null>>({});
   useEffect(() => {
@@ -95,10 +104,13 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
   const notas = alumnos.map((a) => notaDe(a, puestas));
   const conNota = notas.filter((n) => n.tipo === 'valor').length;
   const sinNota = notas.map((n, i) => (n.tipo === 'vacia' ? i : -1)).filter((i) => i >= 0);
+  const frentes = alumnos.map((a, i) => frenteAClickedu(notas[i], enClickedu?.[a.id]));
+  const conClickedu = frentes.filter((f) => f.tipo !== 'nada').length;
+  const cambiarian = frentes.map((f, i) => (f.tipo === 'cambiaria' ? i : -1)).filter((i) => i >= 0);
 
-  /** Al siguiente sin nota tras el último tocado; del final, vuelve al principio. */
-  function irAlSiguienteSinNota() {
-    const i = sinNota.find((i) => i > ultimo.current) ?? sinNota[0];
+  /** Al siguiente de `cuales` tras el último tocado; del final, vuelve al principio. */
+  function irAlSiguiente(cuales: number[]) {
+    const i = cuales.find((i) => i > ultimo.current) ?? cuales[0];
     if (i === undefined) return;
     // La fila, no el campo, a la vista: así respeta el hueco del panel del dictado.
     filas.current[alumnos[i].clave]?.scrollIntoView({block: 'nearest', behavior: 'smooth'});
@@ -130,7 +142,10 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
       <Avance
         conNota={conNota}
         total={alumnos.length}
-        siguiente={sinNota.length > 0 ? irAlSiguienteSinNota : undefined}
+        siguiente={sinNota.length > 0 ? () => irAlSiguiente(sinNota) : undefined}
+        conClickedu={conClickedu}
+        cambiarian={cambiarian.length}
+        siguienteCambiaria={() => irAlSiguiente(cambiarian)}
       />
       <div
         ref={caja}
@@ -159,6 +174,8 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
     const nombre = a.nombre.trim() ? a.nombre : t('cuadricula.sin_nombre', {id: a.id});
     const motivo = motivos[a.fila];
     const propuesta = propuestas?.[a.clave];
+    const frente = frentes[i];
+    const pisaria = frente.tipo === 'cambiaria' ? frente.texto : undefined;
     return (
       <div
         key={a.fila}
@@ -192,8 +209,18 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
             title={a.nombre.trim() || undefined}>
             {nombre}
           </span>
-          {(motivo || propuesta) && (
+          {(motivo || propuesta || pisaria) && (
             <span style={{marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0}}>
+              {pisaria && !motivo && (
+                <span
+                  title={t('cuadricula.pisaria', {antes: pisaria, nueva: notaComoTexto(notas[i])})}
+                  style={{display: 'inline-flex', alignItems: 'center', gap: 6}}>
+                  <Punto />
+                  <s style={{fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-tertiary)'}}>
+                    {pisaria}
+                  </s>
+                </span>
+              )}
               {propuesta?.map((n) => (
                 <button
                   key={n}
@@ -218,6 +245,7 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
           }}
           nombre={nombre}
           nota={notas[i]}
+          deClickedu={frente.tipo === 'solo_clickedu' ? frente.texto : undefined}
           dictada={dictadas?.has(a.clave) ?? false}
           poner={(n) => poner(a.clave, n)}
           alEnfocar={() => (ultimo.current = i)}
@@ -236,7 +264,22 @@ export function Cuadricula({alumnos, puestas, poner, dictadas, propuestas, elegi
  * siguiente sin nota y, a la derecha, el ⓘ que abre las teclas. Sin
  * `siguiente`, no queda ninguno sin nota.
  */
-function Avance({conNota, total, siguiente}: {conNota: number; total: number; siguiente?: () => void}) {
+function Avance({
+  conNota,
+  total,
+  siguiente,
+  conClickedu,
+  cambiarian,
+  siguienteCambiaria,
+}: {
+  conNota: number;
+  total: number;
+  siguiente?: () => void;
+  /** En un ítem (H6): cuántos tienen nota en Clickedu, y cuántas cambiarían al subir. */
+  conClickedu: number;
+  cambiarian: number;
+  siguienteCambiaria: () => void;
+}) {
   const fraccion = total > 0 ? conNota / total : 0;
   const [teclado, setTeclado] = useState(false);
   return (
@@ -256,6 +299,38 @@ function Avance({conNota, total, siguiente}: {conNota: number; total: number; si
             <span style={{fontSize: 13, color: 'var(--text-secondary)', whiteSpace: 'nowrap'}}>
               {t('cuadricula.con_nota', {n: conNota, total})}
             </span>
+            {conClickedu > 0 && (
+              <span
+                title={t('cuadricula.en_clickedu_n_ayuda')}
+                style={{fontSize: 13, color: 'var(--text-tertiary)', whiteSpace: 'nowrap'}}>
+                · {t('cuadricula.en_clickedu_n', {n: conClickedu})}
+              </span>
+            )}
+            {/* Una línea que se pulsa, no un botón con caja: a 960 cabe con «Siguiente sin nota». */}
+            {cambiarian > 0 && (
+              <button
+                type="button"
+                className="linea-plegable"
+                onClick={siguienteCambiaria}
+                title={t('cuadricula.cambiarian_ayuda')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  margin: '0 -4px',
+                  padding: '3px 4px',
+                  border: 'none',
+                  borderRadius: 6,
+                  font: 'inherit',
+                  fontSize: 13,
+                  color: 'var(--text-secondary)',
+                  whiteSpace: 'nowrap',
+                  cursor: 'pointer',
+                }}>
+                <Punto />
+                {cambiarian === 1 ? t('cuadricula.cambiaria_una') : t('cuadricula.cambiarian', {n: cambiarian})}
+              </button>
+            )}
           </span>
           <Button variant="ghost" onClick={siguiente} disabled={!siguiente} title={t('cuadricula.siguiente_ayuda')}>
             {t('cuadricula.siguiente')}
@@ -317,6 +392,8 @@ interface CampoNotaProps {
   nombre: string;
   /** La nota que vale ahora. */
   nota: Nota;
+  /** Sin nota aquí, la que tiene en Clickedu (H6): en gris en lugar del «—». */
+  deClickedu?: string;
   /** Recién dictada: en verde, con el micrófono. */
   dictada: boolean;
   poner: (nota: number | null) => void;
@@ -330,6 +407,7 @@ function CampoNota({
   campoRef,
   nombre,
   nota,
+  deClickedu,
   dictada,
   poner,
   setMotivo,
@@ -376,10 +454,16 @@ function CampoNota({
         spellCheck={false}
         className={[styles.nota, verde ? styles.dictada : '', mal ? styles.mal : ''].filter(Boolean).join(' ')}
         value={borrador ?? notaComoTexto(nota)}
-        placeholder="—"
+        placeholder={deClickedu ?? '—'}
         aria-label={t('cuadricula.nota_de', {nombre})}
         aria-invalid={mal || undefined}
-        title={nota.tipo === 'invalida' && borrador === null ? t('cuadricula.no_es_nota') : undefined}
+        title={
+          nota.tipo === 'invalida' && borrador === null
+            ? t('cuadricula.no_es_nota')
+            : deClickedu !== undefined
+              ? t('cuadricula.en_clickedu', {nota: deClickedu})
+              : undefined
+        }
         onFocus={(e) => {
           alEnfocar();
           e.currentTarget.select();

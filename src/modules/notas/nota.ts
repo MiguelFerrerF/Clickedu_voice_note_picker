@@ -34,6 +34,33 @@ export function notaDe(alumno: Alumno, puestas: Puestas): Nota {
   return puesta === null ? {tipo: 'vacia'} : {tipo: 'valor', valor: puesta};
 }
 
+/**
+ * La nota de un alumno en Clickedu frente a la de la app (H6):
+ * - `nada`: no tiene en Clickedu;
+ * - `solo_clickedu`: la tiene allí y aquí no (se enseña en gris);
+ * - `igual`: la misma; al subir no cambia;
+ * - `cambiaria`: otra (o lo de la app no es nota): **al subir, se pisaría**.
+ *
+ * `texto` es la de Clickedu como se enseña: si es una nota, como las de la
+ * app (`7.50` → `7.5`); si no, tal cual.
+ */
+export type FrenteAClickedu =
+  | {tipo: 'nada'}
+  | {tipo: 'solo_clickedu'; texto: string}
+  | {tipo: 'igual'}
+  | {tipo: 'cambiaria'; texto: string};
+
+export function frenteAClickedu(nota: Nota, clickedu: string | undefined): FrenteAClickedu {
+  if (clickedu === undefined || !clickedu.trim()) return {tipo: 'nada'};
+  const leida = leerEscrita(clickedu);
+  const texto = leida.tipo === 'valor' ? String(leida.valor) : clickedu.trim();
+  if (nota.tipo === 'vacia') return {tipo: 'solo_clickedu', texto};
+  if (nota.tipo === 'valor' && leida.tipo === 'valor' && Math.abs(nota.valor - leida.valor) < 0.005) {
+    return {tipo: 'igual'};
+  }
+  return {tipo: 'cambiaria', texto};
+}
+
 /** Como se enseña: con punto y sin ceros de más (`7.5`, `7`), como se exporta. */
 export function notaComoTexto(nota: Nota): string {
   switch (nota.tipo) {

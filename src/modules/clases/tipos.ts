@@ -50,7 +50,7 @@ export interface ItemClickedu {
   nombre: string;
   /** En %, de la tabla de Ítems; `null` si no se ha podido leer. */
   ponderacion: number | null;
-  /** Cuántos alumnos tenían ya nota en Clickedu en este ítem, al traer. */
+  /** Cuántos alumnos de la clase tenían ya nota en Clickedu en este ítem, al traer. */
   enClickedu: number;
   /** Cuántos tienen nota en la sesión de este ítem. */
   calificados: number;
@@ -127,6 +127,11 @@ export type Puestas = Record<string, number | null>;
 export interface ClaseAbierta {
   plantilla: Plantilla;
   puestas: Puestas;
+  /**
+   * En un ítem (H6), las notas que tenían en Clickedu al traer, por `id` de
+   * alumno y tal cual llegan (`7.5`, o un texto). `null` sin ítem.
+   */
+  enClickedu: Record<string, string> | null;
 }
 
 /** Lo que devuelve `exportar_clase`. */

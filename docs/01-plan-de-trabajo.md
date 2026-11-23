@@ -1355,6 +1355,17 @@ de `subir` contra el Clickedu falso).
       «n de total con nota» en Clickedu) y «Calificar sin ítem». Sin ítems
       en esa evaluación, una fila que abre sin ítem. Lo no traído, como
       antes. La fecha de los ítems, una vez, bajo la tabla.
+- [x] **Lo que ya hay en Clickedu, a la vista** (2026-11-23, pedido por
+      el usuario antes de la subida): al traer se guarda **la nota de
+      cada alumno** en cada ítem (`items::notas_de`, en `items.json`), no
+      solo cuántos. En Clases, cuántos de la clase la tienen va en «Con
+      nota», en gris a la izquierda de la barra (desaparece la columna
+      «En Clickedu»). En Calificar (`leer_clase` manda `enClickedu`), sin
+      nota en la app, la de Clickedu en gris en lugar del «—»; con otra,
+      la de Clickedu tachada junto al nombre y el punto ámbar: **al
+      subir, se pisaría**; igual, nada. Encima, «· N en Clickedu» y
+      «● N cambiarían», que lleva a la siguiente (`docs/02` §3). Es la
+      copia de cuando se trajo: al subir se vuelve a leer.
 
 **Lo hecho a mano** (2026-11-23, `probar_subir`, `docs/03`): en el ítem de
 prueba 42700 de Química 2 (2ª ev.), subir, importar (las 10 notas, en
@@ -1374,7 +1385,8 @@ quita lo importado**. El ítem lo borra el usuario a mano cuando quiera
 - [ ] **No pisar notas** (2026-11-21): antes de subir, leer con
       `GetGrades` las notas que ya hay en ese ítem y avisar de qué alumnos
       ya tienen nota en Clickedu y cuál cambiaría («¿la cambio?»). Va en
-      lo básico, no en H10, porque es donde protege.
+      lo básico, no en H10, porque es donde protege. **Lo visual ya está**
+      (2026-11-23, arriba): falta volver a leer al subir y preguntar.
 - [ ] Plan B: si falla, el Excel exportado y la página de importación abierta
       en el navegador. **Antes, confirmar que Clickedu acepta el exportado de
       H2**, que no se ha importado todavía.

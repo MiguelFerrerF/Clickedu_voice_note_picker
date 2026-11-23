@@ -30,7 +30,7 @@ import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
 
 /** La última, la `›` que dice que la fila se pulsa. */
-const COLUMNAS = 'minmax(220px, 1fr) 96px 120px minmax(120px, 0.6fr) 20px';
+const COLUMNAS = 'minmax(180px, 1fr) 80px 190px minmax(100px, 0.6fr) 20px';
 
 /** Abre la clase en Calificar; con `item`, en ese ítem. */
 type Abrir = (fichero: string, item?: ItemElegido) => void;
@@ -212,7 +212,7 @@ function Tabla({clases, evaluacion, abrir}: TablaProps) {
         <span>{t('clases.col_clase')}</span>
         <span style={{textAlign: 'right'}}>{t('clases.col_alumnos')}</span>
         <span style={{textAlign: 'right'}}>{t('clases.col_calificados')}</span>
-        <span style={{paddingLeft: 24}}>{evaluacion !== null ? t('clases.col_en_clickedu') : t('clases.col_estado')}</span>
+        <span style={{paddingLeft: 24}}>{t('clases.col_estado')}</span>
       </Encabezado>
       {normales.map((c, i) => fila(c, i === normales.length - 1 && pendientes.length === 0))}
       {pendientes.length > 0 && (
@@ -372,10 +372,8 @@ function Bloque({c, evaluacion, abrir, ultima, abierta, alternar}: BloqueProps) 
             )}
           </span>
           <span />
-          <Avance n={i.calificados} total={alumnos} />
-          <span style={{paddingLeft: 24, fontSize: 12, color: 'var(--text-tertiary)', ...cortar}}>
-            {i.enClickedu > 0 && t('clases.en_clickedu', {n: i.enClickedu, total: alumnos})}
-          </span>
+          <Avance n={i.calificados} total={alumnos} enClickedu={i.enClickedu} />
+          <span />
           <Galon />
         </button>
       ))}
@@ -396,12 +394,26 @@ function Bloque({c, evaluacion, abrir, ultima, abierta, alternar}: BloqueProps) 
   );
 }
 
-/** Cuántos tienen nota, como barra; el número, al pasar por encima. */
-function Avance({n, total}: {n: number; total: number}) {
+/**
+ * Cuántos tienen nota en la app, como barra; el número, al pasar por
+ * encima. En un ítem (H6), a su izquierda y en gris, cuántos la tenían ya en
+ * Clickedu al traer: es un dato, no un evento (`docs/02` §3). Va a la
+ * izquierda para que las barras sigan en columna.
+ */
+function Avance({n, total, enClickedu = 0}: {n: number; total: number; enClickedu?: number}) {
   const texto = t('clases.con_nota', {n, total});
   return (
-    <span role="img" aria-label={texto} title={texto} style={{display: 'flex', justifyContent: 'flex-end'}}>
-      <BarraAvance fraccion={total > 0 ? n / total : 0} ancho={72} />
+    <span style={{display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10, minWidth: 0}}>
+      {enClickedu > 0 && (
+        <span
+          title={t('clases.en_clickedu_ayuda', {n: enClickedu, total})}
+          style={{fontSize: 12, color: 'var(--text-tertiary)', ...cortar}}>
+          {t('clases.en_clickedu', {n: enClickedu})}
+        </span>
+      )}
+      <span role="img" aria-label={texto} title={texto} style={{display: 'flex', flexShrink: 0}}>
+        <BarraAvance fraccion={total > 0 ? n / total : 0} ancho={72} />
+      </span>
     </span>
   );
 }

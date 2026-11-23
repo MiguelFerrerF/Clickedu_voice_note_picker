@@ -3,7 +3,7 @@
 //! [`crate::ajustes`].
 
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
 
 use serde::Serialize;
@@ -47,9 +47,9 @@ pub async fn listar_clases(app: AppHandle) -> Result<ListaClases, String> {
         let carpeta = carpeta(&app)?;
         let sesion = sesion::leer(&ruta_sesion(&app)?)?;
         let de_materias = items_por_fichero(&app);
-        // Las notas de cada ítem se cuentan con la plantilla, que solo se
-        // lee una vez: dentro de `listar`.
-        let contados: RefCell<HashMap<String, HashMap<String, usize>>> = RefCell::default();
+        // Las notas de cada ítem (en la sesión y en Clickedu) se cuentan con
+        // la plantilla, que solo se lee una vez: dentro de `listar`.
+        let contados: RefCell<HashMap<String, HashMap<String, (usize, usize)>>> = RefCell::default();
         let clases = if carpeta.existe {
             plantillas::listar(Path::new(&carpeta.ruta), |f, p| {
                 if let Some(m) = de_materias.get(&f.to_lowercase()) {
@@ -57,7 +57,11 @@ pub async fn listar_clases(app: AppHandle) -> Result<ListaClases, String> {
                         .evaluaciones
                         .iter()
                         .flat_map(|e| &e.items)
-                        .map(|i| (i.id.clone(), sesion::calificados(p, &sesion.puestas_de(Juego::Item(&i.id)))))
+                        .map(|i| {
+                            let calificados = sesion::calificados(p, &sesion.puestas_de(Juego::Item(&i.id)));
+                            let en_clickedu = items::en_la_clase(i, p.alumnos.iter().map(|a| a.id.as_str()));
+                            (i.id.clone(), (calificados, en_clickedu))
+                        })
                         .collect();
                     contados.borrow_mut().insert(f.to_string(), por_item);
                 }
@@ -75,7 +79,7 @@ pub async fn listar_clases(app: AppHandle) -> Result<ListaClases, String> {
             .map(|clase| {
                 let items = de_materias.get(&clase.fichero.to_lowercase()).map(|m| {
                     let de_la_clase = contados.get(&clase.fichero);
-                    items::para_clases(m, &hoy, |i| de_la_clase.and_then(|c| c.get(i)).copied().unwrap_or(0))
+                    items::para_clases(m, &hoy, |i| de_la_clase.and_then(|c| c.get(&i.id)).copied().unwrap_or((0, 0)))
                 });
                 ClaseConItems { clase, items }
             })
@@ -117,6 +121,10 @@ fn items_por_fichero(app: &AppHandle) -> HashMap<String, ItemsMateria> {
 pub struct ClaseAbierta {
     pub plantilla: Plantilla,
     pub puestas: Puestas,
+    /// En un ítem (H6), las notas que tenían en Clickedu al traer, por `Id`
+    /// de alumno: se enseñan junto a las de la app y se avisa de las que se
+    /// pisarían al subir. `None` sin ítem, o si no se encuentra.
+    pub en_clickedu: Option<BTreeMap<String, String>>,
 }
 
 /// Lee la plantilla `fichero` de la carpeta y sus notas de la sesión: las
@@ -126,7 +134,12 @@ pub async fn leer_clase(fichero: String, item: Option<String>, app: AppHandle) -
     en_segundo_plano(app.clone(), "leer_clase", move || {
         let plantilla = leer_plantilla(&app, &fichero)?;
         let puestas = sesion::leer(&ruta_sesion(&app)?)?.puestas_de(Juego::de(&fichero, item.as_deref()));
-        Ok(ClaseAbierta { plantilla, puestas })
+        let en_clickedu = item.as_deref().and_then(|item| {
+            let mut m = items_por_fichero(&app).remove(&fichero.to_lowercase())?;
+            let i = m.evaluaciones.iter_mut().flat_map(|e| e.items.iter_mut()).find(|i| i.id == item)?;
+            Some(std::mem::take(&mut i.notas))
+        });
+        Ok(ClaseAbierta { plantilla, puestas, en_clickedu })
     })
     .await
 }

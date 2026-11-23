@@ -452,6 +452,7 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
             propuestas={propuestas}
             elegir={elegir}
             ver={ver}
+            enClickedu={abiertaAhora.enClickedu}
           />
         </>
       )}

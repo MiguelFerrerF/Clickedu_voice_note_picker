@@ -85,7 +85,7 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
         item('41812', 'Cuaderno', 20, 25),
       ]),
       ev('332', '2ª evaluación', true, [
-        item('42690', 'Examen tema 3', 40, 0, 8),
+        item('42690', 'Examen tema 3', 40, 8, 8),
         item('42691', 'Proyecto: la estadística del patio, con encuestas a todos los cursos del instituto', 20),
         item('42692', 'Cuaderno', 10, 4),
         item('42693', 'Actitud en clase', null),
@@ -214,9 +214,21 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
           return lista();
         case 'leer_clase':
           // En la de los avisos, una nota ya puesta en la sesión y otra quitada.
+          // En su «Examen tema 3» (H6), las de Clickedu: solo allí (también
+          // un texto, «NP», y un alumno sin nombre), iguales y dos que
+          // cambiarían al subir; una de otro grupo, que no cuenta.
           return args.fichero === 'matematicas_3_a_eso.xlsx'
-            ? {plantilla: PLANTILLA, puestas: {20233: 6.5, 20232: null}}
-            : {plantilla: OTRA, puestas: {}};
+            ? {
+                plantilla: PLANTILLA,
+                puestas: {20233: 6.5, 20232: null},
+                enClickedu:
+                  args.item === '42690'
+                    ? {20231: '7.50', 20232: '4', 20233: '6.5', 20235: '6', 20238: '9.5', 20240: '5.00', 20251: 'NP', 20253: '8', 99999: '3'}
+                    : args.item
+                      ? {}
+                      : null,
+              }
+            : {plantilla: OTRA, puestas: {}, enClickedu: args.item ? {} : null};
         case 'poner_nota':
           return args.nota;
         case 'devolver_nota':
@@ -671,7 +683,12 @@ const PRUEBAS = [
       const calificar = page.locator('[data-pantalla="calificar"]');
       await calificar.locator('h1', {hasText: 'Examen tema 3'}).waitFor();
       await calificar.getByText('2ª evaluación · 40 %').waitFor();
+      await calificar.getByText('8 en Clickedu', {exact: false}).waitFor();
       await paso('en-un-item');
+      // Las que cambiarían al subir: lleva a la siguiente.
+      await calificar.getByRole('button', {name: '2 cambiarían'}).click();
+      await page.waitForTimeout(300);
+      await paso('cambiarian');
       await calificar.getByRole('button', {name: 'Examen tema 3'}).click();
       await page.waitForTimeout(150);
       await paso('desplegable-item');

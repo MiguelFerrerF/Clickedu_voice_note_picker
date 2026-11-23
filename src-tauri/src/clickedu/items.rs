@@ -5,9 +5,12 @@
 //!
 //! De cada evaluación, la página de importar da sus ítems
 //! ([`fichas::items`]) y `GetGrades`, las notas que ya tienen en Clickedu
-//! ([`fichas::notas`]): de ellas solo se guarda **cuántos alumnos** tienen
-//! nota en cada ítem, para la marca discreta de Clases. La ponderación aún
-//! no se lee (está en la tabla de Ítems, sin ficha): va como `None`.
+//! ([`fichas::notas`]): se guarda **la nota de cada alumno** en cada ítem
+//! ([`notas_de`]), para que Clases diga cuántos la tienen y Calificar la
+//! enseñe junto a la de la app y avise de la que se pisaría al subir. Es
+//! una copia de cuando se trajo: antes de subir se vuelve a leer. La
+//! ponderación aún no se lee (está en la tabla de Ítems, sin ficha): va
+//! como `None`.
 //!
 //! Se guarda por el `id` de la materia, no por el fichero: Clases cruza los
 //! dos con `traidas.json` ([`super::traer::planear::Recordadas`]).
@@ -65,8 +68,14 @@ pub struct ItemGuardado {
     pub nombre: String,
     /// En %; `None` mientras no se lea.
     pub ponderacion: Option<f64>,
-    /// Cuántos alumnos tenían nota en Clickedu, al traer.
+    /// Cuántos alumnos tenían nota en Clickedu, al traer: `notas.len()`.
+    /// Solo cuenta en los `items.json` de antes de guardar las notas.
+    #[serde(default)]
     pub en_clickedu: usize,
+    /// La nota de cada alumno en Clickedu, al traer, por su `Id`: tal cual
+    /// la da (un número con punto, o un texto).
+    #[serde(default)]
+    pub notas: BTreeMap<String, String>,
 }
 
 /// Los ítems de cada evaluación de `materia`, con cuántos alumnos tienen
@@ -101,11 +110,9 @@ pub async fn bajar(
             hasta: e.hasta.clone(),
             items: items
                 .into_iter()
-                .map(|i| ItemGuardado {
-                    en_clickedu: en_clickedu(&puestas, &i.id),
-                    id: i.id,
-                    nombre: i.nombre,
-                    ponderacion: None,
+                .map(|i| {
+                    let notas = notas_de(&puestas, &i.id);
+                    ItemGuardado { en_clickedu: notas.len(), notas, id: i.id, nombre: i.nombre, ponderacion: None }
                 })
                 .collect(),
         });
@@ -113,17 +120,30 @@ pub async fn bajar(
     Ok(Ok(res))
 }
 
-/// Cuántos alumnos tienen nota en el ítem `item`: la puesta (`nota_mod`) o,
-/// si no, la calculada (`nota`). Solo las filas de ítem (`type` 0): la nota
-/// final lleva el id de la materia, que podría coincidir con el de un ítem.
-pub fn en_clickedu(puestas: &[Puesta], item: &str) -> usize {
-    let con_nota = |v: &Option<String>| v.as_deref().is_some_and(|t| !t.trim().is_empty());
-    puestas
-        .iter()
-        .filter(|p| p.criterio == item && p.tipo.unwrap_or(0) == 0 && (con_nota(&p.nota_mod) || con_nota(&p.nota)))
-        .map(|p| p.alumno.as_str())
-        .collect::<BTreeSet<_>>()
-        .len()
+/// La nota de cada alumno en el ítem `item`, por su `Id`: la puesta
+/// (`nota_mod`) o, si no, la calculada (`nota`). Sin ninguna, o en blanco,
+/// no está. Solo las filas de ítem (`type` 0): la nota final lleva el id de
+/// la materia, que podría coincidir con el de un ítem. Si un alumno sale
+/// dos veces, vale la primera.
+pub fn notas_de(puestas: &[Puesta], item: &str) -> BTreeMap<String, String> {
+    let con_nota = |v: &Option<String>| v.as_deref().map(str::trim).filter(|t| !t.is_empty()).map(String::from);
+    let mut res = BTreeMap::new();
+    for p in puestas.iter().filter(|p| p.criterio == item && p.tipo.unwrap_or(0) == 0) {
+        if let Some(n) = con_nota(&p.nota_mod).or_else(|| con_nota(&p.nota)) {
+            res.entry(p.alumno.clone()).or_insert(n);
+        }
+    }
+    res
+}
+
+/// Cuántos de `ids` (los alumnos de una clase) tienen nota en Clickedu en
+/// el ítem `i`: una materia puede tener alumnos de otros grupos. En un
+/// `items.json` de antes de guardar las notas, lo contado entonces.
+pub fn en_la_clase<'a>(i: &ItemGuardado, ids: impl IntoIterator<Item = &'a str>) -> usize {
+    if i.notas.is_empty() {
+        return i.en_clickedu;
+    }
+    ids.into_iter().collect::<BTreeSet<_>>().into_iter().filter(|id| i.notas.contains_key(*id)).count()
 }
 
 /// Lee `items.json`; si no está, vacío.
@@ -175,14 +195,16 @@ pub struct ItemClase {
     pub id: String,
     pub nombre: String,
     pub ponderacion: Option<f64>,
+    /// Cuántos de la clase tienen nota en Clickedu, al traer.
     pub en_clickedu: usize,
     /// Cuántos tienen nota en la sesión de este ítem.
     pub calificados: usize,
 }
 
 /// Los de `materia` para Clases: la evaluación de `hoy` (`AAAA-MM-DD`)
-/// marcada, y `calificados(item)` contados en la sesión.
-pub fn para_clases(materia: &ItemsMateria, hoy: &str, calificados: impl Fn(&str) -> usize) -> ItemsClase {
+/// marcada, y de cada ítem, `contar(item)`: cuántos de la clase tienen nota
+/// en la sesión y cuántos en Clickedu.
+pub fn para_clases(materia: &ItemsMateria, hoy: &str, contar: impl Fn(&ItemGuardado) -> (usize, usize)) -> ItemsClase {
     ItemsClase {
         traidos: materia.traidos,
         evaluaciones: materia
@@ -198,12 +220,15 @@ pub fn para_clases(materia: &ItemsMateria, hoy: &str, calificados: impl Fn(&str)
                 items: e
                     .items
                     .iter()
-                    .map(|i| ItemClase {
-                        id: i.id.clone(),
-                        nombre: i.nombre.clone(),
-                        ponderacion: i.ponderacion,
-                        en_clickedu: i.en_clickedu,
-                        calificados: calificados(&i.id),
+                    .map(|i| {
+                        let (calificados, en_clickedu) = contar(i);
+                        ItemClase {
+                            id: i.id.clone(),
+                            nombre: i.nombre.clone(),
+                            ponderacion: i.ponderacion,
+                            en_clickedu,
+                            calificados,
+                        }
                     })
                     .collect(),
             })
@@ -226,21 +251,33 @@ mod tests {
     }
 
     #[test]
-    fn cuenta_los_alumnos_con_nota_en_el_item() {
+    fn guarda_la_nota_de_cada_alumno_en_el_item() {
         let puestas = [
             puesta("1", "9001", 0, None, Some("7.5")),
             puesta("2", "9001", 0, Some("6"), None),
             // Sin nada, o en blanco: no cuenta.
             puesta("3", "9001", 0, Some(""), Some(" ")),
-            // Repetido: una vez.
-            puesta("1", "9001", 0, Some("7.5"), Some("7.5")),
+            // Repetido: la primera.
+            puesta("1", "9001", 0, Some("2"), Some("3")),
             // Otro ítem, y la nota final con un id que coincide.
             puesta("1", "9002", 0, None, Some("4")),
             puesta("4", "9001", 114, Some("8"), None),
         ];
-        assert_eq!(en_clickedu(&puestas, "9001"), 2);
-        assert_eq!(en_clickedu(&puestas, "9002"), 1);
-        assert_eq!(en_clickedu(&puestas, "9003"), 0);
+        let n = |a: &str, b: &str| (a.to_string(), b.to_string());
+        assert_eq!(notas_de(&puestas, "9001"), BTreeMap::from([n("1", "7.5"), n("2", "6")]));
+        assert_eq!(notas_de(&puestas, "9002"), BTreeMap::from([n("1", "4")]));
+        assert!(notas_de(&puestas, "9003").is_empty());
+    }
+
+    #[test]
+    fn en_la_clase_cuenta_solo_sus_alumnos() {
+        let notas = BTreeMap::from([("1".to_string(), "7".to_string()), ("9".to_string(), "5".to_string())]);
+        let i = ItemGuardado { id: "9001".into(), nombre: "P".into(), ponderacion: None, en_clickedu: 2, notas };
+        assert_eq!(en_la_clase(&i, ["1", "2", "1"]), 1);
+        // Un `items.json` de antes, sin notas: lo contado al traer.
+        let viejo: ItemGuardado =
+            serde_json::from_str(r#"{"id":"9","nombre":"P","ponderacion":null,"en_clickedu":4}"#).unwrap();
+        assert_eq!(en_la_clase(&viejo, ["1"]), 4);
     }
 
     fn materia(traidos: u64, item: &str) -> ItemsMateria {
@@ -259,7 +296,13 @@ mod tests {
                     "2",
                     "2026-11-21",
                     "2027-03-10",
-                    vec![ItemGuardado { id: item.into(), nombre: "Parcial".into(), ponderacion: None, en_clickedu: 3 }],
+                    vec![ItemGuardado {
+                        id: item.into(),
+                        nombre: "Parcial".into(),
+                        ponderacion: None,
+                        en_clickedu: 3,
+                        notas: BTreeMap::new(),
+                    }],
                 ),
             ],
         }
@@ -285,7 +328,7 @@ mod tests {
 
     #[test]
     fn para_clases_marca_la_de_hoy_y_cuenta_la_sesion() {
-        let c = para_clases(&materia(7, "9001"), "2026-11-23", |i| if i == "9001" { 5 } else { 0 });
+        let c = para_clases(&materia(7, "9001"), "2026-11-23", |i| if i.id == "9001" { (5, 3) } else { (0, 0) });
         assert_eq!(c.traidos, 7);
         assert_eq!(c.evaluaciones.iter().map(|e| e.en_curso).collect::<Vec<_>>(), [false, true]);
         let i = &c.evaluaciones[1].items[0];
