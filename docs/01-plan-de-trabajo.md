@@ -1244,7 +1244,9 @@ mantener: si se rompe, lo básico sigue funcionando.
   desplegable de Calificar. Por el nombre (`Pendiente - …`) salen
   también juntas en la carpeta. **En Conexión y en Clases, hecho** (en
   Clases, por el nombre: `plantillas::es_pendiente`, el mismo prefijo con
-  el que las nombra traer); en Calificar, falta.
+  el que las nombra traer). **En Calificar, hecho** (2026-11-23): el
+  `Dropdown` admite un `grupo` por opción y pinta su encabezado; sin clase
+  elegida, se abre la primera de las normales, no una pendiente.
 - **La pantalla** (2026-11-22, `TarjetaTraer`, bajo «Tu cuenta»; falta
   probarla a mano con Clickedu de verdad):
   - «Traer las plantillas», con avance por materias. **Sin sesión, entra

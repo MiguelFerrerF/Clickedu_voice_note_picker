@@ -29,9 +29,9 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > Calificar, ya arreglado (`useClases`); el desplegable de las viejas,
 > reescrito como acciones y **dado por bueno** por el usuario. Las
 > pendientes, aparte en Clases (por el nombre, `plantillas::es_pendiente`).
-> **Lo siguiente, en orden**: (1) las pendientes aparte en el desplegable
-> de Calificar; (2) encender Conexión fuera de desarrollo (`HAY_CLICKEDU`);
-> (3) cerrar H5 en la tabla. **La carpeta de este ordenador está como
+> Las pendientes aparte, también en el desplegable de Calificar (2026-11-23).
+> **Lo siguiente, en orden**: (1) encender Conexión fuera de desarrollo
+> (`HAY_CLICKEDU`); (2) cerrar H5 en la tabla. **La carpeta de este ordenador está como
 > antes de traer**, para volver a probarlo: las 8 plantillas viejas en la
 > raíz, las 22 notas de prueba en la sesión y sin `traidas.json` (sale «la
 > primera vez»); lo traído el 22, en

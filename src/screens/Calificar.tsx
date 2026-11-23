@@ -71,7 +71,10 @@ const ULTIMOS = 3;
 export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps) {
   useIdioma();
   const {lista, error, cambios} = useClases();
-  const clases = lista?.clases ?? [];
+  // Las pendientes de otros cursos, al final, como en el desplegable: sin
+  // clase elegida se abre la primera de las normales.
+  const todas = lista?.clases ?? [];
+  const clases = [...todas.filter((c) => !c.pendiente), ...todas.filter((c) => c.pendiente)];
   const actual = clases.find((c) => c.fichero === clase) ?? clases[0];
 
   // La clase abierta, leída de nuevo si cambia la clase, la carpeta avisa o
@@ -326,7 +329,11 @@ export function Calificar({visible, clase, setClase, irAAjustes}: CalificarProps
             value={fichero}
             onChange={setClase}
             title={t('calificar.elegir_clase')}
-            options={clases.map((c) => ({value: c.fichero, label: c.nombre}))}
+            options={clases.map((c) => ({
+              value: c.fichero,
+              label: c.nombre,
+              grupo: c.pendiente ? t('clases.pendientes') : undefined,
+            }))}
           />
         }
         intro={<span style={{fontFamily: 'var(--font-mono)', fontSize: 12}}>{fichero}</span>}

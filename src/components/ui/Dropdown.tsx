@@ -13,14 +13,14 @@
  * Windows sale en tema del sistema, no en el de la app.
  */
 
-import {useEffect, useRef, useState, type CSSProperties} from 'react';
+import {Fragment, useEffect, useRef, useState, type CSSProperties} from 'react';
 import {createPortal} from 'react-dom';
 import {Icon, ICONOS} from './Icon';
 
 export type DropdownOption =
   | string
   | number
-  | {value: string | number; label: string; disabled?: boolean};
+  | {value: string | number; label: string; disabled?: boolean; grupo?: string};
 
 export interface DropdownProps {
   value: string | number;
@@ -47,9 +47,10 @@ function norm(o: DropdownOption): {
   value: string;
   label: string;
   disabled?: boolean;
+  grupo?: string;
 } {
   if (typeof o === 'object')
-    return {value: String(o.value), label: o.label, disabled: o.disabled};
+    return {value: String(o.value), label: o.label, disabled: o.disabled, grupo: o.grupo};
   return {value: String(o), label: String(o)};
 }
 
@@ -88,7 +89,8 @@ export function Dropdown({
     const r = btnRef.current?.getBoundingClientRect();
     if (!r) return;
     const left = Math.min(r.left, window.innerWidth - Math.max(r.width, 220) - 8);
-    const necesita = Math.min(ALTO_MAX, opts.length * ALTO_OPCION + 10);
+    const grupos = new Set(opts.flatMap((o) => (o.grupo ? [o.grupo] : []))).size;
+    const necesita = Math.min(ALTO_MAX, (opts.length + grupos) * ALTO_OPCION + 10);
     const abajo = window.innerHeight - r.bottom - 4 - MARGEN;
     const arriba = r.top - 4 - MARGEN;
     if (abajo >= necesita || abajo >= arriba)
@@ -239,56 +241,76 @@ export function Dropdown({
               padding: 4,
               zIndex: 1000,
             }}>
-            {opts.map((o) => {
+            {opts.map((o, i) => {
               const sel = o.value === String(value);
+              // Un grupo (las pendientes de otros cursos) empieza con su
+              // encabezado, como en las tablas de Clases y Conexión.
+              const empiezaGrupo = o.grupo !== undefined && o.grupo !== opts[i - 1]?.grupo;
               return (
-                <button
-                  key={o.value}
-                  type="button"
-                  data-elegida={sel || undefined}
-                  disabled={o.disabled}
-                  onClick={() => {
-                    if (!o.disabled) {
-                      onChange(o.value);
-                      setAbierto(false);
-                    }
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!sel && !o.disabled)
-                      e.currentTarget.style.background = 'var(--bg-hover)';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!sel) e.currentTarget.style.background = 'transparent';
-                  }}
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 8,
-                    padding: '5px 8px',
-                    fontSize: sm ? 11.5 : 12.5,
-                    fontFamily,
-                    border: 'none',
-                    borderRadius: 5,
-                    cursor: o.disabled ? 'default' : 'pointer',
-                    opacity: o.disabled ? 0.45 : 1,
-                    // El acento al 16 % es exactamente `--accent-wash` en
-                    // oscuro; se usa el token en vez de repetir el color.
-                    background: sel ? 'var(--accent-wash)' : 'transparent',
-                    color: sel ? 'var(--accent-ink)' : 'var(--text-primary)',
-                  }}>
-                  <span
+                <Fragment key={o.value}>
+                  {empiezaGrupo && (
+                    <div
+                      style={{
+                        margin: i > 0 ? '4px -4px 0' : '0 -4px',
+                        padding: '7px 12px 5px',
+                        borderTop: i > 0 ? '1px solid var(--border)' : undefined,
+                        fontSize: 10.5,
+                        fontWeight: 600,
+                        letterSpacing: 0.8,
+                        textTransform: 'uppercase',
+                        color: 'var(--text-tertiary)',
+                        whiteSpace: 'nowrap',
+                      }}>
+                      {o.grupo}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    data-elegida={sel || undefined}
+                    disabled={o.disabled}
+                    onClick={() => {
+                      if (!o.disabled) {
+                        onChange(o.value);
+                        setAbierto(false);
+                      }
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!sel && !o.disabled)
+                        e.currentTarget.style.background = 'var(--bg-hover)';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!sel) e.currentTarget.style.background = 'transparent';
+                    }}
                     style={{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
+                      width: '100%',
+                      textAlign: 'left',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 8,
+                      padding: '5px 8px',
+                      fontSize: sm ? 11.5 : 12.5,
+                      fontFamily,
+                      border: 'none',
+                      borderRadius: 5,
+                      cursor: o.disabled ? 'default' : 'pointer',
+                      opacity: o.disabled ? 0.45 : 1,
+                      // El acento al 16 % es exactamente `--accent-wash` en
+                      // oscuro; se usa el token en vez de repetir el color.
+                      background: sel ? 'var(--accent-wash)' : 'transparent',
+                      color: sel ? 'var(--accent-ink)' : 'var(--text-primary)',
                     }}>
-                    {o.label}
-                  </span>
-                  {sel && <Icon d={ICONOS.comprobado} size={11} />}
-                </button>
+                    <span
+                      style={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}>
+                      {o.label}
+                    </span>
+                    {sel && <Icon d={ICONOS.comprobado} size={11} />}
+                  </button>
+                </Fragment>
               );
             })}
           </div>,
