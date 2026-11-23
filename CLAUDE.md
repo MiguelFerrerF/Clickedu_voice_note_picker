@@ -12,31 +12,16 @@ está en esta rama**: vive en `main` y en el tag `v1.3.4`, que es la última
 publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-22): toca H5** (traer las plantillas desde
-> Clickedu, `docs/01`). **Decidido** (2026-11-22): manda Clickedu con una
-> regla fija (`‹Materia› - ‹Curso› ‹Grupo›.xlsx`, `Pendiente - …`), se
-> sobrescribe, lo viejo a `plantillas\antiguas\‹fecha›\` y las notas pasan
-> por `Id`; una plantilla por materia (no cambia con la evaluación, que se
-> elige al subir, H6). **Hecho**: `clickedu::traer` y sus comandos,
-> probados contra el falso y contra Clickedu de verdad (`cargo run
-> --example probar_traer [-- --aplicar]`, que destapó que la materia ha de
-> contar siempre, no solo los alumnos). **La pantalla, hecha** (2026-11-22,
-> `TarjetaTraer` en Conexión, `docs/01` H5): el plan, las dudas con su
-> desplegable (a qué nueva o **a ninguna**; `replanear_traer` enseña lo
-> que se hará), «Hacerlo» y lo hecho; traer entra sola con la cuenta
-> guardada. **Probada a mano con Clickedu de verdad y revisada**
-> (2026-11-22, `docs/01` H5): bien, salvo un falso `leer_clase` en
-> Calificar, ya arreglado (`useClases`); el desplegable de las viejas,
-> reescrito como acciones y **dado por bueno** por el usuario. Las
-> pendientes, aparte en Clases (por el nombre, `plantillas::es_pendiente`).
-> Las pendientes aparte, también en el desplegable de Calificar (2026-11-23).
-> Conexión, ya encendida también fuera de desarrollo (2026-11-23).
-> **Lo siguiente**: cerrar H5 en la tabla. **La carpeta de este ordenador está como
-> antes de traer**, para volver a probarlo: las 8 plantillas viejas en la
-> raíz, las 22 notas de prueba en la sesión y sin `traidas.json` (sale «la
-> primera vez»); lo traído el 22, en
+> **Dónde se quedó (2026-11-23): toca H6** (subir las notas a Clickedu,
+> `docs/01`). **H5, cerrado** (2026-11-23, tabla): se trae con una regla
+> fija (`‹Materia› - ‹Curso› ‹Grupo›.xlsx`, `Pendiente - …`), lo viejo a
+> `plantillas\antiguas\‹fecha›\` y las notas pasan por `Id`; la
+> evaluación se elige al subir. Antes de nada en H6, **dónde se sube la
+> primera vez** (lo dice la propietaria de la cuenta). **La carpeta de este
+> ordenador está como antes de traer**, para volver a probarlo: las 8
+> plantillas viejas en la raíz, las 22 notas de prueba en la sesión y sin
+> `traidas.json` (sale «la primera vez»); lo traído el 22, en
 > `%APPDATA%\es.gestornotas.app\clickedu\prueba-2026-11-22\`.
-> **H4, cerrado** (2026-11-22, tabla).
 > En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
 > **H7, casi cerrado**: la `v2.0.0` está **publicada** (actualizador de
 > Tauri con firma, `release.yml`, el paso desde la v1.3.4, la app
@@ -73,6 +58,7 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
+| **H5** | `clickedu::traer` (plan, dudas, `replanear_traer`, hacerlo: lo viejo a `antiguas`, las notas por `Id`, `traidas.json`); `TarjetaTraer` en Conexión, que entra sola con la cuenta guardada; las pendientes aparte en Conexión, Clases y Calificar (`plantillas::es_pendiente`); Conexión, encendida fuera de desarrollo | sí: a mano con Clickedu de verdad (`probar_traer` y la pantalla, 2026-11-22); 63 tests de `clickedu`; la prueba de diseño. **Fuera de desarrollo, aún sin probar en un instalado** |
 | **H4** | `clickedu::cuenta` (usuario y contraseña en el Administrador de credenciales, el archivo de seguridad en `%APPDATA%`; se rellena una vez), `cliente` (entrar, comprobar, `abrir` en ISO-8859-15 y vuelve a entrar solo), `fichas` (materias, evaluaciones, ítems, importar, `GetGrades`; bien/degradado/roto), `huella`, `tapar`; Clickedu investigado solo leyendo (`explorar_clickedu`, `docs/03`); la pantalla Conexión, solo en desarrollo | sí: entrar, a mano con Clickedu de verdad; 43 tests contra el Clickedu falso y páginas reales anonimizadas; la sesión quieta, 111 min sin caer. **Volver a entrar solo, solo contra el falso** |
 | **HUI** | La interfaz, antes de H4: la cuadrícula compacta y de 1 a 4 columnas; el dictado (lo apuntado grande y los dos de antes, dudas con 1–4/Esc, medidor de volumen, micrófono en Ajustes); el avance, «Siguiente sin nota» y las teclas tras un ⓘ; el título que es el desplegable; `BarraAvance`; las pantallas a todo el ancho | sí, a mano (A–D y a todo el ancho) y con la prueba de diseño |
 | **H3b** | `voz::interprete` (la nota; lo no visto en grabaciones, `NOTA_RARA`, no se interpreta), `voz::emparejar` (fonética, los dos órdenes de «Apellidos, Nombre»), `voz::entender` (cuándo preguntar); `entender_frase`, el panel del dictado y las propuestas en la cuadrícula; `registro.rs` e informe sin nombres (D8), en Ajustes | sí, a mano (clase inventada), con tests de Rust, la prueba de diseño y `probar_entender` sobre las 100 grabaciones: **77 apuntadas, 20 preguntadas, 2 sin entender, 0 mal en silencio** |

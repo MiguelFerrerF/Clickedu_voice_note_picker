@@ -1089,10 +1089,21 @@ nombres de campo y JSON, lo resistente (`docs/03`). Todo lo que sea
 aparte, en «Más de Clickedu» (H10), porque lee lo frágil y obliga a
 mantener: si se rompe, lo básico sigue funcionando.
 
-### H5 · Traer las plantillas desde Clickedu
+### H5 · Traer las plantillas desde Clickedu ✓ (2026-11-23)
 
-- [ ] Asignaturas y evaluaciones; descargar las plantillas que falten, con
-      progreso.
+**Cerrado el 2026-11-23**: traer, probado a mano con Clickedu de verdad;
+la pantalla, en Conexión, encendida fuera de desarrollo; las pendientes,
+aparte en las tres pantallas; 133 tests de Rust (63 de `clickedu`) y la
+prueba de diseño en verde. Quedan dos matices, ninguno frena H6:
+
+1. **Conexión fuera de desarrollo** no se ha visto aún en un instalado:
+   se verá con la próxima versión.
+2. **Volver a entrar solo** (`Cliente::abrir`, el matiz 1 de H4) sigue
+   probado solo contra el Clickedu falso.
+
+- [x] Asignaturas y evaluaciones; descargar las plantillas que falten, con
+      progreso. (La evaluación no cuenta para traer: una plantilla por
+      materia; se elige al subir, H6.)
 
 **Los nombres y la carpeta** (decidido por el usuario el 2026-11-22):
 
