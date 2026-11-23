@@ -833,13 +833,15 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
    (la v1.3.4 compara `[2,0,0] > [1,3,4]` y saca su aviso), y el
    `latest.json` del endpoint da la `2.0.0`; por las dos URLs baja el
    mismo instalador (`fb6a3760…`). **Siguiente: el paso 9.**
-9. Una `v2.0.1` para probar el actualizador de Tauri de verdad. Lleva
-   (pedido el 2026-11-20) quitar la carpeta de la v1 si solo le quedan
-   carpetas vacías (`migracion::quitar_si_vacia`), al quitarla y al
-   arrancar. Notas en `docs/releases/v2.0.1.md`, revisadas (2026-11-20).
-   **Se espera a que esa persona tenga la `v2.0.0`** (decidido el
-   2026-11-20): así la prueba es también en su ordenador y no le salen dos
-   avisos seguidos. Entonces, `npm run release 2.0.1` y su push.
+9. ~~Una `v2.0.1` para probar el actualizador de Tauri de verdad~~ (hecho
+   el 2026-11-23: publicada, y de la `v2.0.0` a la `v2.0.1` por el aviso
+   de la app, **probado y funcionando**). Lleva quitar la carpeta de la v1
+   si solo le quedan carpetas vacías (`migracion::quitar_si_vacia`), al
+   quitarla y al arrancar. Esa persona ya tenía la `v2.0.0` (instalada por
+   el usuario). **Salió de la rama `release-2.0.1`** (desde `55ee5a9`),
+   sin lo de H4–H5; la subida de versión, también en `v2`. Por el camino:
+   `cargo audit` paró el primer CI por RUSTSEC-2026-0592 (`url` 2.5.8):
+   `url` 2.5.9 y el tag movido antes de haber release.
 
 **D · Antes de dársela a esa persona**
 

@@ -40,12 +40,12 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
 > **H7, casi cerrado**: la `v2.0.0` está **publicada** (actualizador de
 > Tauri con firma, `release.yml`, el paso desde la v1.3.4, la app
-> asegurada); en este ordenador ya está instalada y la v1, quitada. **En
-> espera** (lista «Lo que falta, uno a uno» de H7): el paso 9, la `v2.0.1`
-> (ya en `v2`, notas revisadas) para probar el actualizador de verdad,
-> **cuando la única persona que tenía la v1 tenga la `v2.0.0`**; y lo de
-> D: su procesador con AVX2 e importar un exportado en Clickedu (lo
-> pendiente de H2, como muy tarde en H6). El mapa de Clickedu, en
+> asegurada), y **la `v2.0.1` también** (2026-11-23): el actualizador de
+> Tauri, probado de verdad (paso 9, `docs/01`). Falta lo de D: su
+> procesador con AVX2 e importar un exportado en Clickedu (lo pendiente
+> de H2, como muy tarde en H6). Las versiones salen de una rama aparte si
+> `v2` lleva un hito a medias (`release-2.0.1`). Documentos, en este
+> ordenador, está en OneDrive: las plantillas llegan sincronizadas. El mapa de Clickedu, en
 > [`docs/03-clickedu.md`](docs/03-clickedu.md). Las páginas de verdad
 > anonimizadas (`tests/datos/clickedu/`, `anonimizar_clickedu`) **se miran
 > antes de cada commit: el repo es público**; lo crudo, en
