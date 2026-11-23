@@ -39,6 +39,7 @@ import {useEffect, useRef, useState} from 'react';
 import {Avisos} from '@components/clases/Avisos';
 import {Cuadricula} from '@components/clases/Cuadricula';
 import {SinPlantillas} from '@components/clases/SinPlantillas';
+import {DialogoSubir} from '@components/dialogs/DialogoSubir';
 import {PanelDictado} from '@components/dictado/PanelDictado';
 import {Cabecera} from '@components/layout/Cabecera';
 import {Button} from '@components/ui/Button';
@@ -110,6 +111,7 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
   const [resultado, setResultado] = useState<Resultado>();
   const [encendido, setEncendido] = useState(false);
   const [exportando, setExportando] = useState(false);
+  const [subiendo, setSubiendo] = useState(false);
   // Otra clase u otro ítem: lo dicho era de lo de antes.
   useEffect(() => setResultado(undefined), [juegoActual]);
   useEffect(() => {
@@ -410,16 +412,33 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
           </span>
         }
         derecha={
-          <Button
-            variant={hayQueExportar ? 'primary' : 'ghost'}
-            onClick={exportar}
-            disabled={!hayQueExportar || exportando}
-            title={hayQueExportar ? t('exportar.ayuda') : t('exportar.nada')}>
-            <Icon d={ICONOS.exportar} size={14} />
-            {t('exportar.boton')}
-          </Button>
+          // Con la clase traída de Clickedu (H6), lo principal es subir; el
+          // Excel queda al lado, de plan B.
+          <span style={{display: 'flex', gap: 8}}>
+            <Button
+              variant={hayQueExportar && !actual.items ? 'primary' : 'ghost'}
+              onClick={exportar}
+              disabled={!hayQueExportar || exportando}
+              title={hayQueExportar ? t('exportar.ayuda') : t('exportar.nada')}>
+              <Icon d={ICONOS.exportar} size={14} />
+              {t('exportar.boton')}
+            </Button>
+            {actual.items && (
+              <Button
+                variant={hayQueExportar ? 'primary' : 'ghost'}
+                onClick={() => setSubiendo(true)}
+                disabled={!hayQueExportar}
+                title={hayQueExportar ? t('subir.ayuda') : t('subir.nada')}>
+                <Icon d={ICONOS.clickedu} size={14} />
+                {t('subir.boton')}
+              </Button>
+            )}
+          </span>
         }
       />
+      {subiendo && actual.items && (
+        <DialogoSubir fichero={fichero} item={item} items={actual.items} onClose={() => setSubiendo(false)} />
+      )}
       {errorClase && <Fallo texto={t('calificar.no_se_lee', {error: errorClase})} />}
       {resultado?.tipo === 'fallo' && <Fallo texto={resultado.texto} />}
       {resultado?.tipo === 'exportado' && (

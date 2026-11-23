@@ -23,9 +23,11 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > evaluación, con las clases plegadas; `docs/01`);
 > también lo que ya hay en Clickedu (la nota de cada alumno en
 > `items.json`; en Calificar, en gris, o tachada con el punto ámbar si al
-> subir se pisaría; `docs/02` §3); toca **la subida en la app** (subir →
-> volver a leer y preguntar lo que se pisaría → importar → `GetGrades`, y
-> el test de `subir` contra el falso). La ponderación aún no se lee. Sin ítem, un
+> subir se pisaría; `docs/02` §3); **la subida en la app, hecha**
+> (`clickedu::subir`, `DialogoSubir`; todo o nada al pisar; sin ítem, se
+> elige al subir; probada contra el falso): **toca la primera vez con
+> Clickedu de verdad**, en el ítem 42700 y con el visto bueno del usuario
+> (escribe), y luego cerrar H6. La ponderación aún no se lee. Sin ítem, un
 > solo juego de notas por clase, como la v1 (opción «a»). Subir, importar y eliminar lo subido, ya probados
 > a mano en el ítem de prueba 42700 de Química 2 (`probar_subir`,
 > `docs/03`); ese ítem lo borra el usuario. **La carpeta de este

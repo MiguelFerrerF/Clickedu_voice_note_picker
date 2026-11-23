@@ -47,7 +47,7 @@ pub(crate) fn carpeta_clickedu(app: &AppHandle) -> Result<PathBuf, String> {
 
 /// Lo que toca disco o el Administrador de credenciales, fuera del hilo de
 /// la ventana.
-async fn bloqueante<T: Send + 'static>(f: impl FnOnce() -> Result<T, String> + Send + 'static) -> Result<T, String> {
+pub(crate) async fn bloqueante<T: Send + 'static>(f: impl FnOnce() -> Result<T, String> + Send + 'static) -> Result<T, String> {
     tauri::async_runtime::spawn_blocking(f)
         .await
         .map_err(|e| format!("el trabajo en segundo plano se ha caído: {e}"))?
@@ -159,7 +159,7 @@ async fn conectar(
 
 /// Entra con la cuenta guardada, sin volver a guardarla: la app entra sola
 /// cuando hace falta (H4). Sin cuenta, [`FalloTraer::SinEntrar`].
-async fn entrar_con_la_guardada(carpeta: &Path) -> Result<Cliente, FalloTraer> {
+pub(crate) async fn entrar_con_la_guardada(carpeta: &Path) -> Result<Cliente, FalloTraer> {
     let c = carpeta.to_path_buf();
     let Some(g) = bloqueante(move || cuenta::leer(&c, &LlaveroWindows)).await? else {
         return Err(FalloTraer::SinEntrar);

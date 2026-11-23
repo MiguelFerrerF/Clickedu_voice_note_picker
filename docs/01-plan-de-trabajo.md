@@ -1375,23 +1375,39 @@ prueba 42700 de Química 2 (2ª ev.), subir, importar (las 10 notas, en
 quita lo importado**. El ítem lo borra el usuario a mano cuando quiera
 (se lleva sus notas).
 
-- [ ] Elegir asignatura, evaluación e ítem; subir; **comprobar** que entraron
-      (con `GetGrades`, `docs/03`). **La primera subida, en Química 2A**
-      (lo dijo la propietaria de la cuenta, 2026-11-23), en un **ítem de
-      prueba con ponderación 0** y sin que lo vean las familias, si
-      Clickedu lo deja. Claude puede crearlo **solo si es sin riesgo**:
-      el alta de ítems está sin investigar (`docs/03`), así que antes se
-      mira solo leyendo, se enseña al usuario qué se va a mandar y se
-      espera su visto bueno al primer `POST`. Al acabar, se decide con él
-      si se borra.
-- [ ] **No pisar notas** (2026-11-21): antes de subir, leer con
-      `GetGrades` las notas que ya hay en ese ítem y avisar de qué alumnos
-      ya tienen nota en Clickedu y cuál cambiaría («¿la cambio?»). Va en
-      lo básico, no en H10, porque es donde protege. **Lo visual ya está**
-      (2026-11-23, arriba): falta volver a leer al subir y preguntar.
-- [ ] Plan B: si falla, el Excel exportado y la página de importación abierta
-      en el navegador. **Antes, confirmar que Clickedu acepta el exportado de
-      H2**, que no se ha importado todavía.
+- [x] **La subida en la app** (2026-11-23, `clickedu::subir`,
+      `commands::subir`, `DialogoSubir`): en Calificar, con la clase traída,
+      «Subir a Clickedu» (el principal; Exportar, al lado). Sin ítem, el
+      diálogo pide primero a cuál (decidido por el usuario el 2026-11-23).
+      1. `preparar_subida`, solo leyendo: exporta el Excel (el de
+         «Exportar», que es también el plan B), entra si hace falta y
+         **vuelve a leer** el ítem: la página de importar (el ítem está y
+         el formulario sale «bien»; si no, no se sube) y `GetGrades`. Lo
+         leído va a `items.json`, así que Calificar enseña lo de ahora.
+      2. El resumen: cuántas, cuántas vacías, cuántas ya iguales y **las
+         que se pisarían, una a una** («antes → nueva», con el punto
+         ámbar).
+      3. `confirmar_subida`: el `POST` de subir; en la página otra vez,
+         **el subido nuevo** (el `id` que no estaba, uno y solo uno; si no,
+         se para antes de importar); su enlace de importar; y `GetGrades`,
+         nota a nota. Los `alert` de Clickedu se leen, pero lo que manda
+         es la tabla y las notas: uno distinto es un aviso, no un fallo.
+      4. Hecho: cuántas entraron, comprobadas, y **por nombre las que no**.
+      Lo subido se queda en la tabla de Clickedu (como a mano). Probado
+      contra el Clickedu falso, que ahora sube, guarda e importa (5 tests;
+      también «no importa» y «no sale el subido»), y con la prueba de
+      diseño (`subir`). **Falta la primera vez con Clickedu de verdad**, en
+      el ítem de prueba 42700, con el visto bueno del usuario.
+- [x] **No pisar notas** (2026-11-21; hecho el 2026-11-23): al subir se
+      vuelve a leer y se enseña quién cambiaría. **Todo o nada** (decidido
+      por el usuario el 2026-11-23): o se suben todas, o ninguna. Subir
+      solo las que no pisan dependería de que una celda vacía no borre la
+      nota de Clickedu, que está sin probar.
+- [x] Plan B: si falla, el Excel ya exportado («Abrir la carpeta») y la
+      página de importar en el navegador (`abrir_importar_en_clickedu`;
+      allí hay que entrar, la sesión de la app no se comparte). **Clickedu
+      acepta el exportado de H2**: es el que subió `probar_subir` el
+      2026-11-23, por el mismo formulario que a mano.
 
 ### H8 · Estadísticas
 

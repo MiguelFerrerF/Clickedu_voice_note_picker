@@ -146,3 +146,49 @@ export type FalloTraer =
   | {tipo: 'materias'; roto: Roto}
   | {tipo: 'sin_entrar'}
   | {tipo: 'otro'; detalle: string};
+
+// ───────────────────────── Subir las notas (H6) ─────────────────────────
+
+/** En qué paso va la subida (`clickedu::subir::Paso`). */
+export type PasoSubir = 'leer' | 'subir' | 'importar' | 'comprobar';
+
+/** Por qué no se ha subido (`clickedu::subir::FalloSubir`). */
+export type FalloSubir =
+  | {tipo: 'conexion'; paso: PasoSubir; fallo: FalloClickedu}
+  | {tipo: 'sin_entrar'}
+  | {tipo: 'sin_item'}
+  | {tipo: 'cambiado'; paso: PasoSubir; motivo: string}
+  | {tipo: 'otro'; detalle: string};
+
+/** Una nota que se pisaría (`commands::subir::Cambio`). */
+export interface Cambio {
+  nombre: string;
+  /** La de Clickedu, tal cual. */
+  antes: string;
+  nueva: number;
+}
+
+/** Lo que se va a subir, recién leído Clickedu (`commands::subir::Previa`). */
+export interface PreviaSubir {
+  item: string;
+  evaluacion: string;
+  alumnos: number;
+  conNota: number;
+  /** Sin nota en Clickedu. */
+  nuevas: number;
+  /** La misma en Clickedu. */
+  iguales: number;
+  /** **Se pisarían.** */
+  cambiarian: Cambio[];
+  /** El Excel exportado: el plan B. */
+  excel: string;
+}
+
+/** Cómo ha ido (`commands::subir::Subido`). */
+export interface Subido {
+  /** Comprobadas en Clickedu. */
+  entraron: number;
+  /** Los alumnos cuya nota no está en Clickedu tras importar. */
+  noEntraron: string[];
+  avisos: string[];
+}

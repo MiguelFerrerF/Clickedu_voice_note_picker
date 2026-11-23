@@ -81,7 +81,7 @@ fn texto(e: ElementRef) -> String {
 }
 
 /// Los parámetros de una dirección (relativa o entera).
-fn parametros(href: &str) -> HashMap<String, String> {
+pub(crate) fn parametros(href: &str) -> HashMap<String, String> {
     let base = Url::parse("https://clickedu.invalid/go/").expect("base fija");
     base.join(href)
         .map(|u| u.query_pairs().map(|(k, v)| (k.into_owned(), v.into_owned())).collect())

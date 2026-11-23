@@ -1,0 +1,347 @@
+/**
+ * **Subir las notas a Clickedu** (H6, `docs/01`): desde Calificar, las notas
+ * de la clase (de su ítem, o las de sin ítem) a un ítem de Clickedu.
+ *
+ * 1. **Elegir el ítem**, solo si se califica sin ítem (como la v1).
+ * 2. **Leer Clickedu** otra vez (`preparar_subida`): lo de al traer puede
+ *    ser viejo. Exporta además el Excel, que es el plan B.
+ * 3. **Lo que se va a hacer**: cuántas notas, cuántas ya están igual y,
+ *    **si alguna pisaría otra, cuáles** («antes → nueva», con el punto
+ *    ámbar de la cuadrícula). Todo o nada (decidido el 2026-11-23): o se
+ *    suben todas, o ninguna.
+ * 4. **Subir, importar y comprobar** (`confirmar_subida`), con el paso en
+ *    el `Progreso`. Mientras, el diálogo no se cierra.
+ * 5. **Hecho**: cuántas están en Clickedu, comprobadas una a una; las que
+ *    no, por nombre y en rojo. **Si falla**, el plan B: el Excel ya
+ *    exportado y la página de importar de Clickedu en el navegador.
+ */
+
+import {Channel, invoke} from '@tauri-apps/api/core';
+import {useEffect, useState} from 'react';
+
+import {Modal} from '@components/dialogs/Modal';
+import {mensaje} from '@components/clickedu/TarjetaCuenta';
+import {Button} from '@components/ui/Button';
+import {Dropdown} from '@components/ui/Dropdown';
+import {Icon, ICONOS} from '@components/ui/Icon';
+import {Progreso} from '@components/ui/Progreso';
+import {alumnosEnPalabras} from '@modules/clases/avisos';
+import type {ItemsClase} from '@modules/clases/tipos';
+import type {FalloSubir, PasoSubir, PreviaSubir, Subido} from '@modules/clickedu/tipos';
+import {t} from '@modules/i18n';
+
+export interface DialogoSubirProps {
+  fichero: string;
+  /** El ítem en el que se califica; `null`, sin ítem: se elige aquí. */
+  item: string | null;
+  /** Los ítems de la clase, para elegir. */
+  items: ItemsClase;
+  onClose: () => void;
+}
+
+type Fase =
+  | {tipo: 'elegir'}
+  | {tipo: 'leyendo'}
+  | {tipo: 'previa'; previa: PreviaSubir}
+  | {tipo: 'subiendo'; previa: PreviaSubir; paso: PasoSubir}
+  | {tipo: 'hecho'; previa: PreviaSubir; subido: Subido}
+  | {tipo: 'fallo'; fallo: FalloSubir | string; previa?: PreviaSubir};
+
+const PASOS: PasoSubir[] = ['subir', 'importar', 'comprobar'];
+
+export function DialogoSubir({fichero, item, items, onClose}: DialogoSubirProps) {
+  const [destino, setDestino] = useState(item ?? '');
+  const [fase, setFase] = useState<Fase>(item ? {tipo: 'leyendo'} : {tipo: 'elegir'});
+
+  function leer(d: string) {
+    setFase({tipo: 'leyendo'});
+    invoke<PreviaSubir>('preparar_subida', {fichero, item, destino: d}).then(
+      (previa) => setFase({tipo: 'previa', previa}),
+      (e) => setFase({tipo: 'fallo', fallo: e as FalloSubir | string}),
+    );
+  }
+
+  // Con ítem, se lee nada más abrir.
+  useEffect(() => {
+    if (item) leer(item);
+  }, []);
+
+  function subir(previa: PreviaSubir) {
+    setFase({tipo: 'subiendo', previa, paso: 'subir'});
+    const canal = new Channel<PasoSubir>();
+    canal.onmessage = (paso) => setFase((f) => (f.tipo === 'subiendo' ? {...f, paso} : f));
+    invoke<Subido>('confirmar_subida', {avance: canal}).then(
+      (subido) => setFase({tipo: 'hecho', previa, subido}),
+      (e) => setFase({tipo: 'fallo', fallo: e as FalloSubir | string, previa}),
+    );
+  }
+
+  function cerrar() {
+    if (fase.tipo === 'previa') invoke('cancelar_subida').catch(() => {});
+    onClose();
+  }
+
+  const ocupado = fase.tipo === 'leyendo' || fase.tipo === 'subiendo';
+  const opciones = items.evaluaciones.flatMap((e) =>
+    e.items.map((i) => ({value: i.id, label: i.nombre, grupo: e.nombre})),
+  );
+
+  return (
+    <Modal open onClose={ocupado ? undefined : cerrar} width={520} ariaLabel={t('subir.titulo')}>
+      <div style={{padding: '20px 22px 16px', overflowY: 'auto', minHeight: 0}}>
+        <h2 style={{margin: 0, fontSize: 15, fontWeight: 600}}>{t('subir.titulo')}</h2>
+        {fase.tipo === 'elegir' && (
+          <>
+            <Texto>{t('subir.elegir_texto')}</Texto>
+            <div style={{marginTop: 12}}>
+              <Dropdown value={destino} onChange={setDestino} placeholder={t('subir.elegir_item')} options={opciones} />
+            </div>
+          </>
+        )}
+        {fase.tipo === 'leyendo' && (
+          <div style={{marginTop: 14}}>
+            <Progreso rotulo={t('subir.leyendo')} />
+          </div>
+        )}
+        {fase.tipo === 'previa' && <Previa previa={fase.previa} />}
+        {fase.tipo === 'subiendo' && (
+          <div style={{marginTop: 14}}>
+            <Progreso
+              rotulo={
+                {
+                  leer: t('subir.leyendo'),
+                  subir: t('subir.paso_subir'),
+                  importar: t('subir.paso_importar'),
+                  comprobar: t('subir.paso_comprobar'),
+                }[fase.paso]
+              }
+              hecho={PASOS.indexOf(fase.paso)}
+              total={PASOS.length}
+            />
+          </div>
+        )}
+        {fase.tipo === 'hecho' && <Hecho previa={fase.previa} subido={fase.subido} />}
+        {fase.tipo === 'fallo' && <Fallo fallo={fase.fallo} previa={fase.previa} fichero={fichero} destino={destino} />}
+      </div>
+      <Pie>
+        {fase.tipo === 'elegir' && (
+          <>
+            <Button variant="ghost" onClick={cerrar}>
+              {t('subir.cancelar')}
+            </Button>
+            <Button disabled={!destino} onClick={() => leer(destino)}>
+              {t('subir.seguir')}
+            </Button>
+          </>
+        )}
+        {fase.tipo === 'previa' && (
+          <>
+            <Button variant="ghost" onClick={cerrar}>
+              {t('subir.cancelar')}
+            </Button>
+            <Button onClick={() => subir(fase.previa)}>
+              <Icon d={ICONOS.clickedu} size={14} />
+              {fase.previa.cambiarian.length > 0
+                ? t('subir.subir_y_cambiar', {n: fase.previa.conNota})
+                : fase.previa.conNota === 1
+                  ? t('subir.subir_una')
+                  : t('subir.subir_n', {n: fase.previa.conNota})}
+            </Button>
+          </>
+        )}
+        {ocupado && (
+          <Button variant="ghost" disabled>
+            {t('subir.cancelar')}
+          </Button>
+        )}
+        {(fase.tipo === 'hecho' || fase.tipo === 'fallo') && <Button onClick={onClose}>{t('subir.cerrar')}</Button>}
+      </Pie>
+    </Modal>
+  );
+}
+
+function Texto({children, color}: {children: React.ReactNode; color?: string}) {
+  return (
+    <p style={{margin: '10px 0 0', fontSize: 13, lineHeight: 1.55, color: color ?? 'var(--text-secondary)'}}>
+      {children}
+    </p>
+  );
+}
+
+function Pie({children}: {children: React.ReactNode}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'flex-end',
+        gap: 8,
+        padding: '12px 22px',
+        borderTop: '1px solid var(--border)',
+        background: 'var(--bg-sunk)',
+      }}>
+      {children}
+    </div>
+  );
+}
+
+/** Lo que se va a subir y, si alguna pisaría otra, cuáles. */
+function Previa({previa}: {previa: PreviaSubir}) {
+  const vacias = previa.alumnos - previa.conNota;
+  const cambiarian = previa.cambiarian.length;
+  return (
+    <>
+      <Texto>
+        {previa.conNota === 1
+          ? t('subir.se_subira', {item: previa.item, evaluacion: previa.evaluacion})
+          : t('subir.se_subiran', {n: previa.conNota, item: previa.item, evaluacion: previa.evaluacion})}
+        {vacias > 0 && ` ${vacias === 1 ? t('subir.vacia') : t('subir.vacias', {n: vacias})}`}
+        {previa.iguales > 0 && ` ${previa.iguales === 1 ? t('subir.igual') : t('subir.iguales', {n: previa.iguales})}`}
+      </Texto>
+      {cambiarian > 0 && (
+        <>
+          <Texto color="var(--text-primary)">
+            <Punto />
+            {cambiarian === 1 ? t('subir.cambiaria') : t('subir.cambiarian', {n: cambiarian})}
+          </Texto>
+          <ul
+            style={{
+              margin: '8px 0 0',
+              padding: '6px 10px',
+              listStyle: 'none',
+              maxHeight: 180,
+              overflowY: 'auto',
+              background: 'var(--bg-sunk)',
+              borderRadius: 6,
+              fontSize: 13,
+            }}>
+            {previa.cambiarian.map((c) => (
+              <li
+                key={c.nombre}
+                style={{display: 'flex', justifyContent: 'space-between', gap: 12, padding: '3px 0', minWidth: 0}}>
+                <span style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{c.nombre}</span>
+                <span style={{flexShrink: 0, fontFamily: 'var(--font-mono)'}}>
+                  <s style={{color: 'var(--text-tertiary)'}}>{c.antes}</s> → {String(c.nueva)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </>
+  );
+}
+
+/** El punto ámbar de «al subir, se pisaría», como en la cuadrícula (`docs/02` §3). */
+function Punto() {
+  return (
+    <span
+      aria-hidden
+      style={{
+        display: 'inline-block',
+        width: 7,
+        height: 7,
+        borderRadius: '50%',
+        background: 'var(--warn)',
+        marginRight: 7,
+        verticalAlign: 'middle',
+      }}
+    />
+  );
+}
+
+/** Hecho: en verde (el evento), y en rojo las que no entraron. */
+function Hecho({previa, subido}: {previa: PreviaSubir; subido: Subido}) {
+  const todas = subido.noEntraron.length === 0;
+  return (
+    <>
+      <p
+        role="status"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          margin: '10px 0 0',
+          fontSize: 13,
+          color: todas ? 'var(--success)' : 'var(--text-primary)',
+        }}>
+        {todas && <Icon d={ICONOS.comprobado} size={14} style={{flexShrink: 0}} />}
+        {!todas
+          ? t('subir.hecho_parte', {n: subido.entraron, total: previa.conNota, item: previa.item})
+          : subido.entraron === 1
+            ? t('subir.hecho_una', {item: previa.item})
+            : t('subir.hecho', {n: subido.entraron, item: previa.item})}
+      </p>
+      {!todas && (
+        <Texto color="var(--danger)">
+          {/* Todos, sin «y 2 más»: son los que hay que ir a mirar. */}
+          {subido.noEntraron.length === 1
+            ? t('subir.no_entro', {alumno: alumnosEnPalabras(subido.noEntraron)})
+            : t('subir.no_entraron', {alumnos: subido.noEntraron.map((n) => `«${n}»`).join(', ')})}
+        </Texto>
+      )}
+      {subido.avisos.map((a) => (
+        <Texto key={a} color="var(--text-tertiary)">
+          {t('subir.aviso', {aviso: a})}
+        </Texto>
+      ))}
+    </>
+  );
+}
+
+/** El fallo, en rojo, y el plan B: el Excel y la página de importar. */
+function Fallo({
+  fallo,
+  previa,
+  fichero,
+  destino,
+}: {
+  fallo: FalloSubir | string;
+  previa?: PreviaSubir;
+  fichero: string;
+  destino: string;
+}) {
+  const [noAbre, setNoAbre] = useState<string>();
+  // Tras subir, el fichero ya está en Clickedu sin importar.
+  const subido =
+    typeof fallo === 'object' && 'paso' in fallo && (fallo.paso === 'importar' || fallo.paso === 'comprobar');
+  return (
+    <>
+      <Texto color="var(--danger)">{mensajeSubir(fallo)}</Texto>
+      {subido && <Texto>{t('subir.quedo_subido')}</Texto>}
+      {previa && <Texto>{t('subir.plan_b', {excel: previa.excel.split(/[\\/]/).pop() ?? previa.excel})}</Texto>}
+      <div style={{display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12}}>
+        {previa && (
+          <Button variant="ghost" onClick={() => invoke('abrir_carpeta_notas').catch((e) => setNoAbre(String(e)))}>
+            <Icon d={ICONOS.carpeta} size={14} />
+            {t('exportar.abrir_carpeta')}
+          </Button>
+        )}
+        {destino && (
+          <Button
+            variant="ghost"
+            onClick={() => invoke('abrir_importar_en_clickedu', {fichero, destino}).catch((e) => setNoAbre(String(e)))}>
+            <Icon d={ICONOS.clickedu} size={14} />
+            {t('subir.abrir_importar')}
+          </Button>
+        )}
+      </div>
+      {noAbre && <Texto color="var(--danger)">{noAbre}</Texto>}
+    </>
+  );
+}
+
+function mensajeSubir(fallo: FalloSubir | string): string {
+  if (typeof fallo === 'string') return fallo;
+  switch (fallo.tipo) {
+    case 'conexion':
+      return mensaje(fallo.fallo);
+    case 'sin_entrar':
+      return t('subir.fallo_sin_entrar');
+    case 'sin_item':
+      return t('subir.fallo_sin_item');
+    case 'cambiado':
+      return t('subir.fallo_cambiado', {motivo: fallo.motivo});
+    case 'otro':
+      return fallo.detalle;
+  }
+}

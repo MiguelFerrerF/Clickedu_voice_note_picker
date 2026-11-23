@@ -45,6 +45,7 @@ pub fn run() {
         .manage(sesion::Cerrojo::default())
         .manage(commands::clickedu::Sesion::default())
         .manage(commands::clickedu::Traidas::default())
+        .manage(commands::subir::Subidas::default())
         .manage(std::sync::Arc::new(commands::voz::Voz::default()))
         .invoke_handler(tauri::generate_handler![
             commands::clases::listar_clases,
@@ -84,6 +85,10 @@ pub fn run() {
             commands::clickedu::confirmar_traer,
             commands::clickedu::replanear_traer,
             commands::clickedu::cancelar_traer,
+            commands::subir::preparar_subida,
+            commands::subir::confirmar_subida,
+            commands::subir::cancelar_subida,
+            commands::subir::abrir_importar_en_clickedu,
         ])
         .setup(|app| {
             // El registro (D8), lo primero: así se apunta cualquier fallo,

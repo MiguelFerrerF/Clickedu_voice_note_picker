@@ -17,6 +17,8 @@
 //! - [`traer`] — traer las plantillas (H5): el nombre de cada fichero.
 //! - [`items`] — los ítems de cada materia, leídos al traer y guardados
 //!   para calificar por ítem (H6).
+//! - [`subir`] — subir las notas a un ítem: leer antes, subir, importar y
+//!   comprobar (H6).
 //!
 //! El cliente se prueba contra un Clickedu falso con páginas inventadas
 //! ([`falso`]); las fichas y la huella, con páginas **de verdad,
@@ -33,6 +35,7 @@ pub mod cuenta;
 pub mod fichas;
 pub mod huella;
 pub mod items;
+pub mod subir;
 pub mod tapar;
 pub mod traer;
 

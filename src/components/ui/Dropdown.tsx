@@ -241,7 +241,9 @@ export function Dropdown({
               borderRadius: 8,
               boxShadow: '0 6px 20px oklch(0 0 0 / 0.18)',
               padding: 4,
-              zIndex: 1000,
+              // Por encima del `Modal` (1200): también se abre dentro de un
+              // diálogo (subir a Clickedu, H6).
+              zIndex: 1300,
             }}>
             {opts.map((o, i) => {
               const sel = o.value === String(value);

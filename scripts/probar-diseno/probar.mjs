@@ -202,6 +202,7 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
   // Los callbacks, por id: los `Channel` reciben por aquí (el nivel del micrófono).
   const callbacks = {};
   let midiendo;
+  let subirSinItem = false;
   let microfono = auriculares ? {id: 'wasapi:{0.0.1.00000000}.{sony}', nombre: 'Auriculares (WH-1000XM4)'} : null;
   window.__TAURI_INTERNALS__ = {
     transformCallback: (callback) => {
@@ -410,6 +411,40 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
           };
         }
         case 'cancelar_traer':
+          return null;
+        // H6: subir. En «Examen tema 3», dos que cambiarían y sale bien; sin
+        // ítem (se elige al subir), sin nada que pisar y falla al importar.
+        case 'preparar_subida': {
+          await new Promise((r) => setTimeout(r, 400));
+          subirSinItem = !args.item;
+          return {
+            item: subirSinItem ? 'Proyecto de investigación sobre la fotosíntesis' : 'Examen tema 3',
+            evaluacion: '2ª evaluación',
+            alumnos: 26,
+            conNota: 9,
+            nuevas: subirSinItem ? 9 : 5,
+            iguales: subirSinItem ? 0 : 2,
+            cambiarian: subirSinItem
+              ? []
+              : [
+                  {nombre: 'Alonso Ferrández de la Fuente, María del Carmen', antes: '7.50', nueva: 8},
+                  {nombre: 'Castro Molina, Lucía', antes: 'NP', nueva: 5.25},
+                ],
+            excel: `${ruta.replace(/plantillas$/, 'notas')}\\notas_matematicas_3_a_eso.xlsx`,
+          };
+        }
+        case 'confirmar_subida': {
+          const avisar = callbacks[args.avance.id];
+          const pasos = ['subir', 'importar', 'comprobar'];
+          for (let i = 0; i < (subirSinItem ? 2 : 3); i++) {
+            avisar({index: i, message: pasos[i]});
+            await new Promise((r) => setTimeout(r, 700));
+          }
+          if (subirSinItem)
+            throw {tipo: 'cambiado', paso: 'importar', motivo: 'el fichero subido no tiene el enlace para importarlo'};
+          return {entraron: 8, noEntraron: ['Castro Molina, Lucía'], avisos: []};
+        }
+        case 'cancelar_subida':
           return null;
         case 'exportar_clase':
           return {
@@ -704,6 +739,47 @@ const PRUEBAS = [
       await calificar.getByText('Sin ítem: el ítem se elige al subir').waitFor();
       await page.waitForTimeout(250);
       await paso('sin-item');
+    },
+  },
+  {
+    // H6: subir a un ítem, con dos que cambiarían, y sin ítem, eligiéndolo
+    // al subir, con el fallo y el plan B.
+    nombre: 'subir',
+    items: true,
+    async probar(page, paso) {
+      await ir(page, 'Clases', 'clases');
+      const main = page.locator('[data-pantalla="clases"]');
+      await main.locator('.fila-clase').filter({hasText: 'Matemáticas 3.º A ESO'}).click();
+      await main.getByRole('button', {name: /Examen tema 3/}).click();
+      const calificar = page.locator('[data-pantalla="calificar"]');
+      await calificar.locator('h1', {hasText: 'Examen tema 3'}).waitFor();
+      await calificar.getByRole('button', {name: 'Subir a Clickedu'}).click();
+      const dialogo = page.getByRole('dialog');
+      await dialogo.getByText('Mirando lo que ya hay').waitFor();
+      await paso('leyendo');
+      await dialogo.getByText('y se cambiaría').waitFor();
+      await paso('previa');
+      await dialogo.getByRole('button', {name: 'Subir 9 y cambiarlas'}).click();
+      await dialogo.getByText('Importando').waitFor();
+      await paso('subiendo');
+      await dialogo.getByText('Tras importar').waitFor();
+      await paso('hecho');
+      await dialogo.getByRole('button', {name: 'Cerrar'}).click();
+      // Sin ítem: se elige al subir.
+      await calificar.getByRole('button', {name: 'Examen tema 3'}).click();
+      await page.getByRole('button', {name: 'Sin ítem', exact: true}).last().click();
+      await calificar.getByText('Sin ítem: el ítem se elige al subir').waitFor();
+      await calificar.getByRole('button', {name: 'Subir a Clickedu'}).click();
+      await dialogo.getByText('¿A qué ítem').waitFor();
+      await paso('elegir');
+      await dialogo.getByRole('button', {name: 'Elige el ítem'}).click();
+      await page.getByRole('button', {name: /^Proyecto/}).last().click();
+      await page.waitForTimeout(250);
+      await paso('elegido');
+      await dialogo.getByRole('button', {name: 'Seguir'}).click();
+      await dialogo.getByRole('button', {name: 'Subir 9 notas'}).click();
+      await dialogo.getByText('Abrir la página de importar').waitFor();
+      await paso('fallo');
     },
   },
   {

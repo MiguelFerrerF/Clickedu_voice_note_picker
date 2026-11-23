@@ -17,6 +17,7 @@ pub mod clickedu;
 pub mod migracion;
 pub mod notas;
 pub mod registro;
+pub mod subir;
 pub mod voz;
 
 use std::path::PathBuf;

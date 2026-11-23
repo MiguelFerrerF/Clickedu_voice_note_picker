@@ -168,6 +168,22 @@ pub fn guardar(ruta: &Path, nuevos: BTreeMap<String, ItemsMateria>) -> Result<()
     guardar_json(ruta, &g).map_err(|e| format!("no se pueden guardar los ítems en {}: {e}", ruta.display()))
 }
 
+/// Pone las notas de Clickedu del ítem `item` de `materia`, recién leídas
+/// (al subir). Si no está guardado, nada: se verá al traer.
+pub fn poner_notas(ruta: &Path, materia: &str, item: &str, notas: BTreeMap<String, String>) -> Result<(), String> {
+    let mut g = leer(ruta).unwrap_or_default();
+    let Some(i) = g
+        .materias
+        .get_mut(materia)
+        .and_then(|m| m.evaluaciones.iter_mut().flat_map(|e| e.items.iter_mut()).find(|i| i.id == item))
+    else {
+        return Ok(());
+    };
+    i.en_clickedu = notas.len();
+    i.notas = notas;
+    guardar_json(ruta, &g).map_err(|e| format!("no se pueden guardar los ítems en {}: {e}", ruta.display()))
+}
+
 // ───────────────────────── Para Clases ─────────────────────────
 
 /// Los ítems de una clase, como los pinta Clases
