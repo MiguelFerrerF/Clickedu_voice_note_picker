@@ -147,9 +147,11 @@ export function Dropdown({
 
   // El título: el texto donde estaría sin botón (el margen negativo
   // compensa el relleno). El fondo al pasar, que dice que se pulsa, y el
-  // foco, en `.titulo-desplegable` de `globals.css`.
+  // foco, en `.titulo-desplegable` de `globals.css`. Hasta el 100 % más
+  // los dos márgenes: con menos, en una caja a su ancho natural (el título
+  // de Calificar con su ítem, H6) se corta aunque quepa.
   const estiloTitulo: CSSProperties = {
-    maxWidth: 'calc(100% + 10px)',
+    maxWidth: 'calc(100% + 20px)',
     display: 'inline-flex',
     alignItems: 'center',
     gap: 8,

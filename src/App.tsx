@@ -11,8 +11,8 @@
  *   primera vez que se visitan, no al arrancar. **No guardes en el `useState`
  *   de una pantalla nada que dependa de que se desmonte.**
  * - Cada pantalla lleva su propio scroll.
- * - Lo que comparten dos pantallas vive aquí: la clase que se califica
- *   (la eligen Calificar y Clases).
+ * - Lo que comparten dos pantallas vive aquí: la clase que se califica y,
+ *   de cada clase, el ítem de Clickedu (H6; los eligen Calificar y Clases).
  * - Al arrancar (H7) se traen los datos de la v1.3.4 si está instalada, y se
  *   pregunta si hay una versión nueva. Sin conexión no se dice nada: es lo
  *   normal en un portátil. Primero un diálogo y luego el otro.
@@ -32,16 +32,21 @@ import {Clases} from '@screens/Clases';
 import {Clickedu} from '@screens/Clickedu';
 import {Estadisticas} from '@screens/Estadisticas';
 import {Muestrario} from '@screens/Muestrario';
+import type {ItemElegido} from '@modules/clases/tipos';
 import {PANTALLA_INICIAL, type PantallaId} from '@/types/pantalla';
 
 export default function App() {
   const [pantalla, setPantalla] = useState<PantallaId>(PANTALLA_INICIAL);
-  const [visitadas, setVisitadas] = useState<ReadonlySet<PantallaId>>(
-    () => new Set([PANTALLA_INICIAL]),
-  );
+  const [visitadas, setVisitadas] = useState<ReadonlySet<PantallaId>>(() => new Set([PANTALLA_INICIAL]));
 
   // La clase que se está calificando: la eligen Calificar y Clases.
   const [clase, setClase] = useState<string | null>(null);
+  // El ítem de cada clase (H6), por fichero; `null`, sin ítem.
+  const [items, setItems] = useState<Record<string, ItemElegido | null>>({});
+  const elegirItem = useCallback(
+    (fichero: string, item: ItemElegido | null) => setItems((m) => ({...m, [fichero]: item})),
+    [],
+  );
 
   useEffect(() => {
     setVisitadas((v) => (v.has(pantalla) ? v : new Set(v).add(pantalla)));
@@ -75,13 +80,21 @@ export default function App() {
     switch (id) {
       case 'calificar':
         return (
-          <Calificar visible={pantalla === 'calificar'} clase={clase} setClase={setClase} irAAjustes={irAAjustes} />
+          <Calificar
+            visible={pantalla === 'calificar'}
+            clase={clase}
+            setClase={setClase}
+            items={items}
+            elegirItem={elegirItem}
+            irAAjustes={irAAjustes}
+          />
         );
       case 'clases':
         return (
           <Clases
-            abrir={(fichero) => {
+            abrir={(fichero, item) => {
               setClase(fichero);
+              if (item !== undefined) elegirItem(fichero, item);
               setPantalla('calificar');
             }}
             irAAjustes={irAAjustes}

@@ -53,9 +53,11 @@ const TAMANOS = [
  * en Ajustes son unos auriculares que no están conectados; `actualizacion`,
  * si hay una versión nueva al arrancar (H7); `v1`, si la v1.3.4 está
  * instalada: `traida` (con una renombrada y la carpeta cambiada) o `fallo`;
- * `clickedu`, si ya hay una cuenta de Clickedu guardada (H4).
+ * `clickedu`, si ya hay una cuenta de Clickedu guardada (H4); `items`, si
+ * las clases traen sus ítems de Clickedu (H6): sin ellos, es quien no se
+ * conecta.
  */
-function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu}) {
+function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, items}) {
   let n = 1;
   const ruta = 'C:\\Users\\profesora\\Documents\\Gestor de Notas\\plantillas';
   const bien = (alumnos, calificados, avisos = 0) => ({tipo: 'bien', alumnos, calificados, avisos});
@@ -68,6 +70,33 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu}) {
     {fichero: 'matematicas_3_b_eso.xlsx', nombre: 'Matemáticas 3.º B ESO', lectura: bien(25, 25)},
     {fichero: 'Pendiente - Física y Química - 2º ESO.xlsx', nombre: 'Pendiente - Física y Química - 2º ESO', lectura: bien(3, 1)},
   ].map((c) => ({...c, pendiente: c.fichero.startsWith('Pendiente - ')}));
+  // H6: los ítems, por evaluación. En Matemáticas 3.º A, la 1.ª ya subida,
+  // la 2.ª en curso (con un nombre largo y uno sin ponderación) y la 3.ª
+  // sin ítems; la de nombre largo, con dos.
+  const item = (id, nombre, ponderacion, enClickedu = 0, calificados = 0) => ({id, nombre, ponderacion, enClickedu, calificados});
+  const ev = (id, nombre, enCurso, lista) => ({id, nombre, enCurso, items: lista});
+  const ITEMS = {
+    'matematicas_3_a_eso.xlsx': [
+      ev('322', 'Primera evaluación', false, [
+        item('41810', 'Examen tema 1', 40, 26, 26),
+        item('41811', 'Examen tema 2', 40, 26, 26),
+        item('41812', 'Cuaderno', 20, 25),
+      ]),
+      ev('323', 'Segunda evaluación', true, [
+        item('42690', 'Examen tema 3', 40, 0, 8),
+        item('42691', 'Proyecto: la estadística del patio, con encuestas a todos los cursos del instituto', 20),
+        item('42692', 'Cuaderno', 10, 4),
+        item('42693', 'Actitud en clase', null),
+      ]),
+      ev('324', 'Tercera evaluación', false, []),
+    ],
+    [`${largo}.xlsx`]: [
+      ev('323', 'Segona avaluació', true, [item('42710', 'Pràctica de laboratori 2', 50, 0, 12), item('42711', 'Examen', 50)]),
+    ],
+    'Pendiente - Física y Química - 2º ESO.xlsx': [ev('330', 'Pendientes', true, [item('42800', 'Cuadernillo de recuperación', 100, 0, 1)])],
+  };
+  if (items)
+    for (const c of CLASES) if (ITEMS[c.fichero]) c.items = {traidos: 1795392000, evaluaciones: ITEMS[c.fichero]};
   const NOMBRES = [
     'Castro Molina, Lucía', 'Martínez Ruiz, Hugo', 'Ramos Ortega, Martina', 'Navarro Gil, Mateo',
     'Pérez Gómez, Irene', 'Ionescu, Ștefan', 'Nowak, Łukasz', 'Fernández de la Fuente Villalobos, María Inmaculada',
@@ -601,6 +630,44 @@ const PRUEBAS = [
     },
   },
   {
+    // H6: las clases con sus ítems de Clickedu. Desplegar una (la
+    // evaluación en curso, abierta), abrir otra evaluación, pulsar un ítem
+    // y, en Calificar, el desplegable del ítem; volver a «Sin ítem».
+    nombre: 'clases-items',
+    items: true,
+    async probar(page, paso) {
+      await ir(page, 'Clases', 'clases');
+      const main = page.locator('[data-pantalla="clases"]');
+      await main.locator('.fila-clase').filter({hasText: 'Matemáticas 3.º A ESO'}).click();
+      await main.getByRole('button', {name: /Examen tema 3/}).waitFor();
+      await main.locator('.fila-clase').filter({hasText: 'Segona avaluació'}).waitFor({state: 'detached'});
+      await page.waitForTimeout(200);
+      await paso('desplegada');
+      await main.getByRole('button', {name: /Primera evaluación/}).click();
+      await main.getByRole('button', {name: /Examen tema 1/}).waitFor();
+      await page.waitForTimeout(200);
+      await paso('dos-evaluaciones');
+      await main.getByRole('button', {name: /Examen tema 3/}).click();
+      const calificar = page.locator('[data-pantalla="calificar"]');
+      await calificar.locator('h1', {hasText: 'Examen tema 3'}).waitFor();
+      await calificar.getByText('Segunda evaluación · 40 %').waitFor();
+      await paso('en-un-item');
+      await calificar.getByRole('button', {name: 'Examen tema 3'}).click();
+      await page.waitForTimeout(150);
+      await paso('desplegable-item');
+      await page.getByRole('button', {name: /^Proyecto/}).last().click();
+      await calificar.getByText('Segunda evaluación · 20 %').waitFor();
+      // El galón, que gira al cerrar la lista: ya quieto.
+      await page.waitForTimeout(250);
+      await paso('item-largo');
+      await calificar.getByRole('button', {name: /^Proyecto/}).click();
+      await page.getByRole('button', {name: 'Sin ítem', exact: true}).last().click();
+      await calificar.getByText('Sin ítem: el ítem se elige al subir').waitFor();
+      await page.waitForTimeout(250);
+      await paso('sin-item');
+    },
+  },
+  {
     nombre: 'sin-plantillas',
     carpeta: 'vacia',
     async probar(page, paso) {
@@ -850,6 +917,7 @@ try {
         actualizacion: prueba.actualizacion ?? false,
         v1: prueba.v1 ?? null,
         clickedu: prueba.clickedu ?? false,
+        items: prueba.items ?? false,
       });
       page.on('pageerror', (e) => fallos.push(`${prueba.nombre} ${tam}: error en la página: ${e.message}`));
       await page.goto(`http://localhost:${PUERTO}/`);

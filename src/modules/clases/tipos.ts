@@ -11,8 +11,7 @@ export interface CarpetaPlantillas {
 }
 
 export type Lectura =
-  | {tipo: 'bien'; alumnos: number; calificados: number; avisos: number}
-  | {tipo: 'mal'; error: string};
+  {tipo: 'bien'; alumnos: number; calificados: number; avisos: number} | {tipo: 'mal'; error: string};
 
 export interface Clase {
   /** El nombre del fichero, que es también su identificador. */
@@ -22,6 +21,57 @@ export interface Clase {
   /** De otro curso (su fichero empieza por `Pendiente - `): va aparte. */
   pendiente: boolean;
   lectura: Lectura;
+  /**
+   * Sus ítems de Clickedu, guardados al traer (H6). `null` si no se han
+   * traído nunca (quien no se conecta, o una plantilla puesta a mano): se
+   * califica sin ítem, como en la v1. Opcional mientras `listar_clases`
+   * no lo mande (lo visual de H6 va antes que el backend).
+   */
+  items?: ItemsClase | null;
+}
+
+/** Los ítems de una clase, por evaluación, tal como estaban al traer (H6). */
+export interface ItemsClase {
+  /** Cuándo se trajeron (segundos Unix): sin conexión, se enseña. */
+  traidos: number;
+  evaluaciones: EvaluacionItems[];
+}
+
+export interface EvaluacionItems {
+  id: string;
+  nombre: string;
+  /** La de hoy, por sus fechas: se enseña abierta. */
+  enCurso: boolean;
+  items: ItemClickedu[];
+}
+
+/** Un ítem de Clickedu: a él se suben las notas (`docs/03`). */
+export interface ItemClickedu {
+  id: string;
+  nombre: string;
+  /** En %, de la tabla de Ítems; `null` si no se ha podido leer. */
+  ponderacion: number | null;
+  /** Cuántos alumnos tenían ya nota en Clickedu en este ítem, al traer. */
+  enClickedu: number;
+  /** Cuántos tienen nota en la sesión de este ítem. */
+  calificados: number;
+}
+
+/** El ítem en el que se califica una clase. */
+export interface ItemElegido {
+  evaluacion: string;
+  item: string;
+}
+
+/** El ítem y su evaluación, si `elegido` sigue entre los de la clase. */
+export function buscarItem(
+  items: ItemsClase | null | undefined,
+  elegido: ItemElegido | null | undefined,
+): {evaluacion: EvaluacionItems; item: ItemClickedu} | undefined {
+  if (!items || !elegido) return undefined;
+  const evaluacion = items.evaluaciones.find((e) => e.id === elegido.evaluacion);
+  const item = evaluacion?.items.find((i) => i.id === elegido.item);
+  return evaluacion && item ? {evaluacion, item} : undefined;
 }
 
 export interface ListaClases {
