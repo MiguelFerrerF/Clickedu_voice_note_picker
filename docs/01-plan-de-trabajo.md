@@ -590,6 +590,10 @@ Ninguna rompe D5/D6 ni añade tokens. **Cerrado por el usuario el
       ventana entera (el 18), según vayan saliendo cosas nuevas (H4–H8) se
       vuelve a mirar cómo se orientan y reparten los elementos de cada
       pantalla. No se hace nada hasta que haga falta.
+- [ ] **En espera: una pantalla de inicio** (pedida el 2026-11-24). Abrir
+      la app en Calificar con la primera clase no tenía sentido; desde la
+      `v2.1.0` abre en Clases, que hace de resumen. Una pantalla propia
+      (qué enseña, dónde va en la barra lateral), se planifica más adelante.
 
 - [x] **Compactar la cuadrícula** (2026-11-19): dos columnas desde 760 px,
       filas de 32, sin caja en la nota vacía (era la 7). Ver `docs/02` §3.

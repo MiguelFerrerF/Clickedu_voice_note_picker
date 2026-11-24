@@ -312,7 +312,7 @@ function Bloque({c, evaluacion, abrir, ultima, abierta, alternar}: BloqueProps) 
   const raya = ultima ? 'none' : '1px solid var(--border)';
   const nombre = (
     <span style={{minWidth: 0, display: 'flex', alignItems: 'baseline', gap: 10}} title={c.fichero}>
-      <span style={{fontSize: 13.5, fontWeight: 600, color: 'var(--text-primary)', ...cortar}}>{c.nombre}</span>
+      <span style={{fontSize: 13.5, color: 'var(--text-primary)', ...cortar}}>{c.nombre}</span>
       {n > 0 && (
         <span style={{flexShrink: 0, fontSize: 12, color: 'var(--text-tertiary)', whiteSpace: 'nowrap'}}>
           {n === 1 ? t('clases.un_item') : t('clases.n_items', {n})}

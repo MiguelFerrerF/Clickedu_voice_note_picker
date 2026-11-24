@@ -17,5 +17,9 @@ export type PantallaId =
   | 'ajustes'
   | 'muestrario';
 
-/** La pantalla con la que abre la app: a lo que se viene. */
-export const PANTALLA_INICIAL: PantallaId = 'calificar';
+/**
+ * La pantalla con la que abre la app: Clases, el resumen de lo que hay, y de
+ * ahí se elige qué calificar (abrir sin más la primera clase no tenía
+ * sentido). Una pantalla de inicio propia, más adelante (`docs/01`).
+ */
+export const PANTALLA_INICIAL: PantallaId = 'clases';

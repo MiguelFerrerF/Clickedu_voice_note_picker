@@ -538,6 +538,7 @@ const PRUEBAS = [
   {
     nombre: 'calificar',
     async probar(page, paso) {
+      await ir(page, 'Calificar', 'calificar');
       // Sin clase elegida enseña la primera; desde el desplegable, otra.
       const main = page.locator('[data-pantalla="calificar"]');
       await main.getByRole('row').first().waitFor();
@@ -570,6 +571,7 @@ const PRUEBAS = [
     // H2: escribir notas, una que no es nota, y exportar bien y mal.
     nombre: 'notas',
     async probar(page, paso) {
+      await ir(page, 'Calificar', 'calificar');
       const main = page.locator('[data-pantalla="calificar"]');
       const campo = (nombre) => main.getByRole('textbox', {name: `Nota de ${nombre}`});
       await campo('Castro Molina, Lucía').fill('7,5');
@@ -607,6 +609,7 @@ const PRUEBAS = [
     // encima de las apuntadas.
     nombre: 'dictado',
     async probar(page, paso) {
+      await ir(page, 'Calificar', 'calificar');
       const main = page.locator('[data-pantalla="calificar"]');
       await main.getByRole('button', {name: 'Biología 1.º AB Bachillerato'}).click();
       await page.getByRole('button', {name: 'Matemáticas 3.º A ESO', exact: true}).last().click();
@@ -651,6 +654,7 @@ const PRUEBAS = [
     // lo apuntado y una pulsación corta.
     nombre: 'voz',
     async probar(page, paso) {
+      await ir(page, 'Calificar', 'calificar');
       const main = page.locator('[data-pantalla="calificar"]');
       await main.getByText('di el alumno y la nota', {exact: false}).waitFor();
       await paso('reposo');
@@ -676,6 +680,7 @@ const PRUEBAS = [
     nombre: 'sin-modelo',
     modelo: false,
     async probar(page, paso) {
+      await ir(page, 'Calificar', 'calificar');
       const main = page.locator('[data-pantalla="calificar"]');
       await main.getByRole('button', {name: 'Descargar el modelo de voz'}).waitFor();
       await paso('falta');
@@ -790,6 +795,7 @@ const PRUEBAS = [
     nombre: 'sin-plantillas',
     carpeta: 'vacia',
     async probar(page, paso) {
+      await ir(page, 'Calificar', 'calificar');
       await page.locator('[data-pantalla="calificar"]').getByText('Todavía no hay').waitFor();
       await paso('calificar');
       await ir(page, 'Clases', 'clases');
@@ -801,6 +807,7 @@ const PRUEBAS = [
     nombre: 'carpeta-perdida',
     carpeta: 'no_existe',
     async probar(page, paso) {
+      await ir(page, 'Calificar', 'calificar');
       await page.locator('[data-pantalla="calificar"]').getByText('ya no existe').first().waitFor();
       await paso('calificar');
       await ir(page, 'Ajustes', 'ajustes');
@@ -838,6 +845,7 @@ const PRUEBAS = [
     nombre: 'microfono-falta',
     auriculares: true,
     async probar(page, paso) {
+      await ir(page, 'Calificar', 'calificar');
       const main = page.locator('[data-pantalla="calificar"]');
       await main.getByText('No está conectado', {exact: false}).waitFor();
       await paso('calificar');
