@@ -149,6 +149,12 @@ cambia del plan»). Son tres pasos, y los tres escriben:
    quedaron las 3 subidas). Por eso la app pone en el Excel la nota de
    Clickedu de quien no tiene en la app (`subir::completar`); la que no
    es un número (un «NP») no cabe y se avisa antes de que se borre.
+   **Lo subido se guarda con su nombre**, sin acentos y con el ítem
+   (`notas_QuAmica_2A_Bach_QUAMICA_2_42700xlsx`), y **otro con el mismo
+   nombre en el mismo ítem se rechaza** con `alert("Archivo incorrecto")`
+   mientras el primero siga en la tabla (2026-11-24). La app sube cada vez
+   con un nombre distinto, sin acentos y con la hora
+   (`subir::nombre_subida`).
 3. **Eliminar** no es un enlace: es `<a class="BotoEsborrarImportacio"
    cgap="N" aval="T" ind="S">`, y el JS, tras un `confirm`, va a
    `accio=esborrar_arxiu&assig=N&id_aval=T&id=S` (`GET`):

@@ -308,6 +308,43 @@ pub fn comparar(app: &BTreeMap<String, f64>, clickedu: &BTreeMap<String, String>
     c
 }
 
+/// El nombre del Excel al subirlo: **distinto cada vez** y sin acentos.
+/// Clickedu guarda lo subido con su nombre (sin acentos y con el ítem:
+/// `notas_QuAmica_2A_…_42700xlsx`) y rechaza otro que se llame igual con
+/// «Archivo incorrecto» (2026-11-24): la segunda subida al mismo ítem
+/// fallaba. Con la hora (UTC) al segundo, no se repite.
+pub fn nombre_subida(fichero: &str, cuando: u64) -> String {
+    let base = std::path::Path::new(fichero).file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
+    let mut limpio = String::new();
+    for c in base.chars() {
+        let c = match c {
+            'á' | 'à' | 'ä' | 'â' | 'ª' => 'a',
+            'Á' | 'À' | 'Ä' | 'Â' => 'A',
+            'é' | 'è' | 'ë' | 'ê' => 'e',
+            'É' | 'È' | 'Ë' | 'Ê' => 'E',
+            'í' | 'ì' | 'ï' | 'î' => 'i',
+            'Í' | 'Ì' | 'Ï' | 'Î' => 'I',
+            'ó' | 'ò' | 'ö' | 'ô' | 'º' => 'o',
+            'Ó' | 'Ò' | 'Ö' | 'Ô' => 'O',
+            'ú' | 'ù' | 'ü' | 'û' => 'u',
+            'Ú' | 'Ù' | 'Ü' | 'Û' => 'U',
+            'ñ' => 'n',
+            'Ñ' => 'N',
+            'ç' => 'c',
+            'Ç' => 'C',
+            c if c.is_ascii_alphanumeric() => c,
+            _ => '_',
+        };
+        if !(c == '_' && (limpio.is_empty() || limpio.ends_with('_'))) {
+            limpio.push(c);
+        }
+    }
+    let limpio = limpio.trim_end_matches('_');
+    let (a, m, d) = crate::registro::fecha(cuando);
+    let s = cuando % 86_400;
+    format!("notas_{limpio}_{a:04}{m:02}{d:02}-{:02}{:02}{:02}.xlsx", s / 3600, s / 60 % 60, s % 60)
+}
+
 /// Lo que el Excel lleva además de las notas de la app.
 #[derive(Debug, Default, PartialEq)]
 pub struct Completado {
@@ -482,15 +519,25 @@ mod tests {
     fn con_lo_subido_de_antes_importa_solo_el_nuevo() {
         let (f, cliente) = entrado(Modo::Normal);
         let d = destino();
-        for nota in [5.0, 9.0] {
+        // El mismo nombre dos veces, Clickedu lo rechaza («Archivo incorrecto»).
+        let antes = tauri::async_runtime::block_on(leer_antes(&cliente, &d)).unwrap();
+        let mismo =
+            tauri::async_runtime::block_on(subir(&cliente, &d, &antes, ("n.xlsx", excel(&[("5002", 1.0)])), |_| {}));
+        assert!(mismo.is_ok());
+        let antes = tauri::async_runtime::block_on(leer_antes(&cliente, &d)).unwrap();
+        let mismo =
+            tauri::async_runtime::block_on(subir(&cliente, &d, &antes, ("n.xlsx", excel(&[("5002", 2.0)])), |_| {}));
+        assert!(matches!(mismo, Err(FalloSubir::Cambiado { paso: Paso::Subir, .. })), "{mismo:?}");
+        for (cuando, nota) in [(1, 5.0), (2, 9.0)] {
             let antes = tauri::async_runtime::block_on(leer_antes(&cliente, &d)).unwrap();
             let contenido = excel(&[("5002", nota)]);
-            let s = tauri::async_runtime::block_on(subir(&cliente, &d, &antes, ("n.xlsx", contenido), |_| {})).unwrap();
+            let nombre = nombre_subida("p.xlsx", cuando);
+            let s = tauri::async_runtime::block_on(subir(&cliente, &d, &antes, (&nombre, contenido), |_| {})).unwrap();
             assert_eq!(s.despues.get("5002").and_then(|t| numero(t)), Some(nota));
         }
         let importados: Vec<String> = f.pedidas().into_iter().filter(|p| p.contains("accio=importar_notes")).collect();
-        assert_eq!(importados.len(), 2);
-        assert_ne!(importados[0], importados[1]);
+        assert_eq!(importados.len(), 3);
+        assert_ne!(importados[1], importados[2]);
     }
 
     /// Lo que pasó de verdad (2026-11-24): importar reemplaza el ítem
@@ -595,5 +642,13 @@ mod tests {
     fn borradas_son_las_que_ya_no_estan() {
         let m = |v: &[&str]| v.iter().map(|id| (id.to_string(), "5".to_string())).collect::<BTreeMap<_, _>>();
         assert_eq!(borradas(&m(&["1", "2", "3"]), &m(&["2"])), ["1", "3"]);
+    }
+
+    #[test]
+    fn el_nombre_al_subir_es_ascii_y_cambia_cada_vez() {
+        let n = nombre_subida("Química - 2º Bach (QUÍMICA 2).xlsx", 1_795_504_660);
+        assert_eq!(n, "notas_Quimica_2o_Bach_QUIMICA_2_20261124-071740.xlsx");
+        assert!(n.is_ascii());
+        assert_ne!(n, nombre_subida("Química - 2º Bach (QUÍMICA 2).xlsx", 1_795_504_661));
     }
 }

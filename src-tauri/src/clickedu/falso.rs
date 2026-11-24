@@ -209,6 +209,9 @@ struct Estado {
     /// Lo subido: su número, su ítem, sus notas (por `Id`) y si se ha
     /// importado.
     subidos: Vec<(u32, String, Vec<(String, String)>, bool)>,
+    /// El nombre de cada subido, con su ítem: como el de verdad, otro con
+    /// el mismo nombre en el mismo ítem es «Archivo incorrecto».
+    nombres: std::collections::BTreeSet<(String, String)>,
     /// Lo importado, por alumno e ítem: va en `nota_mod`.
     importadas: std::collections::BTreeMap<(String, String), String>,
     /// Los ítems ya importados: como en el de verdad, importar **reemplaza
@@ -224,6 +227,10 @@ impl Estado {
         let (Some(item), Some(fichero)) = (item, campo(cuerpo, "v_arxiu_importar")) else {
             return r#"<html><script>alert("Faltan datos")</script></html>"#.into();
         };
+        let nombre = nombre_de_fichero(cuerpo);
+        if !self.nombres.insert((item.clone(), nombre)) {
+            return r#"<html><script>alert("Archivo incorrecto")</script></html>"#.into();
+        }
         let Ok(mut libro) = calamine::Xlsx::new(std::io::Cursor::new(fichero.to_vec())) else {
             return r#"<html><script>alert("El fichero no es correcto")</script></html>"#.into();
         };
@@ -301,6 +308,12 @@ impl Estado {
         }
         serde_json::Value::Array(filas).to_string()
     }
+}
+
+/// El `filename` del fichero de un *multipart*.
+fn nombre_de_fichero(cuerpo: &[u8]) -> String {
+    let t = String::from_utf8_lossy(cuerpo);
+    t.split("filename=\"").nth(1).and_then(|r| r.split('"').next()).unwrap_or_default().to_string()
 }
 
 /// El valor del campo `nombre` de un *multipart*, tal cual.

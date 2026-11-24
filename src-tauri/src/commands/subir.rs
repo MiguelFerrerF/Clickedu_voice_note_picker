@@ -211,7 +211,7 @@ async fn preparar(
         let e = exportar::exportar(&plantilla, &c.puestas, &fichero_clase, &carpeta_notas(&a)?)
             .map_err(|e| e.to_string())?;
         let contenido = std::fs::read(&e.ruta).map_err(|err| format!("no se puede leer {}: {err}", e.ruta))?;
-        Ok::<_, String>((c, (exportar::nombre_exportado(&fichero_clase), contenido), e.ruta))
+        Ok::<_, String>((c, (subir::nombre_subida(&fichero_clase, ahora()), contenido), e.ruta))
     })
     .await?;
 
