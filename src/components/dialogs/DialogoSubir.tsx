@@ -45,7 +45,8 @@ type Fase =
   | {tipo: 'previa'; previa: PreviaSubir}
   | {tipo: 'subiendo'; previa: PreviaSubir; paso: PasoSubir}
   | {tipo: 'hecho'; previa: PreviaSubir; subido: Subido}
-  | {tipo: 'fallo'; fallo: FalloSubir | string; previa?: PreviaSubir};
+  // `paso`: si falló subiendo, en qué paso (la lista de pasos se queda).
+  | {tipo: 'fallo'; fallo: FalloSubir | string; previa?: PreviaSubir; paso?: PasoSubir};
 
 const PASOS: PasoSubir[] = ['subir', 'importar', 'comprobar'];
 
@@ -68,11 +69,20 @@ export function DialogoSubir({fichero, item, items, onClose}: DialogoSubirProps)
 
   function subir(previa: PreviaSubir) {
     setFase({tipo: 'subiendo', previa, paso: 'subir'});
+    let ultimo: PasoSubir = 'subir';
     const canal = new Channel<PasoSubir>();
-    canal.onmessage = (paso) => setFase((f) => (f.tipo === 'subiendo' ? {...f, paso} : f));
+    canal.onmessage = (paso) => {
+      ultimo = paso;
+      setFase((f) => (f.tipo === 'subiendo' ? {...f, paso} : f));
+    };
     invoke<Subido>('confirmar_subida', {avance: canal}).then(
       (subido) => setFase({tipo: 'hecho', previa, subido}),
-      (e) => setFase({tipo: 'fallo', fallo: e as FalloSubir | string, previa}),
+      (e) => {
+        const fallo = e as FalloSubir | string;
+        // El paso del fallo, si lo dice; si no, el último que llegó.
+        const paso = typeof fallo === 'object' && 'paso' in fallo && fallo.paso !== 'leer' ? fallo.paso : ultimo;
+        setFase({tipo: 'fallo', fallo, previa, paso});
+      },
     );
   }
 
@@ -104,9 +114,20 @@ export function DialogoSubir({fichero, item, items, onClose}: DialogoSubirProps)
           </div>
         )}
         {fase.tipo === 'previa' && <Previa previa={fase.previa} />}
-        {fase.tipo === 'subiendo' && <Subiendo paso={fase.paso} />}
-        {fase.tipo === 'hecho' && <Hecho previa={fase.previa} subido={fase.subido} />}
-        {fase.tipo === 'fallo' && <Fallo fallo={fase.fallo} previa={fase.previa} fichero={fichero} destino={destino} />}
+        {fase.tipo === 'subiendo' && <Pasos paso={fase.paso} estado="curso" />}
+        {/* El resultado, debajo de los pasos: la misma ventana, no otra. */}
+        {fase.tipo === 'hecho' && (
+          <>
+            <Pasos paso="comprobar" estado="hecho" />
+            <Hecho previa={fase.previa} subido={fase.subido} />
+          </>
+        )}
+        {fase.tipo === 'fallo' && (
+          <>
+            {fase.paso && <Pasos paso={fase.paso} estado="fallo" />}
+            <Fallo fallo={fase.fallo} previa={fase.previa} fichero={fichero} destino={destino} />
+          </>
+        )}
       </div>
       <Pie>
         {fase.tipo === 'elegir' && (
@@ -149,21 +170,24 @@ const ROTULOS: Record<PasoSubir, string> = {
 };
 
 /**
- * Mientras sube: la barra se mueve siempre (subir el Excel es lo que más
- * tarda y, con el porcentaje, se quedaba vacía y quieta, como colgada), los
- * pasos con ✓ los hechos y los segundos que lleva: se ve que sigue.
+ * Los pasos de subir. Mientras sube (`curso`): la barra se mueve siempre
+ * (subir el Excel es lo que más tarda y, con el porcentaje, se quedaba
+ * vacía y quieta, como colgada), ✓ en los hechos y los segundos que lleva.
+ * Al acabar se quedan, con el resultado debajo: todos con ✓ (`hecho`) o el
+ * que falló con ✗ en rojo (`fallo`).
  */
-function Subiendo({paso}: {paso: PasoSubir}) {
+function Pasos({paso, estado}: {paso: PasoSubir; estado: 'curso' | 'hecho' | 'fallo'}) {
   const [segundos, setSegundos] = useState(0);
   useEffect(() => {
     const reloj = setInterval(() => setSegundos((s) => s + 1), 1000);
     return () => clearInterval(reloj);
   }, []);
-  const actual = PASOS.indexOf(paso);
+  const actual = estado === 'hecho' ? PASOS.length : PASOS.indexOf(paso);
+  const fallo = estado === 'fallo';
   return (
-    <div style={{marginTop: 14}}>
-      <Progreso rotulo={t(ROTULOS[paso])} />
-      <ol style={{margin: '12px 0 0', padding: 0, listStyle: 'none', fontSize: 13}}>
+    <div style={{marginTop: estado === 'curso' ? 14 : 4}}>
+      {estado === 'curso' && <Progreso rotulo={t(ROTULOS[paso])} />}
+      <ol style={{margin: estado === 'curso' ? '12px 0 0' : 0, padding: 0, listStyle: 'none', fontSize: 13}}>
         {PASOS.map((p, i) => (
           <li
             key={p}
@@ -172,17 +196,24 @@ function Subiendo({paso}: {paso: PasoSubir}) {
               alignItems: 'center',
               gap: 8,
               padding: '2px 0',
-              color: i < actual ? 'var(--text-secondary)' : i === actual ? 'var(--text-primary)' : 'var(--text-tertiary)',
+              color:
+                i < actual
+                  ? 'var(--text-secondary)'
+                  : i === actual
+                    ? fallo
+                      ? 'var(--danger)'
+                      : 'var(--text-primary)'
+                    : 'var(--text-tertiary)',
               fontWeight: i === actual ? 500 : 400,
             }}>
             <span style={{width: 14, display: 'inline-flex', justifyContent: 'center', flexShrink: 0}}>
-              {i < actual ? <Icon d={ICONOS.comprobado} size={12} /> : i === actual ? '›' : ''}
+              {i < actual ? <Icon d={ICONOS.comprobado} size={12} /> : i === actual ? (fallo ? '✗' : '›') : ''}
             </span>
             {t(`subir.paso_${p}_corto`)}
           </li>
         ))}
       </ol>
-      {segundos >= 2 && <Texto color="var(--text-tertiary)">{t('subir.lleva', {n: segundos})}</Texto>}
+      {estado === 'curso' && segundos >= 2 && <Texto color="var(--text-tertiary)">{t('subir.lleva', {n: segundos})}</Texto>}
     </div>
   );
 }
