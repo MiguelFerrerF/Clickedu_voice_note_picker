@@ -31,7 +31,7 @@ import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
 
 /** La última, la `›` que dice que la fila se pulsa. */
-const COLUMNAS = 'minmax(180px, 1fr) 80px 190px minmax(100px, 0.6fr) 20px';
+const COLUMNAS = 'minmax(160px, 1fr) 72px 100px 178px minmax(72px, 0.6fr) 20px';
 
 /** Abre la clase en Calificar; con `item`, en ese ítem. */
 type Abrir = (fichero: string, item?: ItemElegido) => void;
@@ -212,6 +212,7 @@ function Tabla({clases, evaluacion, abrir}: TablaProps) {
       <Encabezado>
         <span>{t('clases.col_clase')}</span>
         <span style={{textAlign: 'right'}}>{t('clases.col_alumnos')}</span>
+        <span style={{textAlign: 'right'}}>{t('clases.col_ponderacion')}</span>
         <span style={{textAlign: 'right'}}>{t('clases.col_calificados')}</span>
         <span style={{paddingLeft: 24}}>{t('clases.col_estado')}</span>
       </Encabezado>
@@ -270,6 +271,7 @@ function Fila({c, abrir, ultima}: {c: Clase; abrir: Abrir; ultima: boolean}) {
       {c.lectura.tipo === 'bien' ? (
         <>
           <span style={cifra}>{c.lectura.alumnos}</span>
+          <span />
           <Avance n={c.lectura.calificados} total={c.lectura.alumnos} />
           <span style={{paddingLeft: 24, ...textoAvisos}}>
             <Avisos n={c.lectura.avisos} />
@@ -277,7 +279,7 @@ function Fila({c, abrir, ultima}: {c: Clase; abrir: Abrir; ultima: boolean}) {
         </>
       ) : (
         <span
-          style={{gridColumn: '2 / 5', textAlign: 'right', fontSize: 12, color: 'var(--danger)', ...cortar}}
+          style={{gridColumn: '2 / 6', textAlign: 'right', fontSize: 12, color: 'var(--danger)', ...cortar}}
           title={c.lectura.error}>
           {t('clases.no_se_lee', {error: c.lectura.error})}
         </span>
@@ -333,6 +335,7 @@ function Bloque({c, evaluacion, abrir, ultima, abierta, alternar}: BloqueProps) 
         style={{...fila, minHeight: 44, padding: '6px var(--row-pad)', borderBottom: raya}}>
         {nombre}
         <span style={cifra}>{alumnos}</span>
+        <span />
         {calificados > 0 ? <Avance n={calificados} total={alumnos} /> : <span />}
         <span style={{paddingLeft: 24, fontSize: 12, color: 'var(--text-tertiary)', ...cortar}}>
           {e ? t('clases.sin_items_aun') : t('clases.sin_esta_evaluacion')}
@@ -353,6 +356,7 @@ function Bloque({c, evaluacion, abrir, ultima, abierta, alternar}: BloqueProps) 
         <span style={cifra}>{alumnos}</span>
         <span />
         <span />
+        <span />
         <Galon abierto={abierta} />
       </button>
       {abierta && e.items.map((i) => (
@@ -366,15 +370,11 @@ function Bloque({c, evaluacion, abrir, ultima, abierta, alternar}: BloqueProps) 
             <span style={{fontSize: 13, color: 'var(--text-primary)', ...cortar}} title={i.nombre}>
               {i.nombre}
             </span>
-            {i.ponderacion !== null && (
-              <span
-                title={ponderacionAyuda(i)}
-                style={{flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--text-tertiary)'}}>
-                {ponderacionTexto(i)}
-              </span>
-            )}
           </span>
           <span />
+          <span style={cifra} title={ponderacionAyuda(i)}>
+            {ponderacionTexto(i)}
+          </span>
           <Avance
             n={i.calificados}
             total={alumnos}
@@ -393,6 +393,7 @@ function Bloque({c, evaluacion, abrir, ultima, abierta, alternar}: BloqueProps) 
         className="fila-clase"
         style={{...fila, minHeight: 30, padding: '2px var(--row-pad)'}}>
         <span style={{paddingLeft: 16, fontSize: 12, color: 'var(--text-tertiary)', ...cortar}}>{t('clases.sin_item')}</span>
+        <span />
         <span />
         {calificados > 0 ? <Avance n={calificados} total={alumnos} /> : <span />}
         <span />

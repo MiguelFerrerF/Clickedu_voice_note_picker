@@ -216,6 +216,7 @@ const es = {
   'clases.intro': 'Las plantillas de Clickedu de tu carpeta, una por clase. Si añades o quitas un Excel, la lista se pone al día sola.',
   'clases.col_clase': 'Clase',
   'clases.col_alumnos': 'Alumnos',
+  'clases.col_ponderacion': 'Ponderación',
   'clases.col_calificados': 'Con nota',
   'clases.col_estado': 'Avisos',
   'clases.pendientes': 'Pendientes de otros cursos',
