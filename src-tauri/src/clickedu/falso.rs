@@ -89,6 +89,12 @@ const ASIGNATURAS: &str = r#"<!DOCTYPE html><html><body>
 <div class="bloc-assignatura"><a href="/go/Index.php?ctr=Subject/Subject&id=103">
   <div class="title">Tecnología</div><div class="sub-title">3º E.S.O.-B</div></a></div>
 </body></html>"#;
+/// La tabla de «Ítems» de la 1ª evaluación de 101: su ponderación.
+const PONDERACION_101: &str = r#"<html><body><table>
+<tr><td><input class="InputPercent" name="percent_parent_0_0_0" type="number" value="100"></td></tr>
+<tr><td><input class="InputPercent" name="percent_9001_9001_0" type="number" value="40"></td></tr>
+<tr><td><input class="InputPercent" name="percent_9002_9002_0" type="number" value=""></td></tr>
+</table></body></html>"#;
 const ITEMS_SIN_EVALUACIONES: &str = "<html><body><p>Sin evaluaciones</p></body></html>";
 const ITEMS_103: &str =
     r#"<html><body><select name="trm"><option value="8">1ª evaluación</option></select></body></html>"#;
@@ -379,6 +385,9 @@ fn responder(
         ("GET", "/go/Index.php?ctr=Subjects/Subjects") if cookies.contains(DENTRO) => pagina(ASIGNATURAS),
         ("GET", "/go/Index.php?ctr=Subject/Items&do=Index&id=101") if cookies.contains(DENTRO) => {
             Response::from_data(ITEMS_LATIN1).with_header(Header::from_bytes("Content-Type", "text/html").unwrap())
+        }
+        ("GET", "/go/Index.php?ctr=Subject/Items&do=Index&id=101&trm=7") if cookies.contains(DENTRO) => {
+            pagina(PONDERACION_101)
         }
         ("GET", "/go/Index.php?ctr=Subject/Items&do=Index&id=102") if cookies.contains(DENTRO) => {
             pagina(ITEMS_SIN_EVALUACIONES)

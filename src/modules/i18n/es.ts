@@ -39,7 +39,6 @@ const es = {
   'calificar.elegir_item': 'Elegir el ítem de Clickedu al que van las notas',
   'calificar.sin_item': 'Sin ítem',
   'calificar.sin_item_ayuda': 'Sin ítem: el ítem se elige al subir',
-  'calificar.ponderacion': '{n} %',
   'calificar.no_se_lee': 'No se puede leer: {error}',
   'calificar.no_se_guarda': 'No se ha podido guardar la nota: {error}',
 
@@ -231,6 +230,8 @@ const es = {
   'clases.un_item': '1 ítem',
   'clases.n_items': '{n} ítems',
   'clases.ponderacion': '{n} %',
+  'clases.ponderacion_dentro': 'El {n} % de «{nombre}»',
+  'clases.ponderacion_dentro_sin': 'Dentro de «{nombre}», sin ponderación propia',
   'clases.en_clickedu': '{n} en Clickedu',
   'clases.en_clickedu_ayuda': '{n} de {total} ya tenían nota en Clickedu en este ítem al traer las plantillas',
   'clases.items_traidos': 'Los ítems, como estaban en Clickedu el {fecha}.',

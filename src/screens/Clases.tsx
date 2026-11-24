@@ -25,6 +25,7 @@ import {Cabecera} from '@components/layout/Cabecera';
 import {Button} from '@components/ui/Button';
 import {Icon, ICONOS} from '@components/ui/Icon';
 import type {Clase, EvaluacionItems, ItemElegido} from '@modules/clases/tipos';
+import {ponderacionAyuda, ponderacionTexto} from '@modules/clases/ponderacion';
 import {useClases} from '@modules/clases/useClases';
 import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
@@ -366,8 +367,10 @@ function Bloque({c, evaluacion, abrir, ultima, abierta, alternar}: BloqueProps) 
               {i.nombre}
             </span>
             {i.ponderacion !== null && (
-              <span style={{flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--text-tertiary)'}}>
-                {t('clases.ponderacion', {n: i.ponderacion})}
+              <span
+                title={ponderacionAyuda(i)}
+                style={{flexShrink: 0, fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--text-tertiary)'}}>
+                {ponderacionTexto(i)}
               </span>
             )}
           </span>

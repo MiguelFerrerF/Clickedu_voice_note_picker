@@ -16,7 +16,7 @@
 //! (`tests/datos/clickedu/`, `examples/anonimizar_clickedu`). Lo que se
 //! sabe de cada una, en `docs/03-clickedu.md`.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 
 use reqwest::Url;
 use scraper::{ElementRef, Html, Selector};
@@ -328,6 +328,52 @@ pub fn items(html: &str) -> Lectura<Vec<Item>> {
     bien(res)
 }
 
+/// La ponderación de un ítem, de la tabla de «Ítems».
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct Ponderacion {
+    /// En %; vacía en Clickedu, `None`.
+    pub propia: Option<f64>,
+    /// El ítem ponderado del que cuelga: entonces `propia` es su parte
+    /// dentro de él, no de la evaluación.
+    pub dentro_de: Option<String>,
+}
+
+/// La ponderación de cada ítem, por su `id`, de la tabla de la página
+/// `ctr=Subject/Items&do=Index&id=N&trm=T`: las casillas
+/// `percent_‹padre›_‹ítem›_0` (el padre es el mismo ítem si no cuelga de
+/// otro). Las `percent_parent_…` son de los totales y no cuentan. Sin
+/// casillas (una evaluación sin ítems), vacía; un nombre o un valor que no
+/// se entiende, roto.
+pub fn ponderaciones(html: &str) -> Lectura<BTreeMap<String, Ponderacion>> {
+    let doc = Html::parse_document(html);
+    let mut res = BTreeMap::new();
+    for input in doc.select(&selector(r#"input[name^="percent_"]"#)) {
+        let nombre = input.value().attr("name").unwrap_or_default();
+        if nombre.starts_with("percent_parent_") {
+            continue;
+        }
+        let partes: Vec<&str> = nombre["percent_".len()..].split('_').collect();
+        let [padre, item, _] = partes[..] else {
+            return roto("ponderaciones", format!("una casilla de ponderación no se entiende ({nombre})"));
+        };
+        if !es_id(padre) || !es_id(item) {
+            return roto("ponderaciones", format!("una casilla de ponderación no se entiende ({nombre})"));
+        }
+        let valor = input.value().attr("value").unwrap_or_default().trim().replace(',', ".");
+        let propia = if valor.is_empty() {
+            None
+        } else {
+            match valor.parse::<f64>() {
+                Ok(v) if v.is_finite() && v >= 0.0 => Some(v),
+                _ => return roto("ponderaciones", format!("la ponderación del ítem {item} no es un número ({valor})")),
+            }
+        };
+        let dentro_de = (padre != item).then(|| padre.to_string());
+        res.insert(item.to_string(), Ponderacion { propia, dentro_de });
+    }
+    bien(res)
+}
+
 /// El formulario para subir la plantilla con las notas, de la página de
 /// importar. **Solo se sube con él «bien»** (`docs/01`, H4).
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -553,6 +599,26 @@ mod tests {
         let sin_id = IMPORTAR.replace(r#"<option value="90009">"#, r#"<option value="ítem9">"#);
         assert_eq!(items(&sin_id).unwrap_err().ficha, "items");
         assert_eq!(items(MATERIAS).unwrap_err().ficha, "items");
+    }
+
+    #[test]
+    fn las_ponderaciones_de_verdad() {
+        let l = ponderaciones(ITEMS).unwrap();
+        assert_eq!(l.estado, Estado::Bien);
+        assert_eq!(l.dato.len(), 10);
+        let p = |id: &str| l.dato[id].clone();
+        assert_eq!(p("90001"), Ponderacion { propia: Some(10.0), dentro_de: None });
+        assert_eq!(p("90004"), Ponderacion { propia: Some(70.0), dentro_de: Some("90002".into()) });
+        assert_eq!(p("90008"), Ponderacion { propia: None, dentro_de: None });
+        // Las de primer nivel suman 100.
+        let suma: f64 = l.dato.values().filter(|p| p.dentro_de.is_none()).filter_map(|p| p.propia).sum();
+        assert_eq!(suma, 100.0);
+        let mal = ITEMS.replace(
+            r#"name="percent_90009_90009_0" type="number" value="35""#,
+            r#"name="percent_90009_90009_0" type="number" value="mucho""#,
+        );
+        assert_eq!(ponderaciones(&mal).unwrap_err().ficha, "ponderaciones");
+        assert!(ponderaciones(MATERIAS).unwrap().dato.is_empty());
     }
 
     #[test]

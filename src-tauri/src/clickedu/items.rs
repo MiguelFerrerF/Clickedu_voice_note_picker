@@ -8,9 +8,10 @@
 //! ([`fichas::notas`]): se guarda **la nota de cada alumno** en cada ítem
 //! ([`notas_de`]), para que Clases diga cuántos la tienen y Calificar la
 //! enseñe junto a la de la app y avise de la que se pisaría al subir. Es
-//! una copia de cuando se trajo: antes de subir se vuelve a leer. La
-//! ponderación aún no se lee (está en la tabla de Ítems, sin ficha): va
-//! como `None`.
+//! una copia de cuando se trajo: antes de subir se vuelve a leer. **La
+//! ponderación**, de la tabla de «Ítems» de esa evaluación
+//! ([`fichas::ponderaciones`]); si esa página no se entiende, los ítems
+//! se guardan igual, sin ella (no es lo básico).
 //!
 //! Se guarda por el `id` de la materia, no por el fichero: Clases cruza los
 //! dos con `traidas.json` ([`super::traer::planear::Recordadas`]).
@@ -30,6 +31,11 @@ pub const FICHERO: &str = "items.json";
 /// La página de importar de una materia y evaluación: sus ítems.
 pub fn direccion_importar(materia: &str, evaluacion: &str) -> String {
     format!("/assignatures/importar_notes_items.php?assig={materia}&id_aval={evaluacion}")
+}
+
+/// La página de «Ítems» de una materia y evaluación: su ponderación.
+pub fn direccion_ponderaciones(materia: &str, evaluacion: &str) -> String {
+    format!("{}&trm={evaluacion}", super::traer::direccion_items(materia))
 }
 
 /// Las notas ya puestas de una materia y evaluación, en JSON.
@@ -66,8 +72,12 @@ pub struct EvaluacionItems {
 pub struct ItemGuardado {
     pub id: String,
     pub nombre: String,
-    /// En %; `None` mientras no se lea.
+    /// En %; `None` si en Clickedu está vacía o no se ha podido leer. Si
+    /// cuelga de otro ítem (`dentro_de`), es su parte dentro de él.
     pub ponderacion: Option<f64>,
+    /// El `id` del ítem ponderado del que cuelga.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dentro_de: Option<String>,
     /// Cuántos alumnos tenían nota en Clickedu, al traer: `notas.len()`.
     /// Solo cuenta en los `items.json` de antes de guardar las notas.
     #[serde(default)]
@@ -93,15 +103,17 @@ pub async fn bajar(
             Ok(l) => l.dato,
             Err(roto) => return Ok(Err(roto)),
         };
-        // Sin ítems no hay notas que contar: una petición menos.
-        let puestas = if items.is_empty() {
-            Vec::new()
+        // Sin ítems no hay notas ni ponderaciones: dos peticiones menos.
+        let (puestas, ponderaciones) = if items.is_empty() {
+            (Vec::new(), BTreeMap::new())
         } else {
             let json = cliente.abrir(&direccion_notas(materia, &e.id)).await?.texto;
-            match fichas::notas(&json) {
+            let puestas = match fichas::notas(&json) {
                 Ok(l) => l.dato,
                 Err(roto) => return Ok(Err(roto)),
-            }
+            };
+            let pagina = cliente.abrir(&direccion_ponderaciones(materia, &e.id)).await?.texto;
+            (puestas, fichas::ponderaciones(&pagina).map(|l| l.dato).unwrap_or_default())
         };
         res.push(EvaluacionItems {
             id: e.id.clone(),
@@ -112,7 +124,15 @@ pub async fn bajar(
                 .into_iter()
                 .map(|i| {
                     let notas = notas_de(&puestas, &i.id);
-                    ItemGuardado { en_clickedu: notas.len(), notas, id: i.id, nombre: i.nombre, ponderacion: None }
+                    let p = ponderaciones.get(&i.id);
+                    ItemGuardado {
+                        en_clickedu: notas.len(),
+                        notas,
+                        ponderacion: p.and_then(|p| p.propia),
+                        dentro_de: p.and_then(|p| p.dentro_de.clone()),
+                        id: i.id,
+                        nombre: i.nombre,
+                    }
                 })
                 .collect(),
         });
@@ -210,7 +230,11 @@ pub struct EvaluacionClase {
 pub struct ItemClase {
     pub id: String,
     pub nombre: String,
+    /// En % de la evaluación: la de un ítem que cuelga de otro, ya
+    /// multiplicada por la de este ([`ponderacion_en_la_evaluacion`]).
     pub ponderacion: Option<f64>,
+    /// Si cuelga de un ítem ponderado: de cuál y su parte dentro de él.
+    pub dentro_de: Option<Dentro>,
     /// Cuántos de la clase tienen nota en Clickedu, al traer.
     pub en_clickedu: usize,
     /// Cuántos tienen nota en la sesión de este ítem.
@@ -221,6 +245,23 @@ pub struct ItemClase {
     /// Cuántos tienen en la app una nota que no está en Clickedu (nueva o
     /// distinta): lo que queda por subir, en turquesa.
     pub por_subir: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Dentro {
+    pub nombre: String,
+    pub ponderacion: Option<f64>,
+}
+
+/// La ponderación de `item` en su evaluación: la suya, o, si cuelga de
+/// otro ítem de `items`, la de ese por la suya (un 30 % de un ítem que
+/// vale el 10 %, un 3 %). Redondeada a centésimas. Si falta alguna, `None`.
+pub fn ponderacion_en_la_evaluacion(item: &ItemGuardado, items: &[ItemGuardado]) -> Option<f64> {
+    let propia = item.ponderacion?;
+    let Some(padre) = &item.dentro_de else { return Some(propia) };
+    let del_padre = items.iter().find(|i| &i.id == padre)?.ponderacion?;
+    Some((del_padre * propia).round() / 100.0)
 }
 
 /// Lo contado de un ítem en una clase.
@@ -256,7 +297,15 @@ pub fn para_clases(materia: &ItemsMateria, hoy: &str, contar: impl Fn(&ItemGuard
                         ItemClase {
                             id: i.id.clone(),
                             nombre: i.nombre.clone(),
-                            ponderacion: i.ponderacion,
+                            ponderacion: ponderacion_en_la_evaluacion(i, &e.items),
+                            dentro_de: i.dentro_de.as_ref().map(|padre| Dentro {
+                                nombre: e
+                                    .items
+                                    .iter()
+                                    .find(|p| &p.id == padre)
+                                    .map_or_else(|| padre.clone(), |p| p.nombre.clone()),
+                                ponderacion: i.ponderacion,
+                            }),
                             en_clickedu: c.en_clickedu,
                             calificados: c.calificados,
                             publicadas: c.publicadas,
@@ -305,7 +354,14 @@ mod tests {
     #[test]
     fn en_la_clase_cuenta_solo_sus_alumnos() {
         let notas = BTreeMap::from([("1".to_string(), "7".to_string()), ("9".to_string(), "5".to_string())]);
-        let i = ItemGuardado { id: "9001".into(), nombre: "P".into(), ponderacion: None, en_clickedu: 2, notas };
+        let i = ItemGuardado {
+            id: "9001".into(),
+            nombre: "P".into(),
+            ponderacion: None,
+            dentro_de: None,
+            en_clickedu: 2,
+            notas,
+        };
         assert_eq!(en_la_clase(&i, ["1", "2", "1"]), 1);
         // Un `items.json` de antes, sin notas: lo contado al traer.
         let viejo: ItemGuardado =
@@ -333,12 +389,56 @@ mod tests {
                         id: item.into(),
                         nombre: "Parcial".into(),
                         ponderacion: None,
+                        dentro_de: None,
                         en_clickedu: 3,
                         notas: BTreeMap::new(),
                     }],
                 ),
             ],
         }
+    }
+
+    #[test]
+    fn la_ponderacion_de_lo_que_cuelga_de_otro_se_multiplica() {
+        let item = |id: &str, ponderacion: Option<f64>, dentro_de: Option<&str>| ItemGuardado {
+            id: id.into(),
+            nombre: format!("Ítem {id}"),
+            ponderacion,
+            dentro_de: dentro_de.map(String::from),
+            en_clickedu: 0,
+            notas: BTreeMap::new(),
+        };
+        let items = vec![
+            item("1", Some(10.0), None),
+            item("2", Some(30.0), Some("1")),
+            item("3", Some(33.33), Some("1")),
+            item("4", None, Some("1")),
+            item("5", Some(50.0), Some("9")),
+            item("6", Some(20.0), Some("7")),
+            item("7", None, None),
+        ];
+        let p = |i: usize| ponderacion_en_la_evaluacion(&items[i], &items);
+        assert_eq!(p(0), Some(10.0));
+        assert_eq!(p(1), Some(3.0));
+        assert_eq!(p(2), Some(3.33));
+        assert_eq!(p(3), None);
+        assert_eq!(p(4), None, "el padre no está");
+        assert_eq!(p(5), None, "el padre no tiene ponderación");
+        let m = ItemsMateria {
+            traidos: 1,
+            evaluaciones: vec![EvaluacionItems {
+                id: "1".into(),
+                nombre: "1ª".into(),
+                desde: None,
+                hasta: None,
+                items,
+            }],
+        };
+        let c = para_clases(&m, "2026-11-24", |_| Contados::default());
+        let hijo = &c.evaluaciones[0].items[1];
+        assert_eq!(hijo.ponderacion, Some(3.0));
+        assert_eq!(hijo.dentro_de, Some(Dentro { nombre: "Ítem 1".into(), ponderacion: Some(30.0) }));
+        assert_eq!(c.evaluaciones[0].items[0].dentro_de, None);
     }
 
     #[test]

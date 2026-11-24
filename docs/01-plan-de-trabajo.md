@@ -1422,8 +1422,14 @@ quita lo importado**. El ítem lo borra el usuario a mano cuando quiera
       por el usuario el 2026-11-23): o se suben todas, o ninguna. Una celda
       vacía **sí borra** la nota de Clickedu (2026-11-24): por eso se
       completa el Excel con lo de Clickedu.
-- [ ] **La ponderación** de los ítems aún no se lee (va vacía); no frena
-      el cierre de H6.
+- [x] **La ponderación** (2026-11-24, tras cerrar H6): al traer, de cada
+      evaluación con ítems, la tabla de «Ítems»
+      (`Subject/Items&do=Index&id=N&trm=T`, `fichas::ponderaciones`, una
+      petición más), a `items.json`. Un ítem que cuelga de otro ponderado
+      da su parte dentro de él: Clases y Calificar enseñan la de la
+      evaluación (un 30 % de uno del 10 %, «3 %») y, al pasar el ratón, de
+      dónde sale. Si esa página no se entiende, los ítems se guardan igual,
+      sin ponderación (no es lo básico). Se ve tras volver a traer.
 
 **H6, cerrado** (2026-11-24): probado por el usuario con Clickedu de
 verdad; 151 tests de Rust, typecheck y la prueba de diseño en verde.

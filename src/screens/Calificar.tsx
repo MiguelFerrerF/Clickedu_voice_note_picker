@@ -46,6 +46,7 @@ import {Button} from '@components/ui/Button';
 import {Dropdown} from '@components/ui/Dropdown';
 import {Icon, ICONOS} from '@components/ui/Icon';
 import {alumnosEnPalabras} from '@modules/clases/avisos';
+import {ponderacionTexto} from '@modules/clases/ponderacion';
 import {buscarItem, type ClaseAbierta, type Exportado, type ItemElegido} from '@modules/clases/tipos';
 import {deshacible, type Apuntado, type Dictado, type Pendiente, type Respuesta} from '@modules/dictado/tipos';
 import {useClases} from '@modules/clases/useClases';
@@ -399,12 +400,7 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
             {actual.items && (
               <span>
                 {elegido
-                  ? [
-                      elegido.evaluacion.nombre,
-                      elegido.item.ponderacion !== null && t('calificar.ponderacion', {n: elegido.item.ponderacion}),
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')
+                  ? [elegido.evaluacion.nombre, ponderacionTexto(elegido.item)].filter(Boolean).join(' · ')
                   : t('calificar.sin_item_ayuda')}
               </span>
             )}

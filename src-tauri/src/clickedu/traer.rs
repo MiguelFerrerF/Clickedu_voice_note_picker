@@ -469,6 +469,9 @@ mod tests {
         let items: Vec<_> =
             evaluaciones[0].items.iter().map(|i| (i.id.as_str(), i.nombre.as_str(), i.en_clickedu)).collect();
         assert_eq!(items, [("9001", "Examen 1", 1), ("9002", "Trabajo", 0)]);
+        // Su ponderación, de la tabla de «Ítems»; la vacía, `None`.
+        let ponderaciones: Vec<_> = evaluaciones[0].items.iter().map(|i| i.ponderacion).collect();
+        assert_eq!(ponderaciones, [Some(40.0), None]);
         // Y la nota de cada uno: la puesta a mano; la vacía, no.
         assert_eq!(
             evaluaciones[0].items[0].notas,

@@ -234,7 +234,9 @@ cada cosa.
   `tipus_item` (`0` ítem, `1` evaluación suspendida, `2` ponderada) y los
   de asistencia. Editar es lo mismo con `it=` y `trm=`.
 - **El alta no tiene ponderación.** Se pone en la tabla de Ítems
-  (`percent_‹it›_‹it›_0`), que la guarda por AJAX con
+  (`percent_‹padre›_‹it›_0`: el padre es el mismo ítem si no cuelga de
+  otro; si cuelga de uno ponderado, es su parte dentro de él; las
+  `percent_parent_…` son totales; lo lee `fichas::ponderaciones`), que la guarda por AJAX con
   `Evaluate/EvaluateTermly&do=SavePercentage`. Un ítem con la ponderación
   vacía es posible (había uno, «Recuperación…»).
 - Las casillas de la tabla de Ítems (`CheckEdicioRapida`) **escriben al

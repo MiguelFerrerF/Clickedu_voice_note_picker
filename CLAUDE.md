@@ -19,7 +19,7 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > su nombre (`nombre_subida`; repetido, «Archivo incorrecto»). Lo
 > publicado sale en gris; exportar no cambia el aspecto. El ítem se elige
 > al calificar; sin ítem, un solo juego de notas por clase, como la v1.
-> La ponderación aún no se lee. El ítem de prueba 42700 de Química 2 lo
+> La ponderación se lee al traer (la tabla de «Ítems»). El ítem de prueba 42700 de Química 2 lo
 > borra el usuario. **La carpeta de este
 > ordenador está como antes de traer**, para volver a probarlo: las 8
 > plantillas viejas en la raíz, las 22 notas de prueba en la sesión y sin

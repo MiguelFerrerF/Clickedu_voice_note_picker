@@ -48,8 +48,10 @@ export interface EvaluacionItems {
 export interface ItemClickedu {
   id: string;
   nombre: string;
-  /** En %, de la tabla de Ítems; `null` si no se ha podido leer. */
+  /** En % de la evaluación, de la tabla de Ítems; `null` si está vacía o no se ha podido leer. Si cuelga de otro ítem, ya multiplicada por la de ese. */
   ponderacion: number | null;
+  /** Si cuelga de un ítem ponderado: cuál y su parte dentro de él (en %). */
+  dentroDe: {nombre: string; ponderacion: number | null} | null;
   /** Cuántos alumnos de la clase tenían ya nota en Clickedu en este ítem, al traer. */
   enClickedu: number;
   /** Cuántos tienen nota en la sesión de este ítem. */
