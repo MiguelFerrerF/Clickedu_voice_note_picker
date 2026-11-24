@@ -26,11 +26,10 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > `traidas.json` (sale «la primera vez»); lo traído el 22, en
 > `%APPDATA%\es.gestornotas.app\clickedu\prueba-2026-11-22\`.
 > En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
-> **H7, casi cerrado**: la `v2.0.0` está **publicada** (actualizador de
-> Tauri con firma, `release.yml`, el paso desde la v1.3.4, la app
-> asegurada), y **la `v2.0.1` también** (2026-11-23): el actualizador de
-> Tauri, probado de verdad (paso 9, `docs/01`). Falta lo de D: su
-> procesador con AVX2 (el exportado de H2 ya entra en Clickedu, H6). Las versiones salen de una rama aparte si
+> **H7, cerrado** (2026-11-24): la `v2.0.0` y la `v2.0.1`, **publicadas**
+> (actualizador de Tauri con firma, `release.yml`, el paso desde la
+> v1.3.4), y lo de D, probado. **Falta que `v2` pase a `main`** (la v1, en
+> el tag `v1.3.4`; `docs/01`): lo hace el usuario. Las versiones salen de una rama aparte si
 > `v2` lleva un hito a medias (`release-2.0.1`). Documentos, en este
 > ordenador, está en OneDrive: las plantillas llegan sincronizadas. El mapa de Clickedu, en
 > [`docs/03-clickedu.md`](docs/03-clickedu.md). Las páginas de verdad
@@ -59,6 +58,7 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
+| **H7** | `v2.0.0` y `v2.0.1` publicadas: `tauri-plugin-updater` con firma, `release.yml`, `npm run release`, el paso desde la v1.3.4 (`Instalador_GestorNotas.exe`, copia y desinstala la v1) | sí: el actualizador de la v1.3.4 y el de Tauri (2.0.0 → 2.0.1), de verdad; lo de D (AVX2), por el usuario (2026-11-24) |
 | **H6** | El ítem se elige al calificar (Clases por evaluación, `clickedu::items`, sesión por ítem); lo que ya hay en Clickedu, a la vista (gris = publicada, tachada con punto ámbar = se pisaría); `clickedu::subir` (`completar`, `nombre_subida`, comprobar con `GetGrades`) y `DialogoSubir` con los pasos y el resultado en la misma ventana; plan B, el Excel y la página de importar | sí: el usuario, con Clickedu de verdad (ítem 42700, 2026-11-24); 151 tests de Rust contra el Clickedu falso; la prueba de diseño |
 | **H5** | `clickedu::traer` (plan, dudas, `replanear_traer`, hacerlo: lo viejo a `antiguas`, las notas por `Id`, `traidas.json`); `TarjetaTraer` en Conexión, que entra sola con la cuenta guardada; las pendientes aparte en Conexión, Clases y Calificar (`plantillas::es_pendiente`); Conexión, encendida fuera de desarrollo | sí: a mano con Clickedu de verdad (`probar_traer` y la pantalla, 2026-11-22); 63 tests de `clickedu`; la prueba de diseño. **Fuera de desarrollo, aún sin probar en un instalado** |
 | **H4** | `clickedu::cuenta` (usuario y contraseña en el Administrador de credenciales, el archivo de seguridad en `%APPDATA%`; se rellena una vez), `cliente` (entrar, comprobar, `abrir` en ISO-8859-15 y vuelve a entrar solo), `fichas` (materias, evaluaciones, ítems, importar, `GetGrades`; bien/degradado/roto), `huella`, `tapar`; Clickedu investigado solo leyendo (`explorar_clickedu`, `docs/03`); la pantalla Conexión, solo en desarrollo | sí: entrar, a mano con Clickedu de verdad; 43 tests contra el Clickedu falso y páginas reales anonimizadas; la sesión quieta, 111 min sin caer. **Volver a entrar solo, solo contra el falso** |

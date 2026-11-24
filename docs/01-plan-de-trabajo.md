@@ -672,7 +672,7 @@ Ninguna rompe D5/D6 ni añade tokens. **Cerrado por el usuario el
       quedan con tope solo los párrafos de texto y el desplegable del
       micrófono.
 
-### H7 · Actualizaciones y la `v2.0.0` (adelantado, antes de H4)
+### H7 · Actualizaciones y la `v2.0.0` (adelantado, antes de H4) ✓ (2026-11-24)
 
 **Adelantado por el usuario el 2026-11-19**, para que la v2 empiece a
 usarse y a reunir casos reales (D8) cuanto antes. Lo que pesaba en contra
@@ -846,9 +846,11 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
 
 **D · Antes de dársela a esa persona**
 
-- [ ] Su procesador tiene AVX2 (H3a).
-- [ ] Un exportado de la v2 importado en Clickedu (lo pendiente de H2).
-- [ ] La primera publicada es la `v2.0.0`; luego, `v2.0.1`… La prueba de
+- [x] Su procesador tiene AVX2 (H3a): probado por el usuario, funciona
+      (2026-11-24).
+- [x] Un exportado de la v2 importado en Clickedu (lo pendiente de H2;
+      hecho en H6, 2026-11-23).
+- [x] La primera publicada es la `v2.0.0`; luego, `v2.0.1`… La prueba de
       verdad del actualizador de Tauri es la segunda.
 - Antes de pasarla **a más gente**: un informe del registro (D8) de
   verdad, mirado línea a línea para ver que no lleva nada de nadie.
