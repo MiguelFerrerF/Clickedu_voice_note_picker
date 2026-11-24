@@ -26,6 +26,8 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > `traidas.json` (sale «la primera vez»); lo traído el 22, en
 > `%APPDATA%\es.gestornotas.app\clickedu\prueba-2026-11-22\`.
 > En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
+> **`v2.1.0` publicada** (2026-11-24, desde `v2`; `cargo audit` la paró
+> por `cookie`, arreglado y el tag movido antes de haber release).
 > **H7, cerrado** (2026-11-24): la `v2.0.0` y la `v2.0.1`, **publicadas**
 > (actualizador de Tauri con firma, `release.yml`, el paso desde la
 > v1.3.4), y lo de D, probado. **Falta que `v2` pase a `main`** (la v1, en
