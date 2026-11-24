@@ -113,6 +113,22 @@ pub fn diferencias(antes: &Huella, ahora: &Huella) -> Vec<String> {
     res
 }
 
+/// La ficha de la página de Ítems de una materia.
+pub const FICHA_ITEMS: &str = "evaluaciones";
+
+/// La huella de la página de Ítems, solo con lo que la app lee de ella (el
+/// desplegable `trm`, la ponderación, las clases). Fuera, lo que depende de
+/// que haya ítems o criterios: el formulario de borrar (`Subject/Items&do=Delete`,
+/// con sus casillas `percent_…`) y los enlaces de editar o borrar un ítem
+/// (`Subject/Item/Item&do=…`): cambian al crear o editar un ítem, no porque
+/// Clickedu cambie.
+pub fn solo_lo_que_se_lee_de_items(h: &Huella) -> Huella {
+    let mut h = h.clone();
+    h.formularios.retain(|f| !f.contains("ctr=Subject/Items&do=Delete"));
+    h.enlaces.retain(|e| !e.contains("ctr=Subject/Item/Item&do="));
+    h
+}
+
 /// Compara `ahora` con la última buena de la `ficha`, guardada en
 /// `carpeta\huellas\`, y devuelve las diferencias. Si `es_buena` (la ficha
 /// ha leído bien), `ahora` pasa a ser la última buena. La primera vez no hay
@@ -120,7 +136,12 @@ pub fn diferencias(antes: &Huella, ahora: &Huella) -> Vec<String> {
 pub fn comparar_y_guardar(carpeta: &Path, ficha: &str, ahora: &Huella, es_buena: bool) -> Result<Vec<String>, String> {
     let dir = carpeta.join("huellas");
     let ruta = dir.join(format!("{ficha}.json"));
-    let antes: Option<Huella> = std::fs::read_to_string(&ruta).ok().and_then(|t| serde_json::from_str(&t).ok());
+    // La de Ítems se filtra también la guardada: las de antes, sin filtrar,
+    // no deben avisar de que «ya no está» lo que ya no se mira.
+    let filtrar = |h: &Huella| if ficha == FICHA_ITEMS { solo_lo_que_se_lee_de_items(h) } else { h.clone() };
+    let antes: Option<Huella> =
+        std::fs::read_to_string(&ruta).ok().and_then(|t| serde_json::from_str::<Huella>(&t).ok()).map(|h| filtrar(&h));
+    let ahora = &filtrar(ahora);
     let cambios = antes.as_ref().map(|a| diferencias(a, ahora)).unwrap_or_default();
     if es_buena && antes.as_ref() != Some(ahora) {
         std::fs::create_dir_all(&dir).map_err(|e| format!("no se puede crear {}: {e}", dir.display()))?;
@@ -208,5 +229,55 @@ mod tests {
         // La mala no ha sustituido a la buena.
         assert_eq!(comparar_y_guardar(dir.path(), "importar", &mala, false).unwrap().len(), 2);
         assert_eq!(comparar_y_guardar(dir.path(), "importar", &buena, true).unwrap(), Vec::<String>::new());
+    }
+
+    const ITEMS: &str = include_str!("../../tests/datos/clickedu/items.html");
+    const URL_ITEMS: &str = "https://colegio.clickedu.eu/go/Index.php?ctr=Subject/Items&do=Index&id=9001";
+
+    #[test]
+    fn items_no_avisa_por_crear_o_editar_items() {
+        let t = tapar();
+        let dir = tempfile::tempdir().unwrap();
+        let antes = huella(ITEMS, URL_ITEMS, &t);
+        assert_eq!(comparar_y_guardar(dir.path(), FICHA_ITEMS, &antes, true).unwrap(), Vec::<String>::new());
+        // Otro formulario de borrar y otros enlaces de editar.
+        let otra = ITEMS
+            .replace(r#"name="items_eliminar""#, r#"name="otros_eliminar""#)
+            .replace("Subject/Item/Item&amp;do=Edit", "Subject/Item/Item&amp;do=Modify")
+            .replace("Subject/Item/Item&amp;do=Delete", "Subject/Item/Item&amp;do=Remove");
+        let h = huella(&otra, URL_ITEMS, &t);
+        assert_ne!(diferencias(&antes, &h), Vec::<String>::new(), "sin filtrar sí cambia");
+        assert_eq!(comparar_y_guardar(dir.path(), FICHA_ITEMS, &h, true).unwrap(), Vec::<String>::new());
+        // Sin el formulario ni los enlaces de ítems (una materia sin ítems).
+        let mut sin = antes.clone();
+        sin.formularios.retain(|f| !f.contains("Subject/Items&do=Delete"));
+        sin.enlaces.retain(|e| !e.contains("Subject/Item/Item&do="));
+        assert_ne!(sin, antes);
+        assert_eq!(comparar_y_guardar(dir.path(), FICHA_ITEMS, &sin, true).unwrap(), Vec::<String>::new());
+    }
+
+    #[test]
+    fn items_sigue_avisando_de_lo_que_se_lee() {
+        let t = tapar();
+        let dir = tempfile::tempdir().unwrap();
+        let antes = huella(ITEMS, URL_ITEMS, &t);
+        comparar_y_guardar(dir.path(), FICHA_ITEMS, &antes, true).unwrap();
+        let renombrado = ITEMS.replace(r#"name="trm""#, r#"name="trimestre""#);
+        let d = comparar_y_guardar(dir.path(), FICHA_ITEMS, &huella(&renombrado, URL_ITEMS, &t), false).unwrap();
+        assert!(d.iter().any(|x| x.contains("ya no está el desplegable trm")), "{d:#?}");
+    }
+
+    #[test]
+    fn items_con_una_huella_vieja_sin_filtrar_no_avisa() {
+        let t = tapar();
+        let dir = tempfile::tempdir().unwrap();
+        let vieja = huella(ITEMS, URL_ITEMS, &t);
+        assert!(vieja.formularios.iter().any(|f| f.contains("Subject/Items&do=Delete")), "{vieja:#?}");
+        std::fs::create_dir_all(dir.path().join("huellas")).unwrap();
+        std::fs::write(dir.path().join("huellas").join("evaluaciones.json"), serde_json::to_string(&vieja).unwrap())
+            .unwrap();
+        let otra = ITEMS.replace(r#"name="items_eliminar""#, r#"name="otros_eliminar""#);
+        let h = huella(&otra, URL_ITEMS, &t);
+        assert_eq!(comparar_y_guardar(dir.path(), FICHA_ITEMS, &h, true).unwrap(), Vec::<String>::new());
     }
 }
