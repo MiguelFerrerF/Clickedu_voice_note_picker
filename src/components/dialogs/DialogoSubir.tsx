@@ -104,22 +104,7 @@ export function DialogoSubir({fichero, item, items, onClose}: DialogoSubirProps)
           </div>
         )}
         {fase.tipo === 'previa' && <Previa previa={fase.previa} />}
-        {fase.tipo === 'subiendo' && (
-          <div style={{marginTop: 14}}>
-            <Progreso
-              rotulo={
-                {
-                  leer: t('subir.leyendo'),
-                  subir: t('subir.paso_subir'),
-                  importar: t('subir.paso_importar'),
-                  comprobar: t('subir.paso_comprobar'),
-                }[fase.paso]
-              }
-              hecho={PASOS.indexOf(fase.paso)}
-              total={PASOS.length}
-            />
-          </div>
-        )}
+        {fase.tipo === 'subiendo' && <Subiendo paso={fase.paso} />}
         {fase.tipo === 'hecho' && <Hecho previa={fase.previa} subido={fase.subido} />}
         {fase.tipo === 'fallo' && <Fallo fallo={fase.fallo} previa={fase.previa} fichero={fichero} destino={destino} />}
       </div>
@@ -153,6 +138,52 @@ export function DialogoSubir({fichero, item, items, onClose}: DialogoSubirProps)
         {(fase.tipo === 'hecho' || fase.tipo === 'fallo') && <Button onClick={onClose}>{t('subir.cerrar')}</Button>}
       </Pie>
     </Modal>
+  );
+}
+
+const ROTULOS: Record<PasoSubir, string> = {
+  leer: 'subir.leyendo',
+  subir: 'subir.paso_subir',
+  importar: 'subir.paso_importar',
+  comprobar: 'subir.paso_comprobar',
+};
+
+/**
+ * Mientras sube: la barra se mueve siempre (subir el Excel es lo que más
+ * tarda y, con el porcentaje, se quedaba vacía y quieta, como colgada), los
+ * pasos con ✓ los hechos y los segundos que lleva: se ve que sigue.
+ */
+function Subiendo({paso}: {paso: PasoSubir}) {
+  const [segundos, setSegundos] = useState(0);
+  useEffect(() => {
+    const reloj = setInterval(() => setSegundos((s) => s + 1), 1000);
+    return () => clearInterval(reloj);
+  }, []);
+  const actual = PASOS.indexOf(paso);
+  return (
+    <div style={{marginTop: 14}}>
+      <Progreso rotulo={t(ROTULOS[paso])} />
+      <ol style={{margin: '12px 0 0', padding: 0, listStyle: 'none', fontSize: 13}}>
+        {PASOS.map((p, i) => (
+          <li
+            key={p}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '2px 0',
+              color: i < actual ? 'var(--text-secondary)' : i === actual ? 'var(--text-primary)' : 'var(--text-tertiary)',
+              fontWeight: i === actual ? 500 : 400,
+            }}>
+            <span style={{width: 14, display: 'inline-flex', justifyContent: 'center', flexShrink: 0}}>
+              {i < actual ? <Icon d={ICONOS.comprobado} size={12} /> : i === actual ? '›' : ''}
+            </span>
+            {t(`subir.paso_${p}_corto`)}
+          </li>
+        ))}
+      </ol>
+      {segundos >= 2 && <Texto color="var(--text-tertiary)">{t('subir.lleva', {n: segundos})}</Texto>}
+    </div>
   );
 }
 
