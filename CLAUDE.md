@@ -12,25 +12,15 @@ está en esta rama**: vive en `main` y en el tag `v1.3.4`, que es la última
 publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-23): toca H6** (subir las notas a Clickedu,
-> `docs/01`). **H5, cerrado** (2026-11-23, tabla): se trae con una regla
-> fija (`‹Materia› - ‹Curso› ‹Grupo›.xlsx`, `Pendiente - …`), lo viejo a
-> `plantillas\antiguas\‹fecha›\` y las notas pasan por `Id`; la
-> evaluación se elegía al subir: **desde el 2026-11-23, el ítem se elige
-> al calificar** (Clases despliega los ítems; sesión por clase e ítem;
-> `docs/01`, H6). Lo visual y el backend, hechos (`clickedu::items`,
-> `items.json`, la sesión por ítem, `items` en `listar_clases`; Clases por
-> evaluación, con las clases plegadas; `docs/01`);
-> también lo que ya hay en Clickedu (la nota de cada alumno en
-> `items.json`; en Calificar, en gris, o tachada con el punto ámbar si al
-> subir se pisaría; `docs/02` §3); **la subida en la app, hecha**
-> (`clickedu::subir`, `DialogoSubir`; todo o nada al pisar; sin ítem, se
-> elige al subir; probada contra el falso): **toca la primera vez con
-> Clickedu de verdad**, en el ítem 42700 y con el visto bueno del usuario
-> (escribe), y luego cerrar H6. La ponderación aún no se lee. Sin ítem, un
-> solo juego de notas por clase, como la v1 (opción «a»). Subir, importar y eliminar lo subido, ya probados
-> a mano en el ítem de prueba 42700 de Química 2 (`probar_subir`,
-> `docs/03`); ese ítem lo borra el usuario. **La carpeta de este
+> **Dónde se quedó (2026-11-24): H6, cerrado** (tabla y `docs/01`); el
+> siguiente hito lo elige el usuario. **Importar reemplaza el ítem
+> entero** (una celda vacía borra la nota de Clickedu): la subida completa
+> el Excel con lo de Clickedu (`subir::completar`), y cada subida va con
+> su nombre (`nombre_subida`; repetido, «Archivo incorrecto»). Lo
+> publicado sale en gris; exportar no cambia el aspecto. El ítem se elige
+> al calificar; sin ítem, un solo juego de notas por clase, como la v1.
+> La ponderación aún no se lee. El ítem de prueba 42700 de Química 2 lo
+> borra el usuario. **La carpeta de este
 > ordenador está como antes de traer**, para volver a probarlo: las 8
 > plantillas viejas en la raíz, las 22 notas de prueba en la sesión y sin
 > `traidas.json` (sale «la primera vez»); lo traído el 22, en
@@ -40,8 +30,7 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > Tauri con firma, `release.yml`, el paso desde la v1.3.4, la app
 > asegurada), y **la `v2.0.1` también** (2026-11-23): el actualizador de
 > Tauri, probado de verdad (paso 9, `docs/01`). Falta lo de D: su
-> procesador con AVX2 e importar un exportado en Clickedu (lo pendiente
-> de H2, como muy tarde en H6). Las versiones salen de una rama aparte si
+> procesador con AVX2 (el exportado de H2 ya entra en Clickedu, H6). Las versiones salen de una rama aparte si
 > `v2` lleva un hito a medias (`release-2.0.1`). Documentos, en este
 > ordenador, está en OneDrive: las plantillas llegan sincronizadas. El mapa de Clickedu, en
 > [`docs/03-clickedu.md`](docs/03-clickedu.md). Las páginas de verdad
@@ -70,12 +59,13 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
+| **H6** | El ítem se elige al calificar (Clases por evaluación, `clickedu::items`, sesión por ítem); lo que ya hay en Clickedu, a la vista (gris = publicada, tachada con punto ámbar = se pisaría); `clickedu::subir` (`completar`, `nombre_subida`, comprobar con `GetGrades`) y `DialogoSubir` con los pasos y el resultado en la misma ventana; plan B, el Excel y la página de importar | sí: el usuario, con Clickedu de verdad (ítem 42700, 2026-11-24); 151 tests de Rust contra el Clickedu falso; la prueba de diseño |
 | **H5** | `clickedu::traer` (plan, dudas, `replanear_traer`, hacerlo: lo viejo a `antiguas`, las notas por `Id`, `traidas.json`); `TarjetaTraer` en Conexión, que entra sola con la cuenta guardada; las pendientes aparte en Conexión, Clases y Calificar (`plantillas::es_pendiente`); Conexión, encendida fuera de desarrollo | sí: a mano con Clickedu de verdad (`probar_traer` y la pantalla, 2026-11-22); 63 tests de `clickedu`; la prueba de diseño. **Fuera de desarrollo, aún sin probar en un instalado** |
 | **H4** | `clickedu::cuenta` (usuario y contraseña en el Administrador de credenciales, el archivo de seguridad en `%APPDATA%`; se rellena una vez), `cliente` (entrar, comprobar, `abrir` en ISO-8859-15 y vuelve a entrar solo), `fichas` (materias, evaluaciones, ítems, importar, `GetGrades`; bien/degradado/roto), `huella`, `tapar`; Clickedu investigado solo leyendo (`explorar_clickedu`, `docs/03`); la pantalla Conexión, solo en desarrollo | sí: entrar, a mano con Clickedu de verdad; 43 tests contra el Clickedu falso y páginas reales anonimizadas; la sesión quieta, 111 min sin caer. **Volver a entrar solo, solo contra el falso** |
 | **HUI** | La interfaz, antes de H4: la cuadrícula compacta y de 1 a 4 columnas; el dictado (lo apuntado grande y los dos de antes, dudas con 1–4/Esc, medidor de volumen, micrófono en Ajustes); el avance, «Siguiente sin nota» y las teclas tras un ⓘ; el título que es el desplegable; `BarraAvance`; las pantallas a todo el ancho | sí, a mano (A–D y a todo el ancho) y con la prueba de diseño |
 | **H3b** | `voz::interprete` (la nota; lo no visto en grabaciones, `NOTA_RARA`, no se interpreta), `voz::emparejar` (fonética, los dos órdenes de «Apellidos, Nombre»), `voz::entender` (cuándo preguntar); `entender_frase`, el panel del dictado y las propuestas en la cuadrícula; `registro.rs` e informe sin nombres (D8), en Ajustes | sí, a mano (clase inventada), con tests de Rust, la prueba de diseño y `probar_entender` sobre las 100 grabaciones: **77 apuntadas, 20 preguntadas, 2 sin entender, 0 mal en silencio** |
 | **H3a** | D2 cerrada con números: Whisper `small` `q5_1` recortado (90–94 % en 1,1 s); micrófono, remuestreo y motor; el banco de pruebas de voz; **el push-to-talk** (`useDictado`, `commands::voz`), la descarga comprobada del modelo (`voz::modelo`) y medir en local (`registro::medir`, sin audio); los bucles de Whisper se enseñan una vez y «[Música]» es silencio | el motor, con voz de verdad (100 grabaciones); el push-to-talk, a mano (clase inventada y descarga), con tests de Rust y la prueba de diseño |
-| **H2** | `sesion.rs` (notas por clave de alumno, al momento), `exportar.rs` (el `.xlsx` de la v1, a `Documentos\Gestor de Notas\notas`); Calificar con campos de nota, Exportar y contador | sí, a mano, con tests de Rust (ida y vuelta) y la prueba de diseño; **falta importarlo en Clickedu** |
+| **H2** | `sesion.rs` (notas por clave de alumno, al momento), `exportar.rs` (el `.xlsx` de la v1, a `Documentos\Gestor de Notas\notas`); Calificar con campos de nota, Exportar y contador | sí, a mano, con tests de Rust (ida y vuelta) y la prueba de diseño; importado en Clickedu (H6) |
 | **H1** | `plantillas.rs` (lee por cabecera, con avisos), `ajustes.json`, vigilante de la carpeta; Calificar en lectura, Clases, Ajustes | sí, a mano (plantillas reales), con tests de Rust y la prueba de diseño |
 | **H0** | Andamiaje Tauri 2 + Vite + React + TS, paleta turquesa en claro con neutros «niebla», primitivas de `components/ui/`, `Sidebar` y cinco pantallas vacías, Muestrario, i18n, IBM Plex con `latin-ext`, prueba de diseño | sí, a mano y con la prueba de diseño |
 

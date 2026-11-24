@@ -301,7 +301,8 @@ a la carpeta nueva es parte del paso desde la v1.3.4 (H7).
 - [x] **Probado a mano** con `npm run tauri:dev` (2026-11-18): poner notas,
       cerrar y abrir sin perderlas, exportar.
 
-**Queda pendiente**, por decisión del usuario: importar un exportado en
+**Hecho en H6** (2026-11-23): Clickedu acepta el exportado. Lo que quedaba,
+por decisión del usuario: importar un exportado en
 Clickedu a mano para confirmar que lo acepta. Se hará más adelante, y como
 muy tarde en H6, cuyo plan B es justo ese Excel. Si Clickedu lo rechaza, el
 formato vuelve a abrirse aquí (`exportar.rs`).
@@ -1396,13 +1397,34 @@ quita lo importado**. El ítem lo borra el usuario a mano cuando quiera
       Lo subido se queda en la tabla de Clickedu (como a mano). Probado
       contra el Clickedu falso, que ahora sube, guarda e importa (5 tests;
       también «no importa» y «no sale el subido»), y con la prueba de
-      diseño (`subir`). **Falta la primera vez con Clickedu de verdad**, en
-      el ítem de prueba 42700, con el visto bueno del usuario.
+      diseño (`subir`). **Probada con Clickedu de verdad** (2026-11-24, por
+      el usuario, en el ítem 42700).
+- [x] **Lo aprendido con Clickedu de verdad** (2026-11-24, `docs/03`):
+      1. **Importar reemplaza el ítem entero**: quien no tiene nota en el
+         Excel pierde la que tenía. `subir::completar` mete en el Excel la
+         de Clickedu de quien no tiene nota en la app; la que no es un
+         número (p. ej. «NP») se enseña antes como «se borraría». Tras
+         importar, las que desaparecieron salen por nombre (`borradas`).
+      2. **Dos subidas con el mismo nombre al mismo ítem**: `alert("Archivo
+         incorrecto")`. Cada subida va con su nombre (`subir::nombre_subida`:
+         sin acentos y con fecha y hora).
+      3. **Mientras sube**, la barra se mueve y se ven los pasos (subir,
+         importar, comprobar) con los segundos; el resultado, o el paso que
+         falló con su plan B, debajo, en la misma ventana.
+      4. **Tras subir, Calificar relee**: lo publicado (en Clickedu e igual
+         en la app) sale en gris, sin caja (`docs/02` §3); en Clases y en la
+         barra, `publicadas` y `porSubir`. **Exportar no cambia el aspecto**
+         (decidido por el usuario): solo publicar en Clickedu.
 - [x] **No pisar notas** (2026-11-21; hecho el 2026-11-23): al subir se
       vuelve a leer y se enseña quién cambiaría. **Todo o nada** (decidido
-      por el usuario el 2026-11-23): o se suben todas, o ninguna. Subir
-      solo las que no pisan dependería de que una celda vacía no borre la
-      nota de Clickedu, que está sin probar.
+      por el usuario el 2026-11-23): o se suben todas, o ninguna. Una celda
+      vacía **sí borra** la nota de Clickedu (2026-11-24): por eso se
+      completa el Excel con lo de Clickedu.
+- [ ] **La ponderación** de los ítems aún no se lee (va vacía); no frena
+      el cierre de H6.
+
+**H6, cerrado** (2026-11-24): probado por el usuario con Clickedu de
+verdad; 151 tests de Rust, typecheck y la prueba de diseño en verde.
 - [x] Plan B: si falla, el Excel ya exportado («Abrir la carpeta») y la
       página de importar en el navegador (`abrir_importar_en_clickedu`;
       allí hay que entrar, la sesión de la app no se comparte). **Clickedu
