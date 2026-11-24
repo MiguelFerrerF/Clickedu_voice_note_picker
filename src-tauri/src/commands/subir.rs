@@ -1,9 +1,10 @@
 //! Comandos de **subir las notas** a Clickedu (H6). Lo que hacen está en
 //! [`crate::clickedu::subir`].
 //!
-//! - [`preparar_subida`]: exporta el Excel (es también el plan B), entra si
-//!   hace falta, **vuelve a leer** el ítem en Clickedu y cuenta qué notas
-//!   son nuevas, iguales o **se pisarían**. Solo lee; lo preparado espera a
+//! - [`preparar_subida`]: entra si hace falta, **vuelve a leer** el ítem en
+//!   Clickedu, exporta el Excel (es también el plan B) con la nota de
+//!   Clickedu de quien no tiene en la app —importar reemplaza el ítem
+//!   entero— y cuenta qué notas son nuevas, iguales o **se pisarían**. Solo lee; lo preparado espera a
 //!   [`confirmar_subida`] o a [`cancelar_subida`].
 //! - [`confirmar_subida`]: sube, importa y comprueba, con el avance por
 //!   pasos. **Escribe en Clickedu.**
@@ -38,6 +39,8 @@ pub struct Pendiente {
     esperadas: BTreeMap<String, f64>,
     /// El nombre de cada alumno, por `Id`: para decir cuáles no entraron.
     nombres: BTreeMap<String, String>,
+    /// Los `Id` cuya nota de Clickedu se sabía que se borraría (se preguntó).
+    se_borrarian: std::collections::BTreeSet<String>,
 }
 
 #[derive(Default)]
@@ -51,6 +54,14 @@ pub struct Cambio {
     /// La de Clickedu, tal cual.
     pub antes: String,
     pub nueva: f64,
+}
+
+/// Una nota de Clickedu que se borraría: no es un número y el Excel no la lleva.
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Perdida {
+    pub nombre: String,
+    pub antes: String,
 }
 
 /// Lo que se va a subir, para preguntar.
@@ -67,6 +78,10 @@ pub struct Previa {
     pub iguales: usize,
     /// **Se pisarían.**
     pub cambiarian: Vec<Cambio>,
+    /// Sin nota en la app y con nota en Clickedu: va la de allí y se queda.
+    pub se_quedan: usize,
+    /// **Se borrarían**: la de Clickedu no es un número (un «NP»).
+    pub se_borrarian: Vec<Perdida>,
     /// El Excel exportado (el plan B).
     pub excel: String,
 }
@@ -79,6 +94,8 @@ pub struct Subido {
     pub entraron: usize,
     /// Los alumnos cuya nota no está en Clickedu tras importar.
     pub no_entraron: Vec<String>,
+    /// Los alumnos que tenían nota en Clickedu y ya no.
+    pub borradas: Vec<String>,
     /// Lo que Clickedu no ha dicho como siempre: el aviso temprano.
     pub avisos: Vec<String>,
 }
@@ -139,8 +156,8 @@ async fn preparar(
     destino: String,
 ) -> Result<Previa, FalloSubir> {
     // Primero lo local: si algo falla aquí, no se llega a Clickedu.
-    let a = app.clone();
-    let (donde, excel, ruta_excel, esperadas, nombres, alumnos) = bloqueante(move || {
+    let (a, fichero_clase) = (app.clone(), fichero.clone());
+    let (donde, plantilla, puestas, esperadas, nombres) = bloqueante(move || {
         let donde = donde(&a, &fichero, &destino)?;
         let plantilla = leer_plantilla(&a, &fichero)?;
         let puestas = {
@@ -166,13 +183,9 @@ async fn preparar(
         if esperadas.is_empty() {
             return Err("no hay ninguna nota que subir".to_string());
         }
-        // El Excel, el mismo que «Exportar»: si la subida falla, es el plan B.
-        let e = exportar::exportar(&plantilla, &puestas, &fichero, &carpeta_notas(&a)?).map_err(|e| e.to_string())?;
-        let contenido = std::fs::read(&e.ruta).map_err(|err| format!("no se puede leer {}: {err}", e.ruta))?;
-        let nombre = exportar::nombre_exportado(&fichero);
         let nombres: BTreeMap<String, String> =
             plantilla.alumnos.iter().map(|al| (al.id.clone(), al.nombre.clone())).collect();
-        Ok((donde, (nombre, contenido), e.ruta, esperadas, nombres, plantilla.alumnos.len()))
+        Ok((donde, plantilla, puestas, esperadas, nombres))
     })
     .await?;
 
@@ -188,6 +201,19 @@ async fn preparar(
     let (ruta_items, d, notas) = (carpeta_ce.join(items::FICHERO), donde.destino.clone(), antes.notas.clone());
     bloqueante(move || items::poner_notas(&ruta_items, &d.materia, &d.item, notas)).await?;
     let _ = app.emit(crate::commands::notas::EVENTO, ());
+
+    // El Excel, el mismo que «Exportar» más lo que ya hay en Clickedu de
+    // quien no tiene nota aquí: importar reemplaza el ítem entero, y sin eso
+    // la borraría. Si la subida falla, es el plan B.
+    let (a, de_clickedu, alumnos) = (app.clone(), antes.notas.clone(), plantilla.alumnos.len());
+    let (completado, excel, ruta_excel) = bloqueante(move || {
+        let c = subir::completar(&plantilla.alumnos, &puestas, &de_clickedu);
+        let e = exportar::exportar(&plantilla, &c.puestas, &fichero_clase, &carpeta_notas(&a)?)
+            .map_err(|e| e.to_string())?;
+        let contenido = std::fs::read(&e.ruta).map_err(|err| format!("no se puede leer {}: {err}", e.ruta))?;
+        Ok::<_, String>((c, (exportar::nombre_exportado(&fichero_clase), contenido), e.ruta))
+    })
+    .await?;
 
     let c = subir::comparar(&esperadas, &antes.notas);
     let cambiarian = c
@@ -207,9 +233,16 @@ async fn preparar(
         nuevas: c.nuevas.len(),
         iguales: c.iguales.len(),
         cambiarian,
+        se_quedan: completado.se_quedan.len(),
+        se_borrarian: completado
+            .se_borrarian
+            .iter()
+            .map(|(id, antes)| Perdida { nombre: nombres.get(id).cloned().unwrap_or_default(), antes: antes.clone() })
+            .collect(),
         excel: ruta_excel,
     };
-    let pendiente = Pendiente { destino: donde.destino, antes, excel, esperadas, nombres };
+    let se_borrarian = completado.se_borrarian.into_iter().map(|(id, _)| id).collect();
+    let pendiente = Pendiente { destino: donde.destino, antes, excel, esperadas, nombres, se_borrarian };
     *app.state::<Subidas>().0.lock().map_err(|e| e.to_string())? = Some(pendiente);
     Ok(previa)
 }
@@ -269,7 +302,13 @@ async fn confirmar(app: &AppHandle, avance: &Channel<Paso>) -> Result<Subido, Fa
         .chain(c.cambiarian.iter().map(|(id, _)| id))
         .map(|id| p.nombres.get(id).cloned().unwrap_or_else(|| id.clone()))
         .collect();
-    Ok(Subido { entraron: c.iguales.len(), no_entraron, avisos: subida.avisos })
+    // Las que se preguntó que se borrarían, no: eso se sabía.
+    let borradas = subir::borradas(&p.antes.notas, &subida.despues)
+        .iter()
+        .filter(|id| !p.se_borrarian.contains(*id))
+        .map(|id| p.nombres.get(id).cloned().unwrap_or_else(|| id.clone()))
+        .collect();
+    Ok(Subido { entraron: c.iguales.len(), no_entraron, borradas, avisos: subida.avisos })
 }
 
 /// Olvida lo preparado.

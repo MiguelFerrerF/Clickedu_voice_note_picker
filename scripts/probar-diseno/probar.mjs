@@ -430,6 +430,9 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
                   {nombre: 'Alonso Ferrández de la Fuente, María del Carmen', antes: '7.50', nueva: 8},
                   {nombre: 'Castro Molina, Lucía', antes: 'NP', nueva: 5.25},
                 ],
+            // Las que solo están en Clickedu van en el Excel; un «NP», no puede.
+            seQuedan: subirSinItem ? 0 : 4,
+            seBorrarian: subirSinItem ? [] : [{nombre: 'Sin nombre (ID 20251)', antes: 'NP'}],
             excel: `${ruta.replace(/plantillas$/, 'notas')}\\notas_matematicas_3_a_eso.xlsx`,
           };
         }
@@ -442,7 +445,7 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
           }
           if (subirSinItem)
             throw {tipo: 'cambiado', paso: 'importar', motivo: 'el fichero subido no tiene el enlace para importarlo'};
-          return {entraron: 8, noEntraron: ['Castro Molina, Lucía'], avisos: []};
+          return {entraron: 8, noEntraron: ['Castro Molina, Lucía'], borradas: ['Nowak, Łukasz'], avisos: []};
         }
         case 'cancelar_subida':
           return null;

@@ -144,6 +144,11 @@ cambia del plan»). Son tres pasos, y los tres escriben:
    ejecución y **pierde el enlace de importar**: quedan `accio=veure`,
    «Descargar» y «Eliminar». Las notas, **en `nota_mod`** (10 de 10
    iguales, `nota` nula, `type` 0); el resto de `GetGrades`, idéntico.
+   **Importar reemplaza el ítem entero** (2026-11-24, con la app en el
+   42700): quien va sin nota en el Excel **pierde la que tenía** (de 10,
+   quedaron las 3 subidas). Por eso la app pone en el Excel la nota de
+   Clickedu de quien no tiene en la app (`subir::completar`); la que no
+   es un número (un «NP») no cabe y se avisa antes de que se borre.
 3. **Eliminar** no es un enlace: es `<a class="BotoEsborrarImportacio"
    cgap="N" aval="T" ind="S">`, y el JS, tras un `confirm`, va a
    `accio=esborrar_arxiu&assig=N&id_aval=T&id=S` (`GET`):

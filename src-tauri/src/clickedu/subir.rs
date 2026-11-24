@@ -308,6 +308,48 @@ pub fn comparar(app: &BTreeMap<String, f64>, clickedu: &BTreeMap<String, String>
     c
 }
 
+/// Lo que el Excel lleva además de las notas de la app.
+#[derive(Debug, Default, PartialEq)]
+pub struct Completado {
+    /// Las notas del Excel: las de la app y, de quien no tiene, la de Clickedu.
+    pub puestas: crate::sesion::Puestas,
+    /// Los `Id` sin nota en la app cuya nota de Clickedu va en el Excel: se quedan.
+    pub se_quedan: BTreeMap<String, f64>,
+    /// Los `Id` sin nota en la app cuya nota de Clickedu no es un número (un
+    /// «NP»): el Excel no la puede llevar y Clickedu la borraría. Con lo de allí.
+    pub se_borrarian: Vec<(String, String)>,
+}
+
+/// Importar en Clickedu **reemplaza el ítem entero**: quien va sin nota en
+/// el Excel la pierde (probado de verdad, 2026-11-24). Así que a quien no
+/// tiene nota en la app se le pone la de Clickedu: subir no borra nada.
+pub fn completar(
+    alumnos: &[crate::plantillas::Alumno],
+    puestas: &crate::sesion::Puestas,
+    clickedu: &BTreeMap<String, String>,
+) -> Completado {
+    let mut c = Completado { puestas: puestas.clone(), ..Default::default() };
+    for a in alumnos {
+        if !matches!(crate::sesion::nota_de(a, puestas), crate::plantillas::Nota::Vacia) {
+            continue;
+        }
+        let Some(texto) = clickedu.get(&a.id).filter(|t| !t.trim().is_empty()) else { continue };
+        match numero(texto) {
+            Some(v) => {
+                c.puestas.insert(a.clave.clone(), Some(v));
+                c.se_quedan.insert(a.id.clone(), v);
+            }
+            None => c.se_borrarian.push((a.id.clone(), texto.trim().to_string())),
+        }
+    }
+    c
+}
+
+/// Los `Id` que tenían nota en Clickedu antes y ya no: lo que se ha borrado.
+pub fn borradas(antes: &BTreeMap<String, String>, despues: &BTreeMap<String, String>) -> Vec<String> {
+    antes.keys().filter(|id| !despues.contains_key(*id)).cloned().collect()
+}
+
 /// Una nota de Clickedu como número: con punto o con coma.
 pub fn numero(t: &str) -> Option<f64> {
     t.trim().replace(',', ".").parse::<f64>().ok().filter(|v| v.is_finite())
@@ -451,6 +493,37 @@ mod tests {
         assert_ne!(importados[0], importados[1]);
     }
 
+    /// Lo que pasó de verdad (2026-11-24): importar reemplaza el ítem
+    /// entero. Sin la de Clickedu en el Excel, quien no tenía nota en la
+    /// app la pierde; con ella (`completar`), se queda.
+    #[test]
+    fn importar_reemplaza_el_item_y_completar_lo_evita() {
+        let d = destino();
+        let (_f, cliente) = entrado(Modo::Normal);
+        let antes = tauri::async_runtime::block_on(leer_antes(&cliente, &d)).unwrap();
+        let s =
+            tauri::async_runtime::block_on(subir(&cliente, &d, &antes, ("n.xlsx", excel(&[("5002", 6.0)])), |_| {}))
+                .unwrap();
+        assert_eq!(borradas(&antes.notas, &s.despues), ["5001"]);
+
+        let (_f, cliente) = entrado(Modo::Normal);
+        let antes = tauri::async_runtime::block_on(leer_antes(&cliente, &d)).unwrap();
+        let dir = tempfile::tempdir().unwrap();
+        let ruta = dir.path().join("p.xlsx");
+        std::fs::write(&ruta, falso::plantilla_101()).unwrap();
+        let p = crate::plantillas::leer(&ruta).unwrap();
+        let clave = |id: &str| p.alumnos.iter().find(|a| a.id == id).unwrap().clave.clone();
+        let puestas = BTreeMap::from([(clave("5002"), Some(6.0))]);
+        let c = completar(&p.alumnos, &puestas, &antes.notas);
+        assert_eq!(c.se_quedan, BTreeMap::from([("5001".to_string(), 7.5)]));
+        let e = crate::exportar::exportar(&p, &c.puestas, "p.xlsx", dir.path()).unwrap();
+        let contenido = std::fs::read(e.ruta).unwrap();
+        let s = tauri::async_runtime::block_on(subir(&cliente, &d, &antes, ("n.xlsx", contenido), |_| {})).unwrap();
+        assert!(borradas(&antes.notas, &s.despues).is_empty());
+        assert_eq!(s.despues.get("5001").and_then(|t| numero(t)), Some(7.5));
+        assert_eq!(s.despues.get("5002").and_then(|t| numero(t)), Some(6.0));
+    }
+
     #[test]
     fn si_clickedu_no_importa_se_ve_al_comprobar() {
         let (_f, cliente) = entrado(Modo::NoImporta);
@@ -487,5 +560,40 @@ mod tests {
             "{e:?}"
         );
         assert!(!f.pedidas().iter().any(|p| p.contains("accio=importar_notes")));
+    }
+
+    fn alumno(id: &str, nota: crate::plantillas::Nota) -> crate::plantillas::Alumno {
+        crate::plantillas::Alumno {
+            fila: 0,
+            id: id.into(),
+            nombre: format!("Alumno {id}"),
+            nota,
+            clave: format!("c{id}"),
+        }
+    }
+
+    #[test]
+    fn completar_pone_la_de_clickedu_a_quien_no_tiene_nota() {
+        use crate::plantillas::Nota;
+        let alumnos =
+            [alumno("1", Nota::Vacia), alumno("2", Nota::Vacia), alumno("3", Nota::Vacia), alumno("4", Nota::Vacia)];
+        let puestas = BTreeMap::from([("c1".to_string(), Some(8.0))]);
+        let clickedu: BTreeMap<String, String> = [("1", "6"), ("2", "7,5"), ("3", "NP"), ("9", "5")]
+            .into_iter()
+            .map(|(a, b)| (a.into(), b.into()))
+            .collect();
+        let c = completar(&alumnos, &puestas, &clickedu);
+        // La de la app manda; la de Clickedu, solo donde la app no tiene.
+        assert_eq!(c.puestas.get("c1"), Some(&Some(8.0)));
+        assert_eq!(c.puestas.get("c2"), Some(&Some(7.5)));
+        assert_eq!(c.se_quedan, BTreeMap::from([("2".to_string(), 7.5)]));
+        assert_eq!(c.se_borrarian, [("3".to_string(), "NP".to_string())]);
+        assert!(!c.puestas.contains_key("c4"));
+    }
+
+    #[test]
+    fn borradas_son_las_que_ya_no_estan() {
+        let m = |v: &[&str]| v.iter().map(|id| (id.to_string(), "5".to_string())).collect::<BTreeMap<_, _>>();
+        assert_eq!(borradas(&m(&["1", "2", "3"]), &m(&["2"])), ["1", "3"]);
     }
 }

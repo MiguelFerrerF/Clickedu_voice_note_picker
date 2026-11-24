@@ -211,6 +211,9 @@ struct Estado {
     subidos: Vec<(u32, String, Vec<(String, String)>, bool)>,
     /// Lo importado, por alumno e ítem: va en `nota_mod`.
     importadas: std::collections::BTreeMap<(String, String), String>,
+    /// Los ítems ya importados: como en el de verdad, importar **reemplaza
+    /// el ítem entero** y quien no va en el Excel se queda sin nota.
+    reemplazados: std::collections::BTreeSet<String>,
 }
 
 impl Estado {
@@ -268,6 +271,9 @@ impl Estado {
             return "<html><body></body></html>".into();
         }
         s.3 = true;
+        let item = s.1.clone();
+        self.importadas.retain(|(_, criterio), _| *criterio != item);
+        self.reemplazados.insert(item);
         for (alumno, nota) in &s.2 {
             self.importadas.insert((alumno.clone(), s.1.clone()), nota.clone());
         }
@@ -281,7 +287,11 @@ impl Estado {
         let mut filas = Vec::new();
         for (alumno, criterio, nota, nota_mod, tipo) in NOTAS_101 {
             let puesta = importadas.remove(&(alumno.to_string(), criterio.to_string()));
-            let nota_mod = puesta.or(nota_mod.map(String::from));
+            let (nota, nota_mod) = if self.reemplazados.contains(criterio) {
+                (None, puesta)
+            } else {
+                (nota, puesta.or(nota_mod.map(String::from)))
+            };
             filas.push(
                 json!({"id_alumne": alumno, "id_criteri": criterio, "nota": nota, "nota_mod": nota_mod, "type": tipo}),
             );

@@ -141,11 +141,7 @@ export function DialogoSubir({fichero, item, items, onClose}: DialogoSubirProps)
             </Button>
             <Button onClick={() => subir(fase.previa)}>
               <Icon d={ICONOS.clickedu} size={14} />
-              {fase.previa.cambiarian.length > 0
-                ? t('subir.subir_y_cambiar', {n: fase.previa.conNota})
-                : fase.previa.conNota === 1
-                  ? t('subir.subir_una')
-                  : t('subir.subir_n', {n: fase.previa.conNota})}
+              {textoBoton(fase.previa)}
             </Button>
           </>
         )}
@@ -184,10 +180,23 @@ function Pie({children}: {children: React.ReactNode}) {
   );
 }
 
-/** Lo que se va a subir y, si alguna pisaría otra, cuáles. */
+/** El botón de subir: dice si pisa o borra algo (todo o nada). */
+function textoBoton(previa: PreviaSubir): string {
+  const subir =
+    previa.cambiarian.length > 0
+      ? t('subir.subir_y_cambiar', {n: previa.conNota})
+      : previa.conNota === 1
+        ? t('subir.subir_una')
+        : t('subir.subir_n', {n: previa.conNota});
+  const borrar = previa.seBorrarian.length;
+  return borrar > 0 ? t('subir.y_borrar', {subir, n: borrar}) : subir;
+}
+
+/** Lo que se va a subir y, si alguna pisaría o borraría otra, cuáles. */
 function Previa({previa}: {previa: PreviaSubir}) {
-  const vacias = previa.alumnos - previa.conNota;
+  const vacias = previa.alumnos - previa.conNota - previa.seQuedan - previa.seBorrarian.length;
   const cambiarian = previa.cambiarian.length;
+  const borrarian = previa.seBorrarian.length;
   return (
     <>
       <Texto>
@@ -196,6 +205,8 @@ function Previa({previa}: {previa: PreviaSubir}) {
           : t('subir.se_subiran', {n: previa.conNota, item: previa.item, evaluacion: previa.evaluacion})}
         {vacias > 0 && ` ${vacias === 1 ? t('subir.vacia') : t('subir.vacias', {n: vacias})}`}
         {previa.iguales > 0 && ` ${previa.iguales === 1 ? t('subir.igual') : t('subir.iguales', {n: previa.iguales})}`}
+        {previa.seQuedan > 0 &&
+          ` ${previa.seQuedan === 1 ? t('subir.se_queda') : t('subir.se_quedan', {n: previa.seQuedan})}`}
       </Texto>
       {cambiarian > 0 && (
         <>
@@ -203,31 +214,48 @@ function Previa({previa}: {previa: PreviaSubir}) {
             <Punto />
             {cambiarian === 1 ? t('subir.cambiaria') : t('subir.cambiarian', {n: cambiarian})}
           </Texto>
-          <ul
-            style={{
-              margin: '8px 0 0',
-              padding: '6px 10px',
-              listStyle: 'none',
-              maxHeight: 180,
-              overflowY: 'auto',
-              background: 'var(--bg-sunk)',
-              borderRadius: 6,
-              fontSize: 13,
-            }}>
-            {previa.cambiarian.map((c) => (
-              <li
-                key={c.nombre}
-                style={{display: 'flex', justifyContent: 'space-between', gap: 12, padding: '3px 0', minWidth: 0}}>
-                <span style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{c.nombre}</span>
-                <span style={{flexShrink: 0, fontFamily: 'var(--font-mono)'}}>
-                  <s style={{color: 'var(--text-tertiary)'}}>{c.antes}</s> → {String(c.nueva)}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <Lista filas={previa.cambiarian.map((c) => ({nombre: c.nombre, antes: c.antes, nueva: String(c.nueva)}))} />
+        </>
+      )}
+      {borrarian > 0 && (
+        <>
+          <Texto color="var(--text-primary)">
+            <Punto />
+            {borrarian === 1 ? t('subir.se_borraria') : t('subir.se_borrarian', {n: borrarian})}
+          </Texto>
+          <Lista filas={previa.seBorrarian.map((c) => ({nombre: c.nombre, antes: c.antes}))} />
         </>
       )}
     </>
+  );
+}
+
+/** Cada alumno con la nota de Clickedu tachada y, si la hay, la que la sustituye. */
+function Lista({filas}: {filas: {nombre: string; antes: string; nueva?: string}[]}) {
+  return (
+    <ul
+      style={{
+        margin: '8px 0 0',
+        padding: '6px 10px',
+        listStyle: 'none',
+        maxHeight: 180,
+        overflowY: 'auto',
+        background: 'var(--bg-sunk)',
+        borderRadius: 6,
+        fontSize: 13,
+      }}>
+      {filas.map((c) => (
+        <li
+          key={c.nombre}
+          style={{display: 'flex', justifyContent: 'space-between', gap: 12, padding: '3px 0', minWidth: 0}}>
+          <span style={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{c.nombre}</span>
+          <span style={{flexShrink: 0, fontFamily: 'var(--font-mono)'}}>
+            <s style={{color: 'var(--text-tertiary)'}}>{c.antes}</s>
+            {c.nueva !== undefined && ` → ${c.nueva}`}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -277,6 +305,13 @@ function Hecho({previa, subido}: {previa: PreviaSubir; subido: Subido}) {
           {subido.noEntraron.length === 1
             ? t('subir.no_entro', {alumno: alumnosEnPalabras(subido.noEntraron)})
             : t('subir.no_entraron', {alumnos: subido.noEntraron.map((n) => `«${n}»`).join(', ')})}
+        </Texto>
+      )}
+      {subido.borradas.length > 0 && (
+        <Texto color="var(--danger)">
+          {subido.borradas.length === 1
+            ? t('subir.borrada', {alumno: `«${subido.borradas[0]}»`})
+            : t('subir.borradas', {alumnos: subido.borradas.map((n) => `«${n}»`).join(', ')})}
         </Texto>
       )}
       {subido.avisos.map((a) => (

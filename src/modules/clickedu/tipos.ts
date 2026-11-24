@@ -180,6 +180,10 @@ export interface PreviaSubir {
   iguales: number;
   /** **Se pisarían.** */
   cambiarian: Cambio[];
+  /** Sin nota en la app y con nota en Clickedu: va la de allí, y se queda. */
+  seQuedan: number;
+  /** **Se borrarían**: la de Clickedu no es un número (un «NP») y el Excel no la lleva. */
+  seBorrarian: {nombre: string; antes: string}[];
   /** El Excel exportado: el plan B. */
   excel: string;
 }
@@ -190,5 +194,7 @@ export interface Subido {
   entraron: number;
   /** Los alumnos cuya nota no está en Clickedu tras importar. */
   noEntraron: string[];
+  /** Los alumnos que tenían nota en Clickedu y tras importar ya no. */
+  borradas: string[];
   avisos: string[];
 }
