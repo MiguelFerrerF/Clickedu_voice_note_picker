@@ -586,14 +586,36 @@ vez**, con la prueba de diseño y sus capturas miradas; un commit por cambio.
 Ninguna rompe D5/D6 ni añade tokens. **Cerrado por el usuario el
 2026-11-19**, con todo probado a mano (A–D y el 18).
 
-- [ ] **En espera: la distribución de las pantallas.** Ahora que ocupan la
-      ventana entera (el 18), según vayan saliendo cosas nuevas (H4–H8) se
-      vuelve a mirar cómo se orientan y reparten los elementos de cada
-      pantalla. No se hace nada hasta que haga falta.
-- [ ] **En espera: una pantalla de inicio** (pedida el 2026-11-24). Abrir
-      la app en Calificar con la primera clase no tenía sentido; desde la
-      `v2.1.0` abre en Clases, que hace de resumen. Una pantalla propia
-      (qué enseña, dónde va en la barra lateral), se planifica más adelante.
+- [ ] **La distribución de las pantallas**, retomada tras H9
+      (2026-11-25), en la rama `hui-pantallas`. Lo que el usuario eligió,
+      tras ver las capturas a 1280 y 1920:
+  - **Conexión y Ajustes, en dos columnas** desde un ancho grande: sus
+    tarjetas eran tiras de todo el ancho, con el texto a un lado y el
+    botón al otro.
+  - **Clases, más compacta**: la cabecera «Ponderación» solo con una
+    clase desplegada (las filas plegadas no la rellenan), y menos hueco
+    entre el nombre y «Alumnos» en pantallas anchas.
+  - Calificar y Estadísticas, como están.
+- [ ] **La pantalla de inicio** (pedida el 2026-11-24; qué enseña, el
+      2026-11-25). **Inicio**, la primera de la barra, encima de Aula, y la
+      app abre en ella (Clases deja de hacer de resumen). Cuatro bloques:
+  - **Seguir donde lo dejaste**: la última clase (y su ítem) abierta en
+    Calificar, con su avance, y un botón que lleva allí. Se recuerda en
+    `ajustes.json` (`ultima`), así que vale tras cerrar la app; con ella,
+    Calificar abre también en esa clase. Sin nada, a Clases.
+  - **Lo pendiente con Clickedu**: los ítems con notas por subir (clase,
+    ítem, cuántas; al pulsar, a Calificar en ese ítem) y cuándo se
+    trajeron las plantillas, con un botón a Conexión. Sin conectar, solo
+    la línea de dónde se traen. Sin color: no es un error.
+  - **Cómo van las clases**: una tarjeta por clase en la evaluación de
+    hoy, con sus ítems completos y la barra de lo puesto (la de Clases).
+    Al pulsar, a Calificar.
+  - **El dictado, en dos cifras**: notas dictadas y tiempo ahorrado, de
+    todas las clases (`resumen_dictado`); el detalle sigue en
+    Estadísticas.
+  - Su texto en Ayuda y su aviso de la primera vez, como las demás.
+  - Por qué: abrir en Calificar con la primera clase no tenía sentido, y
+    desde la `v2.1.0` se abría en Clases, que hacía de resumen a medias.
 
 - [x] **Compactar la cuadrícula** (2026-11-19): dos columnas desde 760 px,
       filas de 32, sin caja en la nota vacía (era la 7). Ver `docs/02` §3.
