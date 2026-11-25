@@ -1544,10 +1544,46 @@ tests: un solo comando, `leer_estadisticas`.
 
 ### H9 · La ayuda guiada
 
-- [ ] La primera vez, y una ayuda por pantalla, como H12 de library-app.
+Decidido con el usuario el 2026-11-25 (las dos, la opción recomendada):
+
+1. **La ligera, no el tour de H12 de library-app.** Allí solo está el plan
+   (focos sobre `data-tour`, pasos que esperan la acción, lista de primeros
+   pasos), sin código ni la referencia `onboarding.jsx`. Aquí, sin focos:
+   una pantalla de Ayuda, una bienvenida y un aviso corto por pantalla. Se
+   rehace poco cuando cambian las pantallas (HUI en espera, H10).
+2. **La primera vez, según lo que haya**: sin plantillas ni cuenta de
+   Clickedu, se empieza por Conexión (traer); con plantillas (traídas, o
+   de la v1), por Clases, que es la pantalla de inicio y de donde se elige
+   qué calificar. «Ahora no», siempre a mano.
+
+Lo que se aparta de library-app y por qué:
+
+- **Dónde se guarda lo visto**: en `ajustes.json` (`ayudaVista`, una lista
+  de claves), no en `localStorage`: sobrevive a reinstalar y a actualizar.
+  Sin el campo (primera vez, o se viene de la v2.2.0 o de antes), no se ha
+  visto: quien ya usa la app ve la bienvenida una vez.
+- **Tokens**: ninguno nuevo. El aviso de la primera vez es un evento que se
+  apaga (D6): en el acento, y se va al cerrarlo.
+
 - [ ] **«Ayuda» en la barra lateral** (pedido por el usuario el
-      2026-11-19): cómo funciona cada cosa de la app, en un sitio; el «?»
-      de library-app. Se deja para aquí porque H4–H8 cambian las pantallas.
+      2026-11-19), en Aplicación: el recorrido (traer → calificar,
+      escribiendo o dictando → subir), qué hace cada pantalla con un botón
+      para ir a ella, las teclas (las del ⓘ de Calificar), lo que no sale
+      del ordenador (D2, D8) y qué hacer si algo falla (el informe de
+      Ajustes). Y «Ver otra vez la bienvenida».
+- [ ] **La bienvenida**, la primera vez: el recorrido en tres pasos y un
+      botón según lo que haya (arriba). Después del diálogo de la v1, si
+      sale, y antes del de la actualización.
+- [ ] **Un aviso por pantalla**, la primera vez que se entra en Calificar,
+      Clases, Estadísticas, Conexión y Ajustes: dos o tres líneas arriba,
+      «Más en la Ayuda» y ✕. Se da por visto al cerrarlo, no al verlo.
+- [ ] La prueba de diseño: la pantalla de Ayuda, la bienvenida (los dos
+      caminos) y un aviso; el backend falso da todo por visto salvo que se
+      pida lo contrario, para no tapar las demás pruebas.
+
+**Hecho cuando:** quien abre la app por primera vez sabe por dónde
+empezar sin que nadie se lo diga, y quien ya la usaba ve la bienvenida una
+vez y la recupera desde la Ayuda.
 
 ### H10 · Más de Clickedu (solo leer)
 
