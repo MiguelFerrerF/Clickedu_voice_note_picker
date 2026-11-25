@@ -1633,8 +1633,9 @@ cerrar H8 (2026-11-25).
   o de una rama aparte si `main` lleva un hito a medias.
 - **Versiones**: `v2.0.0` y `v2.0.1` (H7, 2026-11-24); la `v2.1.0`
   (2026-11-24) la paró `cargo audit` por `cookie`, arreglado antes de
-  haber release; `v2.1.1` (2026-11-25); **`v2.2.0` publicada**
-  (2026-11-25, con H8: las Estadísticas). En la app
+  haber release; `v2.1.1` (2026-11-25); `v2.2.0` (2026-11-25, con
+  H8: las Estadísticas); **`v2.3.0` publicada** (2026-11-25, con H9: la
+  ayuda). En la app
   instalada, todo probado por el usuario (2026-11-25): traer y subir con
   Clickedu, y sin «Probar el dictado».
 - **La carpeta de este ordenador está como antes de traer**, para volver

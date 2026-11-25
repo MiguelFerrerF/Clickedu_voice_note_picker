@@ -11,8 +11,8 @@ La vieja (**v1**, Python + customtkinter), sustituida en H7, solo queda en
 el tag `v1.3.4`. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-25): H9, cerrado** y en `main` (la ayuda,
-> sin publicar aún); la última versión, **la `v2.2.0`** (H8). Siguiente,
+> **Dónde se quedó (2026-11-25): H9, cerrado** y en `main`; con él,
+> **la `v2.3.0`, publicada** (la ayuda). Siguiente,
 > por decidir: H10 o volver a mirar las pantallas (HUI). Cada
 > cambio, en una rama propia que sale de `main` (un commit por hito y
 > otro al cerrarlo); las versiones, de `main`. Ramas, versiones y
