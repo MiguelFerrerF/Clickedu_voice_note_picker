@@ -26,14 +26,14 @@ publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
 > plantillas viejas en la raíz, las 22 notas de prueba en la sesión y sin
 > `traidas.json` (sale «la primera vez»); lo traído el 22, en
 > `%APPDATA%\es.gestornotas.app\clickedu\prueba-2026-11-22\`.
-> En la rama `v2`, la única de la v2 (un commit por hito y otro al cerrarlo).
+> **`v2` pasó a `main`** (2026-11-25, avance rápido): se trabaja en
+> `main` (un commit por hito y otro al cerrarlo); la v1, en el tag `v1.3.4`.
 > **`v2.1.0` publicada** (2026-11-24, desde `v2`; `cargo audit` la paró
 > por `cookie`, arreglado y el tag movido antes de haber release).
 > **H7, cerrado** (2026-11-24): la `v2.0.0` y la `v2.0.1`, **publicadas**
 > (actualizador de Tauri con firma, `release.yml`, el paso desde la
-> v1.3.4), y lo de D, probado. **Falta que `v2` pase a `main`** (la v1, en
-> el tag `v1.3.4`; `docs/01`): lo hace el usuario. Las versiones salen de una rama aparte si
-> `v2` lleva un hito a medias (`release-2.0.1`). Documentos, en este
+> v1.3.4), y lo de D, probado. Las versiones salen de una rama aparte si
+> `main` lleva un hito a medias (`release-2.0.1`). Documentos, en este
 > ordenador, está en OneDrive: las plantillas llegan sincronizadas. El mapa de Clickedu, en
 > [`docs/03-clickedu.md`](docs/03-clickedu.md). Las páginas de verdad
 > anonimizadas (`tests/datos/clickedu/`, `anonimizar_clickedu`) **se miran
@@ -172,7 +172,7 @@ Cerradas el 2026-11-17 (D8, el 2026-11-19). No se reabren sin que el usuario lo 
   se borran `android/` e `ios/`).
 - `node_modules` es de Windows: se instala siempre desde Windows.
 - Repo **público**: <https://github.com/MiguelFerrerF/Clickedu_voice_note_picker>
-  (`origin`, rama `main`; la v2, en `v2`). **El usuario hace el push.**
+  (`origin`, rama `main`, que es la v2; la v1, en el tag `v1.3.4`). **El usuario hace el push.**
 - Los commits terminan con la línea `Co-Authored-By` que indique la sesión.
 - **Formato de Rust**: no hay `rustfmt.toml` y el repo no está entero
   formateado: **nunca `cargo fmt`** (reescribe todo). Lo más parecido es

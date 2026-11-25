@@ -860,7 +860,8 @@ los de la v2). Quitarla pide permiso a Windows (UAC).
   verdad, mirado línea a línea para ver que no lleva nada de nadie.
 
 **Con H7 cerrado, la `v2.0.0` sustituye a la app Python**: la rama `v2`
-pasa a `main`, y la v1 queda en el tag `v1.3.4`.
+pasa a `main`, y la v1 queda en el tag `v1.3.4`. **Hecho el 2026-11-25**,
+con avance rápido (`main` no tenía nada que no estuviera en `v2`).
 
 ### H4 · Conectar con Clickedu ✓ (2026-11-22)
 
