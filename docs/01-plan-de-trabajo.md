@@ -1445,11 +1445,11 @@ verdad; 151 tests de Rust, typecheck y la prueba de diseño en verde.
       acepta el exportado de H2**: es el que subió `probar_subir` el
       2026-11-23, por el mismo formulario que a mano.
 
-### H8 · Estadísticas
+### H8 · Estadísticas ✓ (2026-11-25)
 
-Lo del ítem, hecho y **probado por el usuario** en la app el 2026-11-25
-(rama `h8-estadisticas`). **Sigue abierto**: la evaluación y el alumno
-(abajo) van también en H8 (decidido por el usuario, 2026-11-25). La pantalla, en la barra lateral (fuera
+**H8, cerrado** (2026-11-25, rama `h8-estadisticas`): lo del ítem y,
+después, la evaluación y el alumno, **probados por el usuario** en la
+app; 169 tests de Rust, typecheck y la prueba de diseño en verde. La pantalla, en la barra lateral (fuera
 `HAY_ESTADISTICAS`), con **la clase y el ítem de Calificar** (el mismo
 título, `TituloClase`, que viven en `App`). Lo cuenta el backend, con
 tests: un solo comando, `leer_estadisticas`.
@@ -1482,11 +1482,17 @@ tests: un solo comando, `leer_estadisticas`.
       qué día es). Las clases sin ítem (como la v1) se quedan con lo de
       arriba. Tres vistas en Estadísticas, con la clase de `TituloClase`:
       **Ítem** (lo de arriba), **Evaluación** y **Alumno**.
-- [ ] **«Por asignatura» es una clase con todas sus evaluaciones**
+- [x] **«Por asignatura» es una clase con todas sus evaluaciones**
       (decidido por el usuario): no se juntan grupos (Química 2ºA y 2ºB son
       dos materias de Clickedu). Arriba, cada evaluación con su media
-      (`Columnas`), para ver cómo va el curso; al elegir una, su detalle.
-- [ ] **Por evaluación**: cada ítem en una fila (`Barras`) con su
+      (`Barras` con `tope` 10), para ver cómo va el curso; al elegir una
+      (ahí o en sus pestañas), su detalle. Un solo comando, `leer_curso`
+      (`estadisticas::curso`, con tests); en la prueba de diseño, las
+      vistas `evaluacion`, `final` y `alumno`. Las pestañas, en el orden
+      Evaluación · Ítem · Alumno; al cambiar de materia se queda la misma
+      evaluación (por nombre; si no está, por posición: los ids cambian
+      entre etapas).
+- [x] **Por evaluación**: cada ítem en una fila (`Barras`) con su
       ponderación, su media, aprobados y cuántos tienen nota; y **la nota
       de la evaluación** de cada alumno, con el bloque del ítem (media,
       mediana, aprobados, una columna por punto, quiénes son). **Las dos
@@ -1498,12 +1504,26 @@ tests: un solo comando, `leer_estadisticas`.
       ítem sin ponderación se avisa y esa evaluación sale con media
       simple; a un alumno sin nota en algún ítem se le calcula con los
       que tiene y se dice cuántos le faltan. La ponderación de un ítem que
-      cuelga de otro, con `ponderacion_en_la_evaluacion`.
-- [ ] **Por alumno**: se entra pulsando un nombre en «quiénes son» o desde
+      cuelga de otro, con `ponderacion_en_la_evaluacion`. **Al hacerlo**:
+      en la página de verdad, los ítems de arriba suman 100 y uno sin
+      ponderación vale 0, así que la media simple es solo si **ninguno**
+      la tiene; si unos sí y otros no, los que no **no cuentan** y se dice
+      cuáles. Un ítem con apartados vale la media ponderada de los
+      apartados que tenga el alumno; sin ninguno, su propia nota. La
+      final se guarda en `EvaluacionItems::finales` (`items::finales_de`):
+      **solo sale tras volver a traer**; los `items.json` de antes no la
+      tienen.
+- [x] **Por alumno**: se entra pulsando un nombre en «quiénes son» o desde
       la lista de la clase. De cada evaluación, sus notas en cada ítem
       frente a la media de la clase y su nota de la evaluación (las dos);
       con varias, cómo va de una a otra. Solo en la pantalla, como
-      «quiénes son» (D8); el suspenso, en gris (D6).
+      «quiénes son» (D8); el suspenso, en gris (D6). Se elige en un
+      `Dropdown`; las evaluaciones sin ítems ni final no salen. Arriba,
+      sus cifras del curso (ítems con nota, aprobados, por encima de la
+      media); en las barras de la evolución y de los ítems, **una raya con
+      la media de la clase**, dentro del alto de la barra (`Dato.referencia`
+      en `Barras`). Desde la evaluación y el alumno se va al ítem (y
+      cambia también el de Calificar); desde la evolución, a la evaluación.
 - [x] **Lo del dictado** (`registro::estadisticas`), de la clase en todos
       sus ítems (el registro no apunta el ítem de cada dictado) y de
       todas: dictadas por voz (lo escrito en el campo de desarrollo no
@@ -1560,6 +1580,36 @@ adivinarlo.
       entra y cuánto cuesta cada cosa, antes de prometerlo.
 - [ ] Qué enseña el apartado: **pendiente de que el usuario lo diga**,
       además de ítems y rúbricas.
+
+---
+
+## Cómo se trabaja y cómo está este ordenador
+
+Lo que estaba en el «Dónde se quedó» de `CLAUDE.md`, sacado de allí al
+cerrar H8 (2026-11-25).
+
+- **Ramas**: `v2` pasó a `main` (2026-11-25, avance rápido) y solo queda
+  `main`; las ramas viejas (prototipos de abril, `v2`, `release-2.0.1`),
+  borradas ese día. Cada cambio, en una rama propia que sale de `main`
+  (un commit por hito y otro al cerrarlo). Las versiones salen de `main`,
+  o de una rama aparte si `main` lleva un hito a medias.
+- **Versiones**: `v2.0.0` y `v2.0.1` (H7, 2026-11-24); la `v2.1.0`
+  (2026-11-24) la paró `cargo audit` por `cookie`, arreglado antes de
+  haber release; **`v2.1.1` publicada** (2026-11-25). En la app
+  instalada, todo probado por el usuario (2026-11-25): traer y subir con
+  Clickedu, y sin «Probar el dictado».
+- **La carpeta de este ordenador está como antes de traer**, para volver
+  a probarlo: las 8 plantillas viejas en la raíz, las 22 notas de prueba
+  en la sesión y sin `traidas.json` (sale «la primera vez»); lo traído el
+  22, en `%APPDATA%\es.gestornotas.app\clickedu\prueba-2026-11-22\`.
+  Documentos, aquí, está en OneDrive: las plantillas llegan
+  sincronizadas. El ítem de prueba 42700 de Química 2, ya borrado.
+- **Clickedu**: la cuenta del usuario ya está guardada en la app.
+  Clickedu no distingue «caducado» de «incorrecto». La contraseña
+  filtrada la cambia el administrador del colegio (con el archivo nuevo,
+  la filtrada ya deja entrar: hay que cambiarla). Lo de importar y subir
+  (reemplaza el ítem entero, `subir::completar`, `nombre_subida`), en H6 y
+  en `docs/03`.
 
 ---
 

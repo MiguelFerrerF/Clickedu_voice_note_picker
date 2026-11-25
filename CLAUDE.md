@@ -11,35 +11,15 @@ La vieja (**v1**, Python + customtkinter), sustituida en H7, solo queda en
 el tag `v1.3.4`. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-25): H8, abierto otra vez** en la rama
-> `h8-estadisticas`. Lo del ítem está probado por el usuario; falta lo que se
-> planificó después, **la evaluación y el alumno** (`docs/01` §H8), que
-> también va en H8 (decidido por el usuario). Después, H9 · Ayuda guiada.
-> El registro apunta ahora `exportado` y `subido` (sin nombres), para el
-> tiempo ahorrado. **Importar reemplaza el ítem
-> entero** (una celda vacía borra la nota de Clickedu): la subida completa
-> el Excel con lo de Clickedu (`subir::completar`), y cada subida va con
-> su nombre (`nombre_subida`; repetido, «Archivo incorrecto»). Lo
-> publicado sale en gris; exportar no cambia el aspecto. El ítem se elige
-> al calificar; sin ítem, un solo juego de notas por clase, como la v1.
-> La ponderación se lee al traer (la tabla de «Ítems»). El ítem de prueba 42700 de Química 2, ya
-> borrado. En la app instalada, todo probado por el usuario (2026-11-25):
-> traer y subir con Clickedu, y sin «Probar el dictado». **La carpeta de este
-> ordenador está como antes de traer**, para volver a probarlo: las 8
-> plantillas viejas en la raíz, las 22 notas de prueba en la sesión y sin
-> `traidas.json` (sale «la primera vez»); lo traído el 22, en
-> `%APPDATA%\es.gestornotas.app\clickedu\prueba-2026-11-22\`.
-> **`v2` pasó a `main`** (2026-11-25, avance rápido) y solo queda `main`:
-> cada cambio, en una rama propia que sale de `main` (un commit por hito y
-> otro al cerrarlo); la v1, en el tag `v1.3.4`. Las ramas viejas
-> (prototipos de abril, `v2`, `release-2.0.1`), borradas el 2026-11-25.
-> **`v2.1.1` publicada** (2026-11-25); la `v2.1.0` (2026-11-24), con
-> `cargo audit` que la paró por `cookie`, arreglado antes de haber release.
-> **H7, cerrado** (2026-11-24): la `v2.0.0` y la `v2.0.1`, **publicadas**
-> (actualizador de Tauri con firma, `release.yml`, el paso desde la
-> v1.3.4), y lo de D, probado. Las versiones salen de `main`, o de una
-> rama aparte si `main` lleva un hito a medias. Documentos, en este
-> ordenador, está en OneDrive: las plantillas llegan sincronizadas. El mapa de Clickedu, en
+> **Dónde se quedó (2026-11-25): H8, cerrado** en la rama
+> `h8-estadisticas` (falta que el usuario la junte con `main` y haga el
+> push). Siguiente, **H9 · La ayuda guiada**. Cada cambio, en una rama
+> propia que sale de `main` (un commit por hito y otro al cerrarlo); las
+> versiones, de `main`. Publicada, la **`v2.1.1`**. Ramas, versiones y
+> cómo está la carpeta de este ordenador para probar traer, en `docs/01`
+> («Cómo se trabaja y cómo está este ordenador»). **Importar reemplaza el
+> ítem entero**: la subida completa el Excel con lo de Clickedu
+> (`subir::completar`). El mapa de Clickedu, en
 > [`docs/03-clickedu.md`](docs/03-clickedu.md). Las páginas de verdad
 > anonimizadas (`tests/datos/clickedu/`, `anonimizar_clickedu`) **se miran
 > antes de cada commit: el repo es público**; lo crudo, en
@@ -49,10 +29,7 @@ el tag `v1.3.4`. Plan, decisiones e hitos en
 > mirar Clickedu (ítems, rúbricas…) va aparte, en H10, solo leyendo y tras
 > H6; qué enseña, se decide más adelante (`docs/01`, la frontera,
 > 2026-11-21). Dentro de Clickedu, **nunca `/` ni
-> `user.php`: cierran la sesión**. La cuenta del usuario ya está guardada en la app. Clickedu no distingue «caducado» de
-> «incorrecto». La contraseña filtrada la cambia el administrador del
-> colegio (con el archivo nuevo, la filtrada ya deja entrar: hay que cambiarla).
-> **En espera** (`docs/01`, HUI): con lo que traigan H4–H8, volver a mirar
+> `user.php`: cierran la sesión**. **En espera** (`docs/01`, HUI): con lo que traigan H4–H8, volver a mirar
 > la distribución de cada pantalla, que ya ocupa la ventana entera.
 > El audio **no se guarda** (D8);
 > lo dictado se mide en local con `cargo run --example medir_registro` (solo
@@ -65,7 +42,7 @@ el tag `v1.3.4`. Plan, decisiones e hitos en
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
-| **H8** | Estadísticas, con la clase y el ítem de Calificar (`TituloClase`): `leer_estadisticas`; `estadisticas.rs` (media, mediana de verdad, aprobados, una columna por punto; en un ítem, también lo que ya está en Clickedu; al pulsar, quiénes son) y `registro::estadisticas` (por voz, a la primera, segundos por nota, tiempo ahorrado: 15 s/nota a mano, 3 min por importar); `exportado` y `subido` en el registro; `Columnas`, `Proporcion` y `Barras` de library-app | lo del ítem, sí: el usuario, en la app (2026-11-25); tests de Rust (165) y la prueba de diseño. **Falta la evaluación y el alumno** |
+| **H8** | Estadísticas, con la clase y el ítem de Calificar (`TituloClase`): `leer_estadisticas`; `estadisticas.rs` (media, mediana de verdad, aprobados, una columna por punto; en un ítem, también lo que ya está en Clickedu; al pulsar, quiénes son) y `registro::estadisticas` (por voz, a la primera, segundos por nota, tiempo ahorrado: 15 s/nota a mano, 3 min por importar); `exportado` y `subido` en el registro; `Columnas`, `Proporcion` y `Barras` de library-app; pestañas Evaluación · Ítem · Alumno (`leer_curso`, `estadisticas::curso`): nota de la evaluación calculada (sin ponderación no cuenta) junto a la «Nota final» de Clickedu, guardada al traer; el alumno, con la raya de la media | sí: el usuario, en la app (2026-11-25); tests de Rust (169) y la prueba de diseño |
 | **H7** | `v2.0.0` y `v2.0.1` publicadas: `tauri-plugin-updater` con firma, `release.yml`, `npm run release`, el paso desde la v1.3.4 (`Instalador_GestorNotas.exe`, copia y desinstala la v1) | sí: el actualizador de la v1.3.4 y el de Tauri (2.0.0 → 2.0.1), de verdad; lo de D (AVX2), por el usuario (2026-11-24) |
 | **H6** | El ítem se elige al calificar (Clases por evaluación, `clickedu::items`, sesión por ítem); lo que ya hay en Clickedu, a la vista (gris = publicada, tachada con punto ámbar = se pisaría); `clickedu::subir` (`completar`, `nombre_subida`, comprobar con `GetGrades`) y `DialogoSubir` con los pasos y el resultado en la misma ventana; plan B, el Excel y la página de importar | sí: el usuario, con Clickedu de verdad (ítem 42700, 2026-11-24); 151 tests de Rust contra el Clickedu falso; la prueba de diseño |
 | **H5** | `clickedu::traer` (plan, dudas, `replanear_traer`, hacerlo: lo viejo a `antiguas`, las notas por `Id`, `traidas.json`); `TarjetaTraer` en Conexión, que entra sola con la cuenta guardada; las pendientes aparte en Conexión, Clases y Calificar (`plantillas::es_pendiente`); Conexión, encendida fuera de desarrollo | sí: a mano con Clickedu de verdad (`probar_traer` y la pantalla, 2026-11-22); 63 tests de `clickedu`; la prueba de diseño; en la app instalada, por el usuario (2026-11-25) |
