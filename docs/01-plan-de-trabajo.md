@@ -1447,8 +1447,8 @@ verdad; 151 tests de Rust, typecheck y la prueba de diseño en verde.
 
 ### H8 · Estadísticas
 
-Hecho el 2026-11-25 (rama `h8-estadisticas`); **falta que lo pruebe el
-usuario** en la app. La pantalla, en la barra lateral (fuera
+Hecho y **probado por el usuario** en la app el 2026-11-25 (rama
+`h8-estadisticas`). La pantalla, en la barra lateral (fuera
 `HAY_ESTADISTICAS`), con **la clase y el ítem de Calificar** (el mismo
 título, `TituloClase`, que viven en `App`). Lo cuenta el backend, con
 tests: un solo comando, `leer_estadisticas`.
