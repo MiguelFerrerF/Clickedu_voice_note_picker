@@ -6,10 +6,9 @@
 
 ## Estado del proyecto
 
-Se está rehaciendo la app (**v2**, Tauri) sobre la base de
-`C:\dev\library-app`. La app vieja (**v1**, Python + customtkinter) **ya no
-está en esta rama**: vive en `main` y en el tag `v1.3.4`, que es la última
-publicada, hasta que la v2 la sustituya en H7. Plan, decisiones e hitos en
+La app es la **v2** (Tauri), hecha sobre la base de `C:\dev\library-app`.
+La vieja (**v1**, Python + customtkinter), sustituida en H7, solo queda en
+el tag `v1.3.4`. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
 > **Dónde se quedó (2026-11-24): H6, cerrado** (tabla y `docs/01`); el
@@ -94,8 +93,8 @@ npm run release X.Y.Z    # versión, commit y tag (docs/releases/README.md)
   `[IO.File]::WriteAllText(..., (New-Object Text.UTF8Encoding $false))`.
 - **El código de la v1 es referencia para portar** (el intérprete de frases y
   el emparejamiento fonético en H3, el cliente de Clickedu en H4–H6). Se lee
-  sin cambiar de rama: `git show main:GradingApp/core/voice_processor.py`,
-  `git show main:GradingApp/core/clickedu_client.py`. **Se porta, no se
+  sin cambiar de rama: `git show v1.3.4:GradingApp/core/voice_processor.py`,
+  `git show v1.3.4:GradingApp/core/clickedu_client.py`. **Se porta, no se
   copia**: con tests, y arreglando lo que estaba mal (la mediana, D6).
 
 ## Antes de proponer o escribir nada, lee

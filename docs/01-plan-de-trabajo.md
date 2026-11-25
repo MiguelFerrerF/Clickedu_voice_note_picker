@@ -74,7 +74,7 @@ con un commit por hito y otro al cerrarlo (hasta H2 fue una rama por hito,
 `v2/h0-andamiaje`…, en línea recta; se juntaron el 2026-11-18), **sin la app
 Python** (se quitó el 2026-11-17):
 la v1 sigue en `main` y en el tag `v1.3.4`, y su código se lee con
-`git show main:GradingApp/…` cuando hay que portar algo.
+`git show v1.3.4:GradingApp/…` cuando hay que portar algo.
 
 ### D2 · El motor de voz
 
