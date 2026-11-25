@@ -17,7 +17,7 @@ import {useState} from 'react';
 
 import {Ruta} from '@components/clases/SinPlantillas';
 import {TarjetaMicrofono} from '@components/dictado/TarjetaMicrofono';
-import {Cabecera} from '@components/layout/Cabecera';
+import {Cabecera, DOS_COLUMNAS} from '@components/layout/Cabecera';
 import {TarjetaRegistro} from '@components/registro/TarjetaRegistro';
 import {Button} from '@components/ui/Button';
 import {Card} from '@components/ui/Card';
@@ -45,49 +45,53 @@ export function Ajustes({visible}: {visible: boolean}) {
       <Cabecera titulo={t('ajustes.titulo')} />
       {/* El hueco entre tarjetas lo pone la pantalla, no cada tarjeta. */}
       <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>
-        <Card title={t('ajustes.plantillas')} subtitle={t('ajustes.plantillas_sub')}>
-          {carpeta && (
-            <>
-              <div style={{display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0}}>
-                <div style={{minWidth: 0, flex: 1}}>
-                  <Ruta ruta={carpeta.ruta} />
+        {/* Las dos pequeñas, lado a lado cuando caben (HUI); el registro,
+          con sus seis cifras, a todo el ancho. */}
+        <div style={DOS_COLUMNAS}>
+          <Card title={t('ajustes.plantillas')} subtitle={t('ajustes.plantillas_sub')}>
+            {carpeta && (
+              <>
+                <div style={{display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0}}>
+                  <div style={{minWidth: 0, flex: 1}}>
+                    <Ruta ruta={carpeta.ruta} />
+                  </div>
+                  {carpeta.porDefecto && (
+                    <span style={{flexShrink: 0, fontSize: 11.5, color: 'var(--text-tertiary)'}}>
+                      {t('ajustes.por_defecto')}
+                    </span>
+                  )}
                 </div>
-                {carpeta.porDefecto && (
-                  <span style={{flexShrink: 0, fontSize: 11.5, color: 'var(--text-tertiary)'}}>
-                    {t('ajustes.por_defecto')}
-                  </span>
+                {!carpeta.existe && (
+                  <p role="alert" style={{margin: 0, fontSize: 13, color: 'var(--danger)'}}>
+                    {t('clases.carpeta_no_existe')}
+                  </p>
                 )}
-              </div>
-              {!carpeta.existe && (
-                <p role="alert" style={{margin: 0, fontSize: 13, color: 'var(--danger)'}}>
-                  {t('clases.carpeta_no_existe')}
-                </p>
-              )}
-              <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
-                <Button variant="ghost" onClick={() => hacer('elegir_carpeta_plantillas')}>
-                  {t('ajustes.cambiar')}
-                </Button>
-                {carpeta.existe && (
-                  <Button variant="ghost" onClick={() => hacer('abrir_carpeta_plantillas')}>
-                    <Icon d={ICONOS.carpeta} size={14} />
-                    {t('clases.abrir_carpeta')}
+                <div style={{display: 'flex', flexWrap: 'wrap', gap: 8}}>
+                  <Button variant="ghost" onClick={() => hacer('elegir_carpeta_plantillas')}>
+                    {t('ajustes.cambiar')}
                   </Button>
-                )}
-                {!carpeta.porDefecto && (
-                  <Button variant="ghost" onClick={() => hacer('restablecer_carpeta_plantillas')}>
-                    {t('ajustes.volver_por_defecto')}
-                  </Button>
-                )}
-              </div>
-            </>
-          )}
-          {(fallo ?? error) && (
-            <p role="alert" style={{margin: 0, fontSize: 13, color: 'var(--danger)'}}>
-              {fallo ?? error}
-            </p>
-          )}
-        </Card>
-        <TarjetaMicrofono visible={visible} />
+                  {carpeta.existe && (
+                    <Button variant="ghost" onClick={() => hacer('abrir_carpeta_plantillas')}>
+                      <Icon d={ICONOS.carpeta} size={14} />
+                      {t('clases.abrir_carpeta')}
+                    </Button>
+                  )}
+                  {!carpeta.porDefecto && (
+                    <Button variant="ghost" onClick={() => hacer('restablecer_carpeta_plantillas')}>
+                      {t('ajustes.volver_por_defecto')}
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
+            {(fallo ?? error) && (
+              <p role="alert" style={{margin: 0, fontSize: 13, color: 'var(--danger)'}}>
+                {fallo ?? error}
+              </p>
+            )}
+          </Card>
+          <TarjetaMicrofono visible={visible} />
+        </div>
         <TarjetaRegistro visible={visible} />
         <p style={{margin: 0, fontSize: 12.5, color: 'var(--text-tertiary)'}}>{t('ajustes.llegan')}</p>
       </div>

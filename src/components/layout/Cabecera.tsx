@@ -12,6 +12,18 @@
 
 import {AvisoPrimeraVez} from '@components/ayuda/AvisoPrimeraVez';
 
+/**
+ * Tarjetas lado a lado cuando caben, y si no, una debajo de otra (HUI,
+ * 2026-11-25): a 1280 van de una en una; a 1920, de dos en dos. Lo usan
+ * Inicio, Conexión y Ajustes.
+ */
+export const DOS_COLUMNAS: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(540px, 100%), 1fr))',
+  gap: 16,
+  alignItems: 'start',
+};
+
 export interface CabeceraProps {
   /** Un texto o, si en la pantalla se elige qué se ve, un `Dropdown` con size="titulo". */
   titulo: React.ReactNode;

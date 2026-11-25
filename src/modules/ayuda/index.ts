@@ -13,7 +13,7 @@ import {createContext, useContext} from 'react';
 import type {PantallaId} from '@/types/pantalla';
 
 /** Las pantallas con aviso la primera vez. Cada una tiene `ayuda.aviso_<id>` en `es.ts`. */
-export const CON_AVISO = ['calificar', 'clases', 'estadisticas', 'clickedu', 'ajustes'] as const;
+export const CON_AVISO = ['inicio', 'calificar', 'clases', 'estadisticas', 'clickedu', 'ajustes'] as const;
 export type PantallaConAviso = (typeof CON_AVISO)[number];
 
 export function tieneAviso(p: PantallaId): p is PantallaConAviso {

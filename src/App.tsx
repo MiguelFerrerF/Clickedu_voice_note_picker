@@ -38,6 +38,7 @@ import {Calificar} from '@screens/Calificar';
 import {Clases} from '@screens/Clases';
 import {Clickedu} from '@screens/Clickedu';
 import {Estadisticas} from '@screens/Estadisticas';
+import {Inicio} from '@screens/Inicio';
 import {Muestrario} from '@screens/Muestrario';
 import type {ItemElegido} from '@modules/clases/tipos';
 import {PANTALLA_INICIAL, type PantallaId} from '@/types/pantalla';
@@ -58,6 +59,26 @@ export default function App() {
   useEffect(() => {
     setVisitadas((v) => (v.has(pantalla) ? v : new Set(v).add(pantalla)));
   }, [pantalla]);
+
+  // La última clase abierta en Calificar (HUI): Calificar abre en ella. Si
+  // ya se ha elegido otra (desde Inicio o Clases), no se pisa.
+  useEffect(() => {
+    invoke<{fichero: string; item: ItemElegido | null} | null>('ultima_clase').then(
+      (u) => {
+        if (!u) return;
+        setClase((c) => c ?? u.fichero);
+        setItems((m) => (u.fichero in m ? m : {...m, [u.fichero]: u.item}));
+      },
+      () => {},
+    );
+  }, []);
+
+  /** Abre la clase en Calificar; con `item` (también `null`, sin ítem), en ese. */
+  const abrir = (fichero: string, item?: ItemElegido | null) => {
+    setClase(fichero);
+    if (item !== undefined) elegirItem(fichero, item);
+    setPantalla('calificar');
+  };
 
   const irAAjustes = () => setPantalla('ajustes');
 
@@ -111,6 +132,8 @@ export default function App() {
 
   function renderizar(id: PantallaId) {
     switch (id) {
+      case 'inicio':
+        return <Inicio visible={pantalla === 'inicio'} ir={setPantalla} abrir={abrir} />;
       case 'calificar':
         return (
           <Calificar
@@ -124,14 +147,7 @@ export default function App() {
         );
       case 'clases':
         return (
-          <Clases
-            abrir={(fichero, item) => {
-              setClase(fichero);
-              if (item !== undefined) elegirItem(fichero, item);
-              setPantalla('calificar');
-            }}
-            irAAjustes={irAAjustes}
-          />
+          <Clases abrir={abrir} irAAjustes={irAAjustes} />
         );
       case 'clickedu':
         return <Clickedu />;

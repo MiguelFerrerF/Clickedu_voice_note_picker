@@ -25,13 +25,18 @@ import {Cabecera} from '@components/layout/Cabecera';
 import {Button} from '@components/ui/Button';
 import {Icon, ICONOS} from '@components/ui/Icon';
 import type {Clase, EvaluacionItems, ItemElegido} from '@modules/clases/tipos';
+import {claveDe, evaluacionesDe, type Evaluacion} from '@modules/clases/evaluaciones';
 import {ponderacionAyuda, ponderacionTexto} from '@modules/clases/ponderacion';
 import {useClases} from '@modules/clases/useClases';
 import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
 
-/** La última, la `›` que dice que la fila se pulsa. */
-const COLUMNAS = 'minmax(160px, 1fr) 72px 100px 178px minmax(72px, 0.6fr) 20px';
+/**
+ * La última, la `›` que dice que la fila se pulsa. El nombre, con tope
+ * (HUI, 2026-11-25): en una pantalla ancha, lo que sobra va a los avisos,
+ * a la derecha, y las cifras no se alejan del nombre.
+ */
+const COLUMNAS = 'minmax(160px, 520px) 72px 100px 178px minmax(96px, 1fr) 20px';
 
 /** Abre la clase en Calificar; con `item`, en ese ítem. */
 type Abrir = (fichero: string, item?: ItemElegido) => void;
@@ -39,30 +44,6 @@ type Abrir = (fichero: string, item?: ItemElegido) => void;
 export interface ClasesProps {
   abrir: Abrir;
   irAAjustes: () => void;
-}
-
-/** Una evaluación del selector: la de varias clases con el mismo nombre. */
-interface Evaluacion {
-  clave: string;
-  nombre: string;
-  /** La de hoy en el mayor número de clases. */
-  hoy: boolean;
-}
-
-/** Con qué se juntan las evaluaciones de clases distintas: su nombre. */
-const claveDe = (nombre: string) => nombre.trim().toLowerCase().replace(/\s+/g, ' ');
-
-/** Las evaluaciones de todas las clases, en el orden en que salen. */
-function evaluacionesDe(clases: Clase[]): Evaluacion[] {
-  const vistas = new Map<string, {nombre: string; enCurso: number}>();
-  for (const c of clases)
-    for (const e of c.items?.evaluaciones ?? []) {
-      const v = vistas.get(claveDe(e.nombre)) ?? {nombre: e.nombre, enCurso: 0};
-      v.enCurso += e.enCurso ? 1 : 0;
-      vistas.set(claveDe(e.nombre), v);
-    }
-  const mas = Math.max(0, ...[...vistas.values()].map((v) => v.enCurso));
-  return [...vistas].map(([clave, v]) => ({clave, nombre: v.nombre, hoy: mas > 0 && v.enCurso === mas}));
 }
 
 export function Clases({abrir, irAAjustes}: ClasesProps) {
@@ -193,6 +174,8 @@ function Tabla({clases, evaluacion, abrir}: TablaProps) {
   // Las desplegadas, por fichero: plegadas al principio; vive aquí, que la
   // pantalla no se desmonta, y se queda al cambiar de evaluación.
   const [abiertas, setAbiertas] = useState<Record<string, boolean>>({});
+  const desplegada =
+    evaluacion !== null && clases.some((c) => abiertas[c.fichero] && c.items && c.lectura.tipo === 'bien');
   const fila = (c: Clase, ultima: boolean) =>
     evaluacion !== null && c.items && c.lectura.tipo === 'bien' ? (
       <Bloque
@@ -212,7 +195,8 @@ function Tabla({clases, evaluacion, abrir}: TablaProps) {
       <Encabezado>
         <span>{t('clases.col_clase')}</span>
         <span style={{textAlign: 'right'}}>{t('clases.col_alumnos')}</span>
-        <span style={{textAlign: 'right'}}>{t('clases.col_ponderacion')}</span>
+        {/* Solo la rellenan los ítems de una clase desplegada. */}
+        <span style={{textAlign: 'right'}}>{desplegada && t('clases.col_ponderacion')}</span>
         <span style={{textAlign: 'right'}}>{t('clases.col_calificados')}</span>
         <span style={{paddingLeft: 24}}>{t('clases.col_estado')}</span>
       </Encabezado>

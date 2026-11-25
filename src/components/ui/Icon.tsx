@@ -52,6 +52,9 @@ export function Icon({
  * (licencia ISC), copiados a mano: solo los que se usan, sin la dependencia.
  */
 export const ICONOS = {
+  // Una casa: el Inicio (HUI).
+  inicio: ['M3 10.5 12 3l9 7.5', 'M5 9v12h14V9', 'M10 21v-6h4v6'],
+
   // ── Aula ──
   // Un portapapeles con visto: poner notas.
   calificar: [

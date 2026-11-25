@@ -5,6 +5,8 @@
  * un `switch` en `App.tsx`. Para cinco pantallas sin URLs, un router sería
  * una dependencia de más.
  *
+ * `inicio` (HUI, 2026-11-25): donde abre la app.
+ *
  * `ayuda` (H9): cómo funciona cada cosa, en un sitio.
  *
  * `muestrario` solo aparece en desarrollo: el catálogo de componentes con la
@@ -12,6 +14,7 @@
  */
 
 export type PantallaId =
+  | 'inicio'
   | 'calificar'
   | 'clases'
   | 'clickedu'
@@ -21,8 +24,8 @@ export type PantallaId =
   | 'muestrario';
 
 /**
- * La pantalla con la que abre la app: Clases, el resumen de lo que hay, y de
- * ahí se elige qué calificar (abrir sin más la primera clase no tenía
- * sentido). Una pantalla de inicio propia, más adelante (`docs/01`).
+ * La pantalla con la que abre la app: el Inicio (HUI, 2026-11-25), con lo
+ * que se dejó a medias, lo pendiente con Clickedu y cómo van las clases.
+ * Antes abría en Clases, que hacía de resumen a medias.
  */
-export const PANTALLA_INICIAL: PantallaId = 'clases';
+export const PANTALLA_INICIAL: PantallaId = 'inicio';

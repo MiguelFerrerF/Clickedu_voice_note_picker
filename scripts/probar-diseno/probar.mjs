@@ -57,8 +57,10 @@ const TAMANOS = [
  * las clases traen sus ítems de Clickedu (H6): sin ellos, es quien no se
  * conecta. `ayuda` (H9): sin ella, la ayuda ya está toda vista, para que la
  * bienvenida y los avisos no tapen las demás pruebas; con `nueva`, nada.
+ * `ultima` (HUI): la última clase abierta en Calificar es Matemáticas 3.º A,
+ * en «Examen tema 3»; sin ella, ninguna, y Calificar abre la primera.
  */
-function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, items, ayuda}) {
+function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, items, ayuda, ultima}) {
   let n = 1;
   const ruta = 'C:\\Users\\profesora\\Documents\\Gestor de Notas\\plantillas';
   const bien = (alumnos, calificados, avisos = 0) => ({tipo: 'bien', alumnos, calificados, avisos});
@@ -558,7 +560,20 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
         case 'cancelar_subida':
           return null;
         case 'ayuda_vista':
-          return ayuda === 'nueva' ? [] : ['bienvenida', 'calificar', 'clases', 'estadisticas', 'clickedu', 'ajustes'];
+          return ayuda === 'nueva'
+            ? []
+            : ['bienvenida', 'inicio', 'calificar', 'clases', 'estadisticas', 'clickedu', 'ajustes'];
+        case 'ultima_clase':
+          return ultima ? {fichero: 'matematicas_3_a_eso.xlsx', item: {evaluacion: '332', item: '42690'}} : null;
+        case 'recordar_clase':
+          return null;
+        case 'resumen_dictado':
+          // Lo mismo que «todas» en `leer_estadisticas`; sin dictar, fuera de la carpeta llena.
+          return {
+            porVoz: carpeta === 'llena' ? 212 : 0, aLaPrimera: carpeta === 'llena' ? 171 : 0, preguntados: 0,
+            noEntendidos: 0, corregidos: 0, segundosPorNota: null, notasLlevadas: carpeta === 'llena' ? 160 : 0,
+            subidas: 4, exportadas: 2, ahorro: carpeta === 'llena' ? 4210 : null,
+          };
         case 'marcar_ayuda':
           return null;
         case 'exportar_clase':
@@ -646,6 +661,50 @@ async function ir(page, rotulo, id) {
 }
 
 const PRUEBAS = [
+  {
+    // HUI: donde abre la app. Con lo de Clickedu: seguir en Matemáticas 3.º A,
+    // los ítems por subir y las clases en la 2.ª evaluación; pulsar «Seguir
+    // calificando» lleva a Calificar en ese ítem, y un ítem por subir, al suyo.
+    nombre: 'inicio',
+    items: true,
+    ultima: true,
+    async probar(page, paso) {
+      const main = page.locator('[data-pantalla="inicio"]');
+      await main.getByRole('button', {name: 'Seguir calificando'}).waitFor();
+      await main.getByText('Dictadas por voz').waitFor();
+      await paso('lleno');
+      await main.getByRole('button', {name: 'Seguir calificando'}).click();
+      const calificar = page.locator('[data-pantalla="calificar"]');
+      await calificar.waitFor({state: 'visible'});
+      await calificar.getByRole('button', {name: 'Examen tema 3'}).waitFor();
+      await paso('seguir');
+      await ir(page, 'Inicio', 'inicio');
+      await main.getByRole('button', {name: /Pràctica de laboratori 2/}).click();
+      await calificar.getByRole('button', {name: 'Pràctica de laboratori 2'}).waitFor();
+      await paso('al-item-por-subir');
+    },
+  },
+  {
+    // HUI: quien no se conecta (sin ítems) y sin nada abierto aún.
+    nombre: 'inicio-sin-clickedu',
+    async probar(page, paso) {
+      const main = page.locator('[data-pantalla="inicio"]');
+      await main.getByRole('button', {name: 'Ver mis clases'}).waitFor();
+      await main.getByText('Todavía no has traído', {exact: false}).waitFor();
+      await paso('sin-clickedu');
+    },
+  },
+  {
+    // HUI: sin plantillas ni dictado: a traerlas.
+    nombre: 'inicio-vacio',
+    carpeta: 'vacia',
+    async probar(page, paso) {
+      const main = page.locator('[data-pantalla="inicio"]');
+      await main.getByRole('button', {name: 'Traer mis clases'}).waitFor();
+      await main.getByText('Todavía no has dictado', {exact: false}).waitFor();
+      await paso('vacio');
+    },
+  },
   {
     nombre: 'calificar',
     async probar(page, paso) {
@@ -804,10 +863,10 @@ const PRUEBAS = [
     nombre: 'clases',
     async probar(page, paso) {
       await ir(page, 'Clases', 'clases');
-      await page.locator('.fila-clase').first().waitFor();
+      await page.locator('[data-pantalla="clases"] .fila-clase').first().waitFor();
       await paso('lista');
       // Pulsar una clase la abre en Calificar.
-      await page.locator('.fila-clase').filter({hasText: 'Matemáticas 3.º B ESO'}).click();
+      await page.locator('[data-pantalla="clases"] .fila-clase').filter({hasText: 'Matemáticas 3.º B ESO'}).click();
       await page.locator('[data-pantalla="calificar"] h1', {hasText: 'Matemáticas 3.º B ESO'}).waitFor();
       await paso('abierta');
     },
@@ -1198,8 +1257,8 @@ const PRUEBAS = [
     },
   },
   {
-    // H9: la primera vez, con plantillas: «Ahora no» deja en Clases, con su
-    // aviso; y Calificar, con el suyo.
+    // H9: la primera vez, con plantillas: «Ahora no» deja en el Inicio (HUI),
+    // con su aviso; y Calificar, con el suyo.
     nombre: 'primera-vez-con-clases',
     ayuda: 'nueva',
     async probar(page, paso) {
@@ -1208,8 +1267,8 @@ const PRUEBAS = [
       await page.waitForTimeout(250);
       await paso('bienvenida');
       await dialogo.getByRole('button', {name: 'Ahora no'}).click();
-      await page.locator('[data-pantalla="clases"]').getByRole('region', {name: 'La primera vez aquí'}).waitFor();
-      await paso('clases');
+      await page.locator('[data-pantalla="inicio"]').getByRole('region', {name: 'La primera vez aquí'}).waitFor();
+      await paso('inicio');
       await ir(page, 'Calificar', 'calificar');
       const main = page.locator('[data-pantalla="calificar"]');
       await main.getByRole('region', {name: 'La primera vez aquí'}).waitFor();
@@ -1267,6 +1326,7 @@ try {
         clickedu: prueba.clickedu ?? false,
         items: prueba.items ?? false,
         ayuda: prueba.ayuda ?? null,
+        ultima: prueba.ultima ?? false,
       });
       page.on('pageerror', (e) => fallos.push(`${prueba.nombre} ${tam}: error en la página: ${e.message}`));
       await page.goto(`http://localhost:${PUERTO}/`);

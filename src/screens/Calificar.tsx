@@ -92,6 +92,16 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
   const itemActual = (actual && buscarItem(actual.items, items[actual.fichero])?.item.id) ?? null;
   const juegoActual = actual ? `${actual.fichero}|${itemActual ?? ''}` : undefined;
 
+  // Lo que se ve, se recuerda (HUI): el Inicio lo ofrece para seguir, y
+  // tras cerrar la app se vuelve aquí. Si no se puede guardar, no se dice:
+  // es una comodidad, nada se pierde.
+  useEffect(() => {
+    if (!visible || !actual) return;
+    const elegido = buscarItem(actual.items, items[actual.fichero]);
+    const item = elegido ? {evaluacion: elegido.evaluacion.id, item: elegido.item.id} : null;
+    invoke('recordar_clase', {ultima: {fichero: actual.fichero, item}}).catch(() => {});
+  }, [visible, juegoActual]);
+
   // La clase abierta, leída de nuevo si cambia la clase o el ítem, la
   // carpeta avisa o una nota no se ha podido guardar.
   const [abierta, setAbierta] = useState<{juego: string; clase?: ClaseAbierta; error?: string}>();

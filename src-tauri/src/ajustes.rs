@@ -3,7 +3,8 @@
 //! elige.
 //!
 //! Y, desde H9, lo que ya se ha visto de la ayuda: la bienvenida y el aviso
-//! de cada pantalla.
+//! de cada pantalla. Desde el inicio (HUI, 2026-11-25), la última clase
+//! abierta en Calificar, para seguir donde se dejó.
 //!
 //! Viven en `ajustes.json`, en la carpeta de la app (D4:
 //! `%APPDATA%\es.gestornotas.app\`). **Nunca credenciales** aquí (D3): las de
@@ -32,6 +33,26 @@ pub struct Ajustes {
     /// pantalla. Sin el campo (unos ajustes de antes), nada visto.
     #[serde(default)]
     pub ayuda_vista: Vec<String>,
+    /// La última clase abierta en Calificar, y su ítem (el inicio). Sin el
+    /// campo, ninguna.
+    #[serde(default)]
+    pub ultima: Option<Ultima>,
+}
+
+/// La última clase abierta en Calificar: su fichero y, si se calificaba en
+/// un ítem de Clickedu, cuál (es `ItemElegido` del lado de la ventana).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Ultima {
+    pub fichero: String,
+    #[serde(default)]
+    pub item: Option<ItemUltimo>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ItemUltimo {
+    pub evaluacion: String,
+    pub item: String,
 }
 
 /// El micrófono elegido en Ajustes: su id de `cpal`, que es con lo que se
@@ -127,6 +148,10 @@ mod tests {
             carpeta_plantillas: Some(PathBuf::from(r"D:\Clase\plantillas")),
             microfono: Some(MicrofonoElegido { id: "wasapi:{0.0.1}".into(), nombre: "Auriculares".into() }),
             ayuda_vista: vec!["bienvenida".into(), "calificar".into()],
+            ultima: Some(Ultima {
+                fichero: "biologia.xlsx".into(),
+                item: Some(ItemUltimo { evaluacion: "2".into(), item: "42700".into() }),
+            }),
         };
         guardar(&ruta, &a).unwrap();
         assert_eq!(leer(&ruta).unwrap(), a);
@@ -138,7 +163,9 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let ruta = dir.path().join("ajustes.json");
         std::fs::write(&ruta, r#"{"carpetaPlantillas": null, "microfono": null}"#).unwrap();
-        assert!(leer(&ruta).unwrap().ayuda_vista.is_empty());
+        let a = leer(&ruta).unwrap();
+        assert!(a.ayuda_vista.is_empty());
+        assert_eq!(a.ultima, None);
     }
 
     #[test]

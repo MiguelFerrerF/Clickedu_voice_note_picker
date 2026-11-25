@@ -17,6 +17,7 @@ pub mod ayuda;
 pub mod clases;
 pub mod clickedu;
 pub mod estadisticas;
+pub mod inicio;
 pub mod migracion;
 pub mod notas;
 pub mod registro;
@@ -78,6 +79,11 @@ pub(crate) fn ruta_sesion(app: &AppHandle) -> Result<PathBuf, String> {
 pub(crate) fn carpeta_notas(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(ajustes::carpeta_notas(&app.path().document_dir().map_err(|e| e.to_string())?))
 }
+
+/// Lo que lee y vuelve a escribir `ajustes.json` va por turnos: dos a la
+/// vez (cerrar un aviso de la ayuda y abrir una clase), y el segundo pisaría
+/// al primero.
+pub(crate) static AJUSTES_POR_TURNOS: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
 pub(crate) fn leer_ajustes(app: &AppHandle) -> Result<Ajustes, String> {
     ajustes::leer(&ruta_ajustes(app)?)

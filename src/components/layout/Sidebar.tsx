@@ -6,7 +6,8 @@
  * allí no iba porque el de la Quality Test App es la marca de inBiot, pero
  * aquí el logo es el del propio producto y es de donde sale el color.
  *
- * Tres secciones:
+ * Arriba, sola, **Inicio** (HUI, 2026-11-25), donde abre la app. Luego
+ * tres secciones:
  *
  * - **Aula**: lo de todos los días. Calificar, Clases y Estadísticas.
  * - **Clickedu**: la conexión, traer plantillas y subir notas.
@@ -102,6 +103,8 @@ export function Sidebar({pantalla, setPantalla, alEncontrar}: SidebarProps) {
           margin: '0 -2px',
           padding: '0 2px',
         }}>
+        <div style={{marginTop: 12}}>{entrada('inicio', ICONOS.inicio, t('nav.inicio'))}</div>
+
         <SidebarSection id="aula" titulo={t('nav.aula')}>
           {entrada('calificar', ICONOS.calificar, t('nav.calificar'))}
           {entrada('clases', ICONOS.clases, t('nav.clases'))}

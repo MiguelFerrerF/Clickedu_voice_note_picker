@@ -25,6 +25,7 @@ import type {PantallaId} from '@/types/pantalla';
 
 /** Las pantallas, en el orden de la barra lateral. */
 const PANTALLAS: readonly {id: PantallaId; icono: string | readonly string[]; nombre: TranslationKey}[] = [
+  {id: 'inicio', icono: ICONOS.inicio, nombre: 'nav.inicio'},
   {id: 'calificar', icono: ICONOS.calificar, nombre: 'nav.calificar'},
   {id: 'clases', icono: ICONOS.clases, nombre: 'nav.clases'},
   {id: 'estadisticas', icono: ICONOS.estadisticas, nombre: 'nav.estadisticas'},
