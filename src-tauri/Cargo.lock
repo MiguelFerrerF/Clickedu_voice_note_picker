@@ -1406,7 +1406,7 @@ dependencies = [
 
 [[package]]
 name = "gestor-de-notas"
-version = "2.2.0"
+version = "2.3.0"
 dependencies = [
  "calamine",
  "cpal",
