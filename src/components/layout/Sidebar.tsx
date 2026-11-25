@@ -33,9 +33,6 @@ import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
 import type {PantallaId} from '@/types/pantalla';
 
-/** A `true` cuando tenga algo, en H8. (Clickedu se encendió con H5.) */
-const HAY_ESTADISTICAS = false;
-
 export interface SidebarProps {
   pantalla: PantallaId;
   setPantalla: (p: PantallaId) => void;
@@ -107,7 +104,7 @@ export function Sidebar({pantalla, setPantalla, alEncontrar}: SidebarProps) {
         <SidebarSection id="aula" titulo={t('nav.aula')}>
           {entrada('calificar', ICONOS.calificar, t('nav.calificar'))}
           {entrada('clases', ICONOS.clases, t('nav.clases'))}
-          {HAY_ESTADISTICAS && entrada('estadisticas', ICONOS.estadisticas, t('nav.estadisticas'))}
+          {entrada('estadisticas', ICONOS.estadisticas, t('nav.estadisticas'))}
         </SidebarSection>
 
         <SidebarSection id="clickedu" titulo={t('nav.clickedu_seccion')}>

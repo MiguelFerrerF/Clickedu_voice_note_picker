@@ -311,6 +311,42 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
           return carpeta === 'llena'
             ? {dictados: 142, seguros: 109, preguntados: 27, noEntendidos: 6, corregidos: 3, fallos: 2, desde: 1795046400}
             : {dictados: 0, seguros: 0, preguntados: 0, noEntendidos: 0, corregidos: 0, fallos: 0, desde: null};
+        case 'leer_estadisticas': {
+          // H8: Matemáticas 3.º A, con notas y dictado; las demás, sin nada
+          // (salvo el ahorro de todas las clases).
+          const dictados = (d) => ({
+            porVoz: 0, aLaPrimera: 0, preguntados: 0, noEntendidos: 0, corregidos: 0, segundosPorNota: null,
+            notasLlevadas: 0, subidas: 0, exportadas: 0, ahorro: null, ...d,
+          });
+          const todas = dictados({porVoz: 212, aLaPrimera: 171, notasLlevadas: 160, subidas: 4, exportadas: 2, ahorro: 4210});
+          if (args.fichero !== 'matematicas_3_a_eso.xlsx') {
+            const alumnos = args.fichero === 'biologia_1_ab_bach.xlsx' ? 18 : 25;
+            return {
+              notas: {alumnos, conNota: 0, sinNota: alumnos, noSonNota: 0, media: null, mediana: null, aprobados: 0, porPunto: Array(11).fill(0), quienes: []},
+              dictado: {clase: dictados({}), todas},
+            };
+          }
+          // Quiénes: los nombres inventados, repartidos por las columnas.
+          const porPunto = [0, 1, 1, 2, 2, 4, 5, 3, 2, 1, 1];
+          const nombres = NOMBRES.filter(Boolean);
+          const quienes = porPunto
+            .flatMap((c, p) => Array.from({length: c}, (_, k) => ({punto: p, nota: p === 10 ? 10 : p + (k % 4) * 0.25})))
+            .map((q, i) => ({...q, nombre: nombres[i]}))
+            .sort((a, b) => b.nota - a.nota);
+          return {
+            notas: {
+              alumnos: 26, conNota: 22, sinNota: 3, noSonNota: 1, media: 6.318181, mediana: 6.25, aprobados: 16,
+              porPunto, quienes,
+            },
+            dictado: {
+              clase: dictados({
+                porVoz: 58, aLaPrimera: 44, preguntados: 9, noEntendidos: 2, corregidos: 3, segundosPorNota: 6.5,
+                notasLlevadas: 48, subidas: 1, exportadas: 1, ahorro: 330,
+              }),
+              todas,
+            },
+          };
+        }
         case 'preparar_informe':
           return `${ruta.replace(/plantillas$/, 'informes')}\\informe-2026-11-19.json`;
         case 'buscar_actualizacion':
@@ -994,6 +1030,32 @@ const PRUEBAS = [
       await main.getByRole('button', {name: 'Hacerlo'}).click();
       await main.getByText('puestas en tu carpeta', {exact: false}).waitFor();
       await paso('hecho');
+    },
+  },
+  {
+    // H8: una clase sin notas ni dictado; luego una con todo (con su ítem,
+    // como Calificar), y el ratón sobre una columna.
+    nombre: 'estadisticas',
+    items: true,
+    async probar(page, paso) {
+      await ir(page, 'Estadísticas', 'estadisticas');
+      const main = page.locator('[data-pantalla="estadisticas"]');
+      await main.getByText('Aún no hay ninguna nota en esta clase.').waitFor();
+      await paso('vacia');
+      await main.getByRole('button', {name: 'Biología 1.º AB Bachillerato'}).click();
+      await page.getByRole('button', {name: 'Matemáticas 3.º A ESO', exact: true}).last().click();
+      await main.getByText('Cómo se reparten').waitFor();
+      await paso('llena');
+      await main.locator('[data-columnas] > div').nth(6).hover();
+      await main.getByText('De 6 a 6,99: 5 notas').waitFor();
+      await paso('columna');
+      // Al pulsarla, quiénes son; y los suspensos, desde la barra.
+      await main.locator('[data-columnas] > div').nth(6).click();
+      await main.locator('[data-quienes] li').nth(4).waitFor();
+      await paso('quienes');
+      await main.getByRole('button', {name: /^Suspensos/}).first().click();
+      await main.locator('[data-quienes] li').nth(5).waitFor();
+      await paso('suspensos');
     },
   },
   {

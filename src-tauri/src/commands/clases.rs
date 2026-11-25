@@ -111,7 +111,7 @@ pub async fn listar_clases(app: AppHandle) -> Result<ListaClases, String> {
 /// las distingue), cruzando `items.json` con `traidas.json`. Si no se
 /// pueden leer, sin ítems y apuntado en el registro: la lista de clases
 /// sale igual.
-fn items_por_fichero(app: &AppHandle) -> HashMap<String, ItemsMateria> {
+pub(crate) fn items_por_fichero(app: &AppHandle) -> HashMap<String, ItemsMateria> {
     let leidos = carpeta_clickedu(app).and_then(|c| {
         let recordadas = aplicar::leer_recordadas(&c.join("traidas.json"))?;
         let guardados = items::leer(&c.join(items::FICHERO))?;

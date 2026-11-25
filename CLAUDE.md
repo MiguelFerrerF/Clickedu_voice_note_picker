@@ -6,13 +6,15 @@
 
 ## Estado del proyecto
 
-La app es la **v2** (Tauri), hecha sobre la base de `C:\dev\library-app`.
+La app es la **v2** (Tauri), hecha sobre la base de `C:\dev\software\library-app`.
 La vieja (**v1**, Python + customtkinter), sustituida en H7, solo queda en
 el tag `v1.3.4`. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-24): H6, cerrado** (tabla y `docs/01`); el
-> siguiente hito lo elige el usuario. **Importar reemplaza el ítem
+> **Dónde se quedó (2026-11-25): H8, hecho en la rama `h8-estadisticas`;
+> falta que lo pruebe el usuario** en la app y cerrarlo (tabla y `docs/01`).
+> El registro apunta ahora `exportado` y `subido` (sin nombres), para el
+> tiempo ahorrado. **Importar reemplaza el ítem
 > entero** (una celda vacía borra la nota de Clickedu): la subida completa
 > el Excel con lo de Clickedu (`subir::completar`), y cada subida va con
 > su nombre (`nombre_subida`; repetido, «Archivo incorrecto»). Lo
@@ -50,8 +52,7 @@ el tag `v1.3.4`. Plan, decisiones e hitos en
 > colegio (con el archivo nuevo, la filtrada ya deja entrar: hay que cambiarla).
 > **En espera** (`docs/01`, HUI): con lo que traigan H4–H8, volver a mirar
 > la distribución de cada pantalla, que ya ocupa la ventana entera.
-> Estadísticas está escondida en `Sidebar` (`HAY_ESTADISTICAS`): se
-> enciende al hacerla. El audio **no se guarda** (D8);
+> El audio **no se guarda** (D8);
 > lo dictado se mide en local con `cargo run --example medir_registro` (solo
 > cuenta, sin nombres). El campo «Probar el dictado» se queda, solo en
 > desarrollo. Para ver plantillas reales sin sacar datos de alumnos:
@@ -62,6 +63,7 @@ el tag `v1.3.4`. Plan, decisiones e hitos en
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
+| **H8** | Estadísticas, con la clase y el ítem de Calificar (`TituloClase`): `leer_estadisticas`; `estadisticas.rs` (media, mediana de verdad, aprobados, una columna por punto; en un ítem, también lo que ya está en Clickedu; al pulsar, quiénes son) y `registro::estadisticas` (por voz, a la primera, segundos por nota, tiempo ahorrado: 15 s/nota a mano, 3 min por importar); `exportado` y `subido` en el registro; `Columnas`, `Proporcion` y `Barras` de library-app | tests de Rust (165) y la prueba de diseño; **falta el usuario** |
 | **H7** | `v2.0.0` y `v2.0.1` publicadas: `tauri-plugin-updater` con firma, `release.yml`, `npm run release`, el paso desde la v1.3.4 (`Instalador_GestorNotas.exe`, copia y desinstala la v1) | sí: el actualizador de la v1.3.4 y el de Tauri (2.0.0 → 2.0.1), de verdad; lo de D (AVX2), por el usuario (2026-11-24) |
 | **H6** | El ítem se elige al calificar (Clases por evaluación, `clickedu::items`, sesión por ítem); lo que ya hay en Clickedu, a la vista (gris = publicada, tachada con punto ámbar = se pisaría); `clickedu::subir` (`completar`, `nombre_subida`, comprobar con `GetGrades`) y `DialogoSubir` con los pasos y el resultado en la misma ventana; plan B, el Excel y la página de importar | sí: el usuario, con Clickedu de verdad (ítem 42700, 2026-11-24); 151 tests de Rust contra el Clickedu falso; la prueba de diseño |
 | **H5** | `clickedu::traer` (plan, dudas, `replanear_traer`, hacerlo: lo viejo a `antiguas`, las notas por `Id`, `traidas.json`); `TarjetaTraer` en Conexión, que entra sola con la cuenta guardada; las pendientes aparte en Conexión, Clases y Calificar (`plantillas::es_pendiente`); Conexión, encendida fuera de desarrollo | sí: a mano con Clickedu de verdad (`probar_traer` y la pantalla, 2026-11-22); 63 tests de `clickedu`; la prueba de diseño; en la app instalada, por el usuario (2026-11-25) |

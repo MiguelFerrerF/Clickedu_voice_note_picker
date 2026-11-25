@@ -1,7 +1,7 @@
 # 01 · Plan de trabajo
 
 Escrito y aprobado el **2026-11-17**. Rehacer el Gestor de Notas sobre la base
-de `C:\dev\library-app` (MiBiblioteca): mismo stack, mismo método y misma
+de `C:\dev\software\library-app` (MiBiblioteca): mismo stack, mismo método y misma
 mecánica visual, con **color propio** sacado del logo y **solo tema claro**.
 
 ---
@@ -668,7 +668,8 @@ Ninguna rompe D5/D6 ni añade tokens. **Cerrado por el usuario el
 - [x] 16. **La barra lateral**: el Muestrario, solo en desarrollo;
       Estadísticas y Conexión, «próximamente» o escondidas hasta H4/H8.
       Hecho (2026-11-19): escondidas (`HAY_ESTADISTICAS`, `HAY_CLICKEDU` en
-      `Sidebar`); el Muestrario ya era solo de desarrollo.
+      `Sidebar`); el Muestrario ya era solo de desarrollo. Encendidas con
+      H5 (Conexión) y H8 (Estadísticas).
 - [x] 18. **Las pantallas, a todo el ancho** (pedido por el usuario el
       2026-11-19): tenían un tope de 880 o 1040 px, como library-app, y a
       1920 sobraba un tercio. Ahora ocupan la ventana entera; la cuadrícula
@@ -1446,9 +1447,53 @@ verdad; 151 tests de Rust, typecheck y la prueba de diseño en verde.
 
 ### H8 · Estadísticas
 
-- [ ] Media, mediana (bien), aprobados y distribución, con las reglas de
-      gráficos de library-app (H8).
-- [ ] Lo del dictado: notas por voz, aciertos a la primera, tiempo ahorrado.
+Hecho el 2026-11-25 (rama `h8-estadisticas`); **falta que lo pruebe el
+usuario** en la app. La pantalla, en la barra lateral (fuera
+`HAY_ESTADISTICAS`), con **la clase y el ítem de Calificar** (el mismo
+título, `TituloClase`, que viven en `App`). Lo cuenta el backend, con
+tests: un solo comando, `leer_estadisticas`.
+
+- [x] **Las notas** del ítem (`estadisticas.rs`): media, mediana (**la de
+      verdad**: con un número par, la media de las dos del medio, D6),
+      aprobados (desde el 5), con nota, sin nota y lo que no es nota
+      (aparte, no entra en las cuentas). En un ítem, el alumno sin nota en
+      la app cuenta con la que ya tenía en Clickedu al traer, como la
+      enseña Calificar (pedido por el usuario, 2026-11-25: un ítem ya
+      calificado en Clickedu salía vacío). **Una columna por punto**, del 0
+      al 10 (decidido por el usuario): la 7 es de 7 a 7,99; la 10, el 10.
+      Las gráficas, traídas una a una de library-app (`components/
+      Graficas.tsx`: `Columnas`, `Proporcion`, `Barras`), con sus reglas:
+      una serie en el turquesa, el ratón oscurece y la lectura de debajo
+      da el detalle. **El suspenso va en gris**, no en rojo (D6).
+- [x] **Quiénes son** (pedido por el usuario, 2026-11-25): al pulsar una
+      columna, los aprobados o los suspensos, al lado (debajo en una
+      ventana estrecha) sale la lista con el nombre y la nota, de la más
+      alta a la más baja; se cierra con «Cerrar» o pulsando otra vez. Los
+      nombres solo van a la pantalla (`Notas::quienes`), nunca al
+      registro ni al informe (D8). El dictado no puede: su registro no
+      tiene nombres.
+- [ ] **Para más adelante** (pedido por el usuario, 2026-11-25, sin
+      decidir aún cómo): estadísticas **por evaluación** y **por
+      materia**, juntando los ítems; y **por alumno**: entrar en uno y ver
+      sus notas de los ítems, su media y cómo está frente a la clase.
+      Solo en la pantalla, como «quiénes son» (D8).
+- [x] **Lo del dictado** (`registro::estadisticas`), de la clase en todos
+      sus ítems (el registro no apunta el ítem de cada dictado) y de
+      todas: dictadas por voz (lo escrito en el campo de desarrollo no
+      cuenta), a la primera (sin preguntar y sin deshacer ni corregir),
+      preguntadas, corregidas, sin entender, y **segundos por nota** (la
+      mediana entre un dictado y el siguiente de la clase; más de 60 s es
+      una pausa). Nada de nombres (D8): fuera el «alumno difícil» de la v1.
+      **Solo sale si se ha dictado algo en la clase** (pedido por el
+      usuario).
+- [x] **El tiempo ahorrado** (decidido por el usuario): frente a poner
+      cada nota a mano en Clickedu, **15 s por nota** (como la v1). De cada
+      clase e ítem cuenta cómo llegaron las notas **la última vez**:
+      subidas desde la app, sin más; exportadas, menos **3 min** de
+      importar el Excel a mano. Y se resta el tiempo dictando (dictados ×
+      segundos por nota); nunca menos de cero. Para eso el registro apunta
+      dos casos nuevos, `exportado` y `subido` (la clase, el ítem y
+      cuántas notas; sin nombres), que el informe no saca.
 
 ### H9 · La ayuda guiada
 

@@ -4,9 +4,10 @@
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::commands::clases::leer_plantilla;
-use crate::commands::{carpeta_notas, en_segundo_plano, ruta_sesion};
+use crate::commands::{carpeta_notas, en_segundo_plano, registro, ruta_sesion};
 use crate::exportar::{self, Exportado};
 use crate::plantillas;
+use crate::registro::Que;
 use crate::sesion::{self, Cerrojo, Juego};
 
 /// Lo que recibe la interfaz cuando cambia una nota: la lista de Clases
@@ -64,7 +65,11 @@ pub async fn exportar_clase(fichero: String, item: Option<String>, app: AppHandl
             let _cogido = cerrojo.0.lock().map_err(|e| e.to_string())?;
             sesion::leer(&ruta_sesion(&app)?)?.puestas_de(Juego::de(&fichero, item.as_deref()))
         };
-        exportar::exportar(&plantilla, &puestas, &fichero, &carpeta_notas(&app)?).map_err(|e| e.to_string())
+        let hecho =
+            exportar::exportar(&plantilla, &puestas, &fichero, &carpeta_notas(&app)?).map_err(|e| e.to_string())?;
+        // Para el tiempo ahorrado de las Estadísticas (H8): sin nombres.
+        registro(&app)?.apuntar(Que::Exportado { fichero, item, notas: hecho.con_nota });
+        Ok(hecho)
     })
     .await
 }

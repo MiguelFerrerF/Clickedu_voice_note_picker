@@ -2,7 +2,7 @@
 
 Decidido el **2026-11-17** (D5 y D6 de [`01-plan-de-trabajo.md`](01-plan-de-trabajo.md)).
 
-La regla del proyecto: **`C:\dev\library-app` es el sistema de diseño** y
+La regla del proyecto: **`C:\dev\software\library-app` es el sistema de diseño** y
 tiene precedencia. Antes de inventar un token, un componente o una carpeta, se
 mira cómo lo resuelve ella. Este documento dice qué se hereda y qué es propio.
 

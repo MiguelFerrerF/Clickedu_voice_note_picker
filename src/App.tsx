@@ -12,7 +12,8 @@
  *   de una pantalla nada que dependa de que se desmonte.**
  * - Cada pantalla lleva su propio scroll.
  * - Lo que comparten dos pantallas vive aquí: la clase que se califica y,
- *   de cada clase, el ítem de Clickedu (H6; los eligen Calificar y Clases).
+ *   de cada clase, el ítem de Clickedu (H6; los eligen Calificar, Clases y
+ *   Estadísticas).
  * - Al arrancar (H7) se traen los datos de la v1.3.4 si está instalada, y se
  *   pregunta si hay una versión nueva. Sin conexión no se dice nada: es lo
  *   normal en un portátil. Primero un diálogo y luego el otro.
@@ -103,7 +104,16 @@ export default function App() {
       case 'clickedu':
         return <Clickedu />;
       case 'estadisticas':
-        return <Estadisticas />;
+        return (
+          <Estadisticas
+            visible={pantalla === 'estadisticas'}
+            clase={clase}
+            setClase={setClase}
+            items={items}
+            elegirItem={elegirItem}
+            irAAjustes={irAAjustes}
+          />
+        );
       case 'ajustes':
         return <Ajustes visible={pantalla === 'ajustes'} />;
       case 'muestrario':

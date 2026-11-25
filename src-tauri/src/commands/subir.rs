@@ -26,11 +26,14 @@ use crate::commands::clickedu::{bloqueante, carpeta_clickedu, entrar_con_la_guar
 use crate::commands::{carpeta_notas, registro, ruta_sesion};
 use crate::exportar;
 use crate::plantillas::Nota;
-use crate::registro::ahora;
+use crate::registro::{ahora, Que};
 use crate::sesion::{self, Cerrojo, Juego};
 
 /// Lo preparado, que espera a que se confirme.
 pub struct Pendiente {
+    /// La clase y su ítem en la app: para el registro (H8).
+    fichero: String,
+    item: Option<String>,
     destino: Destino,
     antes: Antes,
     /// El Excel: nombre y contenido.
@@ -156,6 +159,7 @@ async fn preparar(
     destino: String,
 ) -> Result<Previa, FalloSubir> {
     // Primero lo local: si algo falla aquí, no se llega a Clickedu.
+    let (fichero_app, item_app) = (fichero.clone(), item.clone());
     let (a, fichero_clase) = (app.clone(), fichero.clone());
     let (donde, plantilla, puestas, esperadas, nombres) = bloqueante(move || {
         let donde = donde(&a, &fichero, &destino)?;
@@ -242,7 +246,7 @@ async fn preparar(
         excel: ruta_excel,
     };
     let se_borrarian = completado.se_borrarian.into_iter().map(|(id, _)| id).collect();
-    let pendiente = Pendiente { destino: donde.destino, antes, excel, esperadas, nombres, se_borrarian };
+    let pendiente = Pendiente { fichero: fichero_app, item: item_app, destino: donde.destino, antes, excel, esperadas, nombres, se_borrarian };
     *app.state::<Subidas>().0.lock().map_err(|e| e.to_string())? = Some(pendiente);
     Ok(previa)
 }
@@ -308,6 +312,10 @@ async fn confirmar(app: &AppHandle, avance: &Channel<Paso>) -> Result<Subido, Fa
         .filter(|id| !p.se_borrarian.contains(*id))
         .map(|id| p.nombres.get(id).cloned().unwrap_or_else(|| id.clone()))
         .collect();
+    // Para el tiempo ahorrado de las Estadísticas (H8): sin nombres.
+    if let Ok(r) = registro(app) {
+        r.apuntar(Que::Subido { fichero: p.fichero, item: p.item, notas: c.iguales.len() });
+    }
     Ok(Subido { entraron: c.iguales.len(), no_entraron, borradas, avisos: subida.avisos })
 }
 

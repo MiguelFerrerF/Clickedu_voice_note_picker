@@ -39,14 +39,13 @@ import {useEffect, useRef, useState} from 'react';
 import {Avisos} from '@components/clases/Avisos';
 import {Cuadricula} from '@components/clases/Cuadricula';
 import {SinPlantillas} from '@components/clases/SinPlantillas';
+import {IntroClase, TituloClase} from '@components/clases/TituloClase';
 import {DialogoSubir} from '@components/dialogs/DialogoSubir';
 import {PanelDictado} from '@components/dictado/PanelDictado';
 import {Cabecera} from '@components/layout/Cabecera';
 import {Button} from '@components/ui/Button';
-import {Dropdown} from '@components/ui/Dropdown';
 import {Icon, ICONOS} from '@components/ui/Icon';
 import {alumnosEnPalabras} from '@modules/clases/avisos';
-import {ponderacionTexto} from '@modules/clases/ponderacion';
 import {buscarItem, type ClaseAbierta, type Exportado, type ItemElegido} from '@modules/clases/tipos';
 import {deshacible, type Apuntado, type Dictado, type Pendiente, type Respuesta} from '@modules/dictado/tipos';
 import {useClases} from '@modules/clases/useClases';
@@ -344,69 +343,15 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
     <>
       <Cabecera
         titulo={
-          // Cada desplegable, a su ancho y encogiendo solo si no cabe: una
-          // rejilla y no flex, que el `Dropdown` ocupa el 100 % de su caja.
-          <span
-            style={{
-              display: 'grid',
-              gridTemplateColumns: actual.items
-                ? 'minmax(0, max-content) max-content minmax(0, max-content)'
-                : 'minmax(0, max-content)',
-              justifyContent: 'start',
-              alignItems: 'center',
-              columnGap: 14,
-            }}>
-            <span style={{minWidth: 0}}>
-              <Dropdown
-                size="titulo"
-                value={fichero}
-                onChange={setClase}
-                title={t('calificar.elegir_clase')}
-                options={clases.map((c) => ({
-                  value: c.fichero,
-                  label: c.nombre,
-                  grupo: c.pendiente ? t('clases.pendientes') : undefined,
-                }))}
-              />
-            </span>
-            {actual.items && (
-              <>
-                <span aria-hidden style={{flexShrink: 0, color: 'var(--text-tertiary)'}}>
-                  ·
-                </span>
-                <span style={{minWidth: 0}}>
-                  <Dropdown
-                    size="titulo"
-                    value={elegido ? `${elegido.evaluacion.id}|${elegido.item.id}` : ''}
-                    onChange={(v) => {
-                      const [evaluacion, item] = v.split('|');
-                      elegirItem(fichero, item ? {evaluacion, item} : null);
-                    }}
-                    title={t('calificar.elegir_item')}
-                    options={[
-                      {value: '', label: t('calificar.sin_item')},
-                      ...actual.items.evaluaciones.flatMap((e) =>
-                        e.items.map((i) => ({value: `${e.id}|${i.id}`, label: i.nombre, grupo: e.nombre})),
-                      ),
-                    ]}
-                  />
-                </span>
-              </>
-            )}
-          </span>
+          <TituloClase
+            clases={clases}
+            actual={actual}
+            elegido={elegido}
+            setClase={setClase}
+            elegirItem={elegirItem}
+          />
         }
-        intro={
-          <span style={{display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 10}}>
-            {actual.items && (
-              <span>
-                {elegido
-                  ? [elegido.evaluacion.nombre, ponderacionTexto(elegido.item)].filter(Boolean).join(' · ')
-                  : t('calificar.sin_item_ayuda')}
-              </span>
-            )}
-            <span style={{fontFamily: 'var(--font-mono)', fontSize: 12}}>{fichero}</span>
-          </span>
-        }
+        intro={<IntroClase actual={actual} elegido={elegido} />}
         derecha={
           // Con la clase traída de Clickedu (H6), lo principal es subir; el
           // Excel queda al lado, de plan B.

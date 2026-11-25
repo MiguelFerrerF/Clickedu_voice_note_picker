@@ -16,6 +16,7 @@
 //! Apuntar nunca para la app: si no se puede escribir, se dice por la
 //! consola y se sigue.
 
+pub mod estadisticas;
 pub mod informe;
 pub mod medir;
 
@@ -65,6 +66,12 @@ pub enum Que {
     Respuesta { id: String, respuesta: Respuesta },
     /// Un error: dónde y cuál.
     Fallo { donde: String, error: String },
+    /// Se exportó el Excel de la clase `fichero` (y su ítem, H6) para
+    /// importarlo a mano en Clickedu, con `notas` notas. Para el tiempo
+    /// ahorrado de las Estadísticas (H8).
+    Exportado { fichero: String, item: Option<String>, notas: usize },
+    /// Se subieron a Clickedu desde la app (H6) `notas` notas.
+    Subido { fichero: String, item: Option<String>, notas: usize },
 }
 
 /// Lo entendido de una frase, con cada alumno por su **clave** de la
@@ -298,7 +305,7 @@ fn resumir(casos: &[Caso]) -> Resumen {
                 }
             }
             Que::Fallo { .. } => r.fallos += 1,
-            Que::Respuesta { .. } => {}
+            Que::Respuesta { .. } | Que::Exportado { .. } | Que::Subido { .. } => {}
         }
     }
     r

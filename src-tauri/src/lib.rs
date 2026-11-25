@@ -25,6 +25,7 @@ pub mod actualizacion;
 pub mod ajustes;
 pub mod clickedu;
 pub mod commands;
+pub mod estadisticas;
 pub mod exportar;
 pub mod migracion;
 pub mod plantillas;
@@ -69,6 +70,7 @@ pub fn run() {
             commands::voz::terminar_dictado,
             commands::registro::responder_dictado,
             commands::registro::resumen_registro,
+            commands::estadisticas::leer_estadisticas,
             commands::registro::preparar_informe,
             commands::registro::mostrar_informe,
             commands::registro::borrar_registro,

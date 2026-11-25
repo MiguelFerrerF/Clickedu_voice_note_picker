@@ -219,7 +219,7 @@ pub fn generar(casos: &[Caso], tapar: &Tapar, ahora: u64) -> Informe {
                     None => fallos.push(FalloInforme { donde: donde.clone(), error, veces: 1, ultimo: dia(c.cuando) }),
                 }
             }
-            Que::Respuesta { .. } => {}
+            Que::Respuesta { .. } | Que::Exportado { .. } | Que::Subido { .. } => {}
         }
     }
     let sobran = dictados.len().saturating_sub(DICTADOS);

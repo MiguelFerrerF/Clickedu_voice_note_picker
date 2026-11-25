@@ -4,7 +4,8 @@
 //! **Clases** y la carpeta de plantillas (H1), los de poner notas y
 //! exportarlas (H2), los del dictado (H3: el push-to-talk y entender lo
 //! dictado), los del registro (D8), los de las actualizaciones y el paso
-//! desde la v1.3.4 (H7) y los de la cuenta de Clickedu (H4).
+//! desde la v1.3.4 (H7), los de la cuenta de Clickedu (H4) y el de las
+//! Estadísticas (H8).
 //!
 //! Regla que no se relaja (library-app): **ningún comando síncrono hace
 //! trabajo**. Todos son `async` y lo que toca disco pasa por
@@ -14,6 +15,7 @@
 pub mod actualizacion;
 pub mod clases;
 pub mod clickedu;
+pub mod estadisticas;
 pub mod migracion;
 pub mod notas;
 pub mod registro;
