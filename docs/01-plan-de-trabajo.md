@@ -1447,8 +1447,9 @@ verdad; 151 tests de Rust, typecheck y la prueba de diseño en verde.
 
 ### H8 · Estadísticas
 
-Hecho y **probado por el usuario** en la app el 2026-11-25 (rama
-`h8-estadisticas`). La pantalla, en la barra lateral (fuera
+Lo del ítem, hecho y **probado por el usuario** en la app el 2026-11-25
+(rama `h8-estadisticas`). **Sigue abierto**: la evaluación y el alumno
+(abajo) van también en H8 (decidido por el usuario, 2026-11-25). La pantalla, en la barra lateral (fuera
 `HAY_ESTADISTICAS`), con **la clase y el ítem de Calificar** (el mismo
 título, `TituloClase`, que viven en `App`). Lo cuenta el backend, con
 tests: un solo comando, `leer_estadisticas`.
@@ -1472,11 +1473,37 @@ tests: un solo comando, `leer_estadisticas`.
       nombres solo van a la pantalla (`Notas::quienes`), nunca al
       registro ni al informe (D8). El dictado no puede: su registro no
       tiene nombres.
-- [ ] **Para más adelante** (pedido por el usuario, 2026-11-25, sin
-      decidir aún cómo): estadísticas **por evaluación** y **por
-      materia**, juntando los ítems; y **por alumno**: entrar en uno y ver
-      sus notas de los ítems, su media y cómo está frente a la clase.
-      Solo en la pantalla, como «quiénes son» (D8).
+- **La evaluación y el alumno** (pedido por el usuario y planificado el
+      2026-11-25). **No hace falta leer nada nuevo de Clickedu**:
+      `items.json` ya tiene, de cada clase y evaluación, sus ítems con la
+      ponderación y la nota de cada alumno al traer; la sesión, las de la
+      app por ítem; y el alumno es el mismo por su `Id`. Las notas, como
+      en Calificar: la de la app y, si no hay, la de Clickedu (diciendo de
+      qué día es). Las clases sin ítem (como la v1) se quedan con lo de
+      arriba. Tres vistas en Estadísticas, con la clase de `TituloClase`:
+      **Ítem** (lo de arriba), **Evaluación** y **Alumno**.
+- [ ] **«Por asignatura» es una clase con todas sus evaluaciones**
+      (decidido por el usuario): no se juntan grupos (Química 2ºA y 2ºB son
+      dos materias de Clickedu). Arriba, cada evaluación con su media
+      (`Columnas`), para ver cómo va el curso; al elegir una, su detalle.
+- [ ] **Por evaluación**: cada ítem en una fila (`Barras`) con su
+      ponderación, su media, aprobados y cuántos tienen nota; y **la nota
+      de la evaluación** de cada alumno, con el bloque del ítem (media,
+      mediana, aprobados, una columna por punto, quiénes son). **Las dos
+      notas** (decidido por el usuario): la **calculada** (media ponderada
+      de sus ítems, con lo de la app; provisional, borde discontinuo, D6)
+      y la **«Nota final» de Clickedu**, que `GetGrades` ya trae
+      (`type 114`, `id_criteri` = la materia) y hoy se tira: se guarda al
+      traer en `items.json`, sin una petición más. Nada en silencio: un
+      ítem sin ponderación se avisa y esa evaluación sale con media
+      simple; a un alumno sin nota en algún ítem se le calcula con los
+      que tiene y se dice cuántos le faltan. La ponderación de un ítem que
+      cuelga de otro, con `ponderacion_en_la_evaluacion`.
+- [ ] **Por alumno**: se entra pulsando un nombre en «quiénes son» o desde
+      la lista de la clase. De cada evaluación, sus notas en cada ítem
+      frente a la media de la clase y su nota de la evaluación (las dos);
+      con varias, cómo va de una a otra. Solo en la pantalla, como
+      «quiénes son» (D8); el suspenso, en gris (D6).
 - [x] **Lo del dictado** (`registro::estadisticas`), de la clase en todos
       sus ítems (el registro no apunta el ítem de cada dictado) y de
       todas: dictadas por voz (lo escrito en el campo de desarrollo no
