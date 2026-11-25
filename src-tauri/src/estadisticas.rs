@@ -6,6 +6,11 @@
 //! [`sesion::nota_de`]) y, en un ítem sin nota en la app, la que ya tenía
 //! en Clickedu al traer (H6), como la enseña Calificar. Lo que no es nota
 //! (`NP`) no entra en las cuentas: se dice aparte.
+//!
+//! Lo de cada evaluación y cada alumno, con todos los ítems de la clase,
+//! en [`curso`].
+
+pub mod curso;
 
 use std::collections::BTreeMap;
 
@@ -39,6 +44,8 @@ pub struct Notas {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Quien {
+    /// La clave del alumno en la plantilla: para ir a lo suyo.
+    pub clave: String,
     pub nombre: String,
     pub nota: f64,
     /// Su columna, `por_punto[punto]`.
@@ -51,20 +58,36 @@ fn punto(v: f64) -> usize {
 
 /// `en_clickedu`: en un ítem, las notas de Clickedu por `Id` de alumno.
 pub fn de_la_clase(alumnos: &[Alumno], puestas: &Puestas, en_clickedu: Option<&BTreeMap<String, String>>) -> Notas {
-    let mut n = Notas { alumnos: alumnos.len(), ..Notas::default() };
+    contar(alumnos.iter().map(|a| (a, nota_efectiva(a, puestas, en_clickedu))))
+}
+
+/// La nota que cuenta de `a`: la de la sesión o la plantilla y, si no hay,
+/// la de Clickedu (`en_clickedu`, por `Id`), como la enseña Calificar.
+pub fn nota_efectiva(a: &Alumno, puestas: &Puestas, en_clickedu: Option<&BTreeMap<String, String>>) -> Nota {
+    match sesion::nota_de(a, puestas) {
+        Nota::Vacia => de_clickedu(en_clickedu.and_then(|c| c.get(&a.id))),
+        nota => nota,
+    }
+}
+
+/// Una nota de Clickedu, tal cual la da: un número, otra cosa o nada.
+pub fn de_clickedu(texto: Option<&String>) -> Nota {
+    match texto.map(|t| t.trim()).filter(|t| !t.is_empty()) {
+        Some(t) => crate::clickedu::subir::numero(t).map_or_else(|| Nota::Invalida(t.to_string()), Nota::Valor),
+        None => Nota::Vacia,
+    }
+}
+
+/// Las cuentas de la nota de cada alumno.
+pub fn contar<'a>(notas: impl IntoIterator<Item = (&'a Alumno, Nota)>) -> Notas {
+    let mut n = Notas::default();
     let mut valores = Vec::new();
-    for a in alumnos {
-        let nota = match sesion::nota_de(a, puestas) {
-            Nota::Vacia => match en_clickedu.and_then(|c| c.get(&a.id)).map(|t| t.trim()).filter(|t| !t.is_empty()) {
-                Some(t) => crate::clickedu::subir::numero(t).map_or_else(|| Nota::Invalida(t.to_string()), Nota::Valor),
-                None => Nota::Vacia,
-            },
-            nota => nota,
-        };
+    for (a, nota) in notas {
+        n.alumnos += 1;
         match nota {
             Nota::Valor(v) => {
                 valores.push(v);
-                n.quienes.push(Quien { nombre: a.nombre.clone(), nota: v, punto: punto(v) });
+                n.quienes.push(Quien { clave: a.clave.clone(), nombre: a.nombre.clone(), nota: v, punto: punto(v) });
             }
             Nota::Vacia => n.sin_nota += 1,
             Nota::Invalida(_) => n.no_son_nota += 1,

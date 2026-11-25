@@ -32,6 +32,10 @@ export interface Dato {
   marca?: string;
   /** Otro color con significado propio. */
   color?: string;
+  /** Se pulsa aunque valga 0 (un ítem sin notas lleva igual a lo suyo); sin él, solo si vale algo. */
+  pulsable?: boolean;
+  /** En las barras: una raya con la que comparar, como la media de la clase. */
+  referencia?: number | null;
 }
 
 interface Comun {
@@ -49,8 +53,9 @@ const APAGADA = 0.45;
 /** Lo que tiene el ratón encima y los manejadores de cada marca. */
 function useSobre({elegida, alPulsar}: Pick<Comun, 'elegida' | 'alPulsar'>) {
   const [sobre, setSobre] = useState<string | null>(null);
+  const sePulsa = (d: Dato) => alPulsar !== undefined && (d.pulsable ?? d.valor > 0);
   const de = (d: Dato) => {
-    const pulsable = alPulsar !== undefined && d.valor > 0;
+    const pulsable = sePulsa(d);
     return {
       onMouseEnter: () => setSobre(d.clave),
       onFocus: () => setSobre(d.clave),
@@ -60,18 +65,18 @@ function useSobre({elegida, alPulsar}: Pick<Comun, 'elegida' | 'alPulsar'>) {
         tabIndex: 0,
         'aria-pressed': d.clave === elegida,
         'aria-label': d.detalle ?? `${d.titulo}: ${d.texto}`,
-        onClick: () => alPulsar(d),
+        onClick: () => alPulsar?.(d),
         onKeyDown: (e: React.KeyboardEvent) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
-            alPulsar(d);
+            alPulsar?.(d);
           }
         },
       }),
     };
   };
   const cursor = (d: Dato): React.CSSProperties => ({
-    cursor: alPulsar !== undefined && d.valor > 0 ? 'pointer' : 'default',
+    cursor: sePulsa(d) ? 'pointer' : 'default',
     outline: 'none',
   });
   /** Señalada: con el ratón encima o elegida. Apagada: hay otra señalada por el ratón. */
@@ -104,9 +109,10 @@ const TRANSICION = 'opacity 120ms, background-color 120ms, filter 120ms';
 // Barras: un reparto entre nombres, de más a menos
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function Barras({datos, lectura, elegida, alPulsar}: Comun) {
+/** `tope`: el valor de la barra entera (una nota, 10); sin él, el mayor de `datos`. */
+export function Barras({datos, lectura, elegida, alPulsar, tope}: Comun & {tope?: number}) {
   const s = useSobre({elegida, alPulsar});
-  const max = Math.max(1, ...datos.map((d) => d.valor));
+  const max = tope ?? Math.max(1, ...datos.map((d) => d.valor));
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: 8}}>
       <div
@@ -147,18 +153,34 @@ export function Barras({datos, lectura, elegida, alPulsar}: Comun) {
                 }}>
                 {d.rotulo}
               </span>
-              <span style={{height: 14, background: 'var(--bg-sunk)', borderRadius: 4, overflow: 'hidden'}}>
+              <span style={{position: 'relative', height: 14}}>
                 <span
-                  style={{
-                    display: 'block',
-                    height: '100%',
-                    width: `${(d.valor / max) * 100}%`,
-                    minWidth: d.valor > 0 ? 2 : 0,
-                    background: s.relleno(d),
-                    borderRadius: '0 4px 4px 0',
-                    transition: TRANSICION,
-                  }}
-                />
+                  style={{display: 'block', height: '100%', background: 'var(--bg-sunk)', borderRadius: 4, overflow: 'hidden'}}>
+                  <span
+                    style={{
+                      display: 'block',
+                      height: '100%',
+                      width: `${(d.valor / max) * 100}%`,
+                      minWidth: d.valor > 0 ? 2 : 0,
+                      background: s.relleno(d),
+                      borderRadius: '0 4px 4px 0',
+                      transition: TRANSICION,
+                    }}
+                  />
+                </span>
+                {d.referencia != null && (
+                  <span
+                    data-referencia
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      bottom: 0,
+                      left: `clamp(0px, calc(${Math.min(1, d.referencia / max) * 100}% - 1px), calc(100% - 2px))`,
+                      width: 2,
+                      background: 'var(--text-primary)',
+                    }}
+                  />
+                )}
               </span>
               <span
                 style={{

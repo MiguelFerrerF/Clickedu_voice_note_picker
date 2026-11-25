@@ -11,7 +11,9 @@
 //! una copia de cuando se trajo: antes de subir se vuelve a leer. **La
 //! ponderación**, de la tabla de «Ítems» de esa evaluación
 //! ([`fichas::ponderaciones`]); si esa página no se entiende, los ítems
-//! se guardan igual, sin ella (no es lo básico).
+//! se guardan igual, sin ella (no es lo básico). Y **la «Nota final»** de
+//! cada alumno en la evaluación, que viene en el mismo `GetGrades`
+//! ([`finales_de`]), para las Estadísticas (H8).
 //!
 //! Se guarda por el `id` de la materia, no por el fichero: Clases cruza los
 //! dos con `traidas.json` ([`super::traer::planear::Recordadas`]).
@@ -66,6 +68,11 @@ pub struct EvaluacionItems {
     pub desde: Option<String>,
     pub hasta: Option<String>,
     pub items: Vec<ItemGuardado>,
+    /// La «Nota final» de la evaluación en Clickedu, al traer, por `Id` de
+    /// alumno, tal cual (H8). Vacía en los `items.json` de antes, y en una
+    /// evaluación sin ítems (no se pide su `GetGrades`).
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub finales: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -116,6 +123,7 @@ pub async fn bajar(
             (puestas, fichas::ponderaciones(&pagina).map(|l| l.dato).unwrap_or_default())
         };
         res.push(EvaluacionItems {
+            finales: finales_de(&puestas, materia),
             id: e.id.clone(),
             nombre: e.nombre.clone(),
             desde: e.desde.clone(),
@@ -146,9 +154,20 @@ pub async fn bajar(
 /// la materia, que podría coincidir con el de un ítem. Si un alumno sale
 /// dos veces, vale la primera.
 pub fn notas_de(puestas: &[Puesta], item: &str) -> BTreeMap<String, String> {
+    elegir(puestas.iter().filter(|p| p.criterio == item && p.tipo.unwrap_or(0) == 0))
+}
+
+/// La «Nota final» de cada alumno en la evaluación, por su `Id`: las filas
+/// que no son de ítem (`type` 114, 120…) con el id de `materia`. Como en
+/// [`notas_de`], la puesta y, si no, la calculada.
+pub fn finales_de(puestas: &[Puesta], materia: &str) -> BTreeMap<String, String> {
+    elegir(puestas.iter().filter(|p| p.criterio == materia && p.tipo.unwrap_or(0) != 0))
+}
+
+fn elegir<'a>(puestas: impl Iterator<Item = &'a Puesta>) -> BTreeMap<String, String> {
     let con_nota = |v: &Option<String>| v.as_deref().map(str::trim).filter(|t| !t.is_empty()).map(String::from);
     let mut res = BTreeMap::new();
-    for p in puestas.iter().filter(|p| p.criterio == item && p.tipo.unwrap_or(0) == 0) {
+    for p in puestas {
         if let Some(n) = con_nota(&p.nota_mod).or_else(|| con_nota(&p.nota)) {
             res.entry(p.alumno.clone()).or_insert(n);
         }
@@ -264,6 +283,14 @@ pub fn ponderacion_en_la_evaluacion(item: &ItemGuardado, items: &[ItemGuardado])
     Some((del_padre * propia).round() / 100.0)
 }
 
+/// Si `e` es la evaluación de `hoy` (`AAAA-MM-DD`), por sus fechas.
+pub fn en_curso(e: &EvaluacionItems, hoy: &str) -> bool {
+    match (&e.desde, &e.hasta) {
+        (Some(d), Some(h)) => d.as_str() <= hoy && hoy <= h.as_str(),
+        _ => false,
+    }
+}
+
 /// Lo contado de un ítem en una clase.
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Contados {
@@ -285,10 +312,7 @@ pub fn para_clases(materia: &ItemsMateria, hoy: &str, contar: impl Fn(&ItemGuard
             .map(|e| EvaluacionClase {
                 id: e.id.clone(),
                 nombre: e.nombre.clone(),
-                en_curso: match (&e.desde, &e.hasta) {
-                    (Some(d), Some(h)) => d.as_str() <= hoy && hoy <= h.as_str(),
-                    _ => false,
-                },
+                en_curso: en_curso(e, hoy),
                 items: e
                     .items
                     .iter()
@@ -352,6 +376,25 @@ mod tests {
     }
 
     #[test]
+    fn la_nota_final_de_verdad() {
+        // Las páginas anonimizadas: la materia es la 9001; en una, `type`
+        // 114 con las dos notas (vale la puesta); en la otra, 120 y solo
+        // la calculada.
+        let uno = super::super::fichas::notas(include_str!("../../tests/datos/clickedu/notas-1.json")).unwrap().dato;
+        let f = finales_de(&uno, "9001");
+        assert_eq!(f.len(), 30);
+        assert_eq!(f["905"], "5.7");
+        assert!(finales_de(&uno, "90001").is_empty(), "un ítem no es la final");
+        assert_eq!(notas_de(&uno, "9001"), BTreeMap::new());
+        let dos = super::super::fichas::notas(include_str!("../../tests/datos/clickedu/notas-2.json")).unwrap().dato;
+        assert_eq!(finales_de(&dos, "9001")["905"], "1.8");
+        // Un `items.json` de antes, sin finales.
+        let viejo: EvaluacionItems =
+            serde_json::from_str(r#"{"id":"1","nombre":"1ª","desde":null,"hasta":null,"items":[]}"#).unwrap();
+        assert!(viejo.finales.is_empty());
+    }
+
+    #[test]
     fn en_la_clase_cuenta_solo_sus_alumnos() {
         let notas = BTreeMap::from([("1".to_string(), "7".to_string()), ("9".to_string(), "5".to_string())]);
         let i = ItemGuardado {
@@ -376,6 +419,7 @@ mod tests {
             desde: Some(desde.into()),
             hasta: Some(hasta.into()),
             items,
+            finales: BTreeMap::new(),
         };
         ItemsMateria {
             traidos,
@@ -432,6 +476,7 @@ mod tests {
                 desde: None,
                 hasta: None,
                 items,
+                finales: BTreeMap::new(),
             }],
         };
         let c = para_clases(&m, "2026-11-24", |_| Contados::default());

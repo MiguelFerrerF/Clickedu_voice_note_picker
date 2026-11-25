@@ -331,7 +331,7 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
           const nombres = NOMBRES.filter(Boolean);
           const quienes = porPunto
             .flatMap((c, p) => Array.from({length: c}, (_, k) => ({punto: p, nota: p === 10 ? 10 : p + (k % 4) * 0.25})))
-            .map((q, i) => ({...q, nombre: nombres[i]}))
+            .map((q, i) => ({...q, nombre: nombres[i], clave: String(20231 + NOMBRES.indexOf(nombres[i]))}))
             .sort((a, b) => b.nota - a.nota);
           return {
             notas: {
@@ -345,6 +345,76 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
               }),
               todas,
             },
+          };
+        }
+        case 'leer_curso': {
+          // H8: la evaluación y el alumno. En Matemáticas 3.º A, la 1.ª con
+          // todo y la final de Clickedu, la 2.ª a medias y la 3.ª sin ítems;
+          // las demás clases traídas, sin notas; las otras, sin ítems.
+          const evs = ITEMS[args.fichero];
+          if (!evs) return null;
+          const llena = args.fichero === 'matematicas_3_a_eso.xlsx';
+          const alumnos = (llena ? NOMBRES : NOMBRES.slice(0, 18)).map((nombre, i) => ({nombre, clave: String(20231 + i)})).filter((a) => a.nombre);
+          const contar = (notas) => {
+            const valores = [];
+            const quienes = [];
+            notas.forEach((v, i) => {
+              if (v === null) return;
+              valores.push(v);
+              quienes.push({clave: alumnos[i].clave, nombre: alumnos[i].nombre, nota: v, punto: Math.min(10, Math.floor(v))});
+            });
+            const porPunto = Array(11).fill(0);
+            for (const q of quienes) porPunto[q.punto]++;
+            const orden = [...valores].sort((a, b) => a - b);
+            const m = orden.length;
+            return {
+              alumnos: notas.length, conNota: m, sinNota: notas.length - m, noSonNota: 0,
+              media: m ? valores.reduce((a, b) => a + b, 0) / m : null,
+              mediana: m ? (m % 2 ? orden[(m - 1) / 2] : (orden[m / 2 - 1] + orden[m / 2]) / 2) : null,
+              aprobados: valores.filter((v) => v >= 5).length, porPunto,
+              quienes: quienes.sort((a, b) => b.nota - a.nota),
+            };
+          };
+          // Una nota inventada por alumno e ítem; en la 2.ª, solo algunos.
+          const inventada = (a, k, e) => {
+            if (!llena || (e === 1 && (a + k) % 3 === 0)) return null;
+            return Math.min(10, Math.round(((a * 7 + k * 5 + e * 3) % 9 + 2 + ((a + k) % 4) * 0.25) * 100) / 100);
+          };
+          const de = evs.map((e, n) => {
+            const notas = alumnos.map((_, a) => e.items.map((_, k) => inventada(a, k, n)));
+            const calculadas = notas.map((fila) => {
+              const con = fila.map((v, k) => [v, e.items[k].ponderacion]).filter(([v, w]) => v !== null && w);
+              const peso = con.reduce((s, [, w]) => s + w, 0);
+              return peso ? Math.round((con.reduce((s, [v, w]) => s + v * w, 0) / peso) * 100) / 100 : null;
+            });
+            const finales = alumnos.map((_, a) => (llena && n === 0 ? calculadas[a] && Math.round(calculadas[a]) : null));
+            return {notas, calculadas, finales};
+          });
+          return {
+            traidos: 1795392000,
+            evaluaciones: evs.map((e, n) => ({
+              id: e.id,
+              nombre: e.nombre,
+              enCurso: e.enCurso,
+              items: e.items.map((i, k) => {
+                const c = contar(de[n].notas.map((f) => f[k]));
+                return {id: i.id, nombre: i.nombre, ponderacion: i.ponderacion, dentroDe: i.dentroDe?.nombre ?? null,
+                  conNota: c.conNota, media: c.media, aprobados: c.aprobados};
+              }),
+              mediaSimple: false,
+              noCuentan: e.items.filter((i) => i.ponderacion === null).map((i) => i.nombre),
+              calculada: contar(de[n].calculadas),
+              finalClickedu: contar(de[n].finales),
+            })),
+            alumnos: alumnos.map((a, i) => ({
+              ...a,
+              evaluaciones: evs.map((e, n) => ({
+                notas: de[n].notas[i],
+                calculada: de[n].calculadas[i],
+                faltan: de[n].notas[i].filter((v, k) => v === null && e.items[k].ponderacion).length,
+                finalClickedu: de[n].finales[i],
+              })),
+            })),
           };
         }
         case 'preparar_informe':
@@ -1056,6 +1126,30 @@ const PRUEBAS = [
       await main.getByRole('button', {name: /^Suspensos/}).first().click();
       await main.locator('[data-quienes] li').nth(5).waitFor();
       await paso('suspensos');
+      // La evaluación: la del ítem elegido, con la nota calculada (borde
+      // discontinuo), y la final de Clickedu de la 1.ª.
+      await main.getByRole('tab', {name: 'Evaluación'}).click();
+      await main.getByText('El curso').waitFor();
+      await paso('evaluacion');
+      await main.getByRole('tab', {name: '1ª evaluación'}).click();
+      await main.getByRole('tab', {name: 'La nota final de Clickedu'}).click();
+      await main.locator('[data-columnas] > div').nth(7).click();
+      await main.locator('[data-quienes] li').first().waitFor();
+      await paso('final');
+      // Al pulsar un nombre, lo del alumno.
+      await main.locator('[data-quienes] li button').first().click();
+      await main.locator('[data-notas-alumno]').first().waitFor();
+      await paso('alumno');
+      // Hacia atrás: un ítem del alumno lleva al ítem; una barra de la
+      // evaluación, también.
+      await main.locator('[data-notas-alumno] [data-barras] > [role="button"]').first().click();
+      await main.getByText('Cómo se reparten').waitFor();
+      await paso('del-alumno-al-item');
+      await main.getByRole('tab', {name: 'Evaluación'}).click();
+      await main.getByText('El curso').waitFor();
+      await main.locator('[data-barras]').nth(1).locator('> [role="button"]').last().click();
+      await main.getByText('Cómo se reparten').waitFor();
+      await paso('de-la-evaluacion-al-item');
     },
   },
   {
