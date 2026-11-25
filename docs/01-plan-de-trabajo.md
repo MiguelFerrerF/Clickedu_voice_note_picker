@@ -1544,6 +1544,8 @@ tests: un solo comando, `leer_estadisticas`.
 
 ### H9 · La ayuda guiada
 
+**Cerrado el 2026-11-25**: el usuario lo ha visto y le gusta.
+
 Decidido con el usuario el 2026-11-25 (las dos, la opción recomendada):
 
 1. **La ligera, no el tour de H12 de library-app.** Allí solo está el plan
@@ -1565,19 +1567,19 @@ Lo que se aparta de library-app y por qué:
 - **Tokens**: ninguno nuevo. El aviso de la primera vez es un evento que se
   apaga (D6): en el acento, y se va al cerrarlo.
 
-- [ ] **«Ayuda» en la barra lateral** (pedido por el usuario el
+- [x] **«Ayuda» en la barra lateral** (pedido por el usuario el
       2026-11-19), en Aplicación: el recorrido (traer → calificar,
       escribiendo o dictando → subir), qué hace cada pantalla con un botón
       para ir a ella, las teclas (las del ⓘ de Calificar), lo que no sale
       del ordenador (D2, D8) y qué hacer si algo falla (el informe de
       Ajustes). Y «Ver otra vez la bienvenida».
-- [ ] **La bienvenida**, la primera vez: el recorrido en tres pasos y un
+- [x] **La bienvenida**, la primera vez: el recorrido en tres pasos y un
       botón según lo que haya (arriba). Después del diálogo de la v1, si
       sale, y antes del de la actualización.
-- [ ] **Un aviso por pantalla**, la primera vez que se entra en Calificar,
+- [x] **Un aviso por pantalla**, la primera vez que se entra en Calificar,
       Clases, Estadísticas, Conexión y Ajustes: dos o tres líneas arriba,
       «Más en la Ayuda» y ✕. Se da por visto al cerrarlo, no al verlo.
-- [ ] La prueba de diseño: la pantalla de Ayuda, la bienvenida (los dos
+- [x] La prueba de diseño: la pantalla de Ayuda, la bienvenida (los dos
       caminos) y un aviso; el backend falso da todo por visto salvo que se
       pida lo contrario, para no tapar las demás pruebas.
 
