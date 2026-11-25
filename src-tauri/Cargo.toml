@@ -1,6 +1,6 @@
 [package]
 name = "gestor-de-notas"
-version = "2.1.1"
+version = "2.2.0"
 description = "Gestor de Notas — dictado de notas por voz para Clickedu"
 authors = ["Miguel Ferrer"]
 edition = "2021"

@@ -1,7 +1,7 @@
 {
   "name": "gestor-de-notas",
   "private": true,
-  "version": "2.1.1",
+  "version": "2.2.0",
   "type": "module",
   "description": "Gestor de Notas — dictado de notas por voz para Clickedu (Tauri 2 + Vite + React + TypeScript)",
   "scripts": {
