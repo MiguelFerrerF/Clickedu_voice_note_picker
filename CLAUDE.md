@@ -25,14 +25,16 @@ el tag `v1.3.4`. Plan, decisiones e hitos en
 > plantillas viejas en la raíz, las 22 notas de prueba en la sesión y sin
 > `traidas.json` (sale «la primera vez»); lo traído el 22, en
 > `%APPDATA%\es.gestornotas.app\clickedu\prueba-2026-11-22\`.
-> **`v2` pasó a `main`** (2026-11-25, avance rápido): se trabaja en
-> `main` (un commit por hito y otro al cerrarlo); la v1, en el tag `v1.3.4`.
-> **`v2.1.0` publicada** (2026-11-24, desde `v2`; `cargo audit` la paró
-> por `cookie`, arreglado y el tag movido antes de haber release).
+> **`v2` pasó a `main`** (2026-11-25, avance rápido) y solo queda `main`:
+> cada cambio, en una rama propia que sale de `main` (un commit por hito y
+> otro al cerrarlo); la v1, en el tag `v1.3.4`. Las ramas viejas
+> (prototipos de abril, `v2`, `release-2.0.1`), borradas el 2026-11-25.
+> **`v2.1.1` publicada** (2026-11-25); la `v2.1.0` (2026-11-24), con
+> `cargo audit` que la paró por `cookie`, arreglado antes de haber release.
 > **H7, cerrado** (2026-11-24): la `v2.0.0` y la `v2.0.1`, **publicadas**
 > (actualizador de Tauri con firma, `release.yml`, el paso desde la
-> v1.3.4), y lo de D, probado. Las versiones salen de una rama aparte si
-> `main` lleva un hito a medias (`release-2.0.1`). Documentos, en este
+> v1.3.4), y lo de D, probado. Las versiones salen de `main`, o de una
+> rama aparte si `main` lleva un hito a medias. Documentos, en este
 > ordenador, está en OneDrive: las plantillas llegan sincronizadas. El mapa de Clickedu, en
 > [`docs/03-clickedu.md`](docs/03-clickedu.md). Las páginas de verdad
 > anonimizadas (`tests/datos/clickedu/`, `anonimizar_clickedu`) **se miran
