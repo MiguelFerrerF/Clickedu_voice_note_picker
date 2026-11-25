@@ -55,9 +55,10 @@ const TAMANOS = [
  * instalada: `traida` (con una renombrada y la carpeta cambiada) o `fallo`;
  * `clickedu`, si ya hay una cuenta de Clickedu guardada (H4); `items`, si
  * las clases traen sus ítems de Clickedu (H6): sin ellos, es quien no se
- * conecta.
+ * conecta. `ayuda` (H9): sin ella, la ayuda ya está toda vista, para que la
+ * bienvenida y los avisos no tapen las demás pruebas; con `nueva`, nada.
  */
-function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, items}) {
+function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, items, ayuda}) {
   let n = 1;
   const ruta = 'C:\\Users\\profesora\\Documents\\Gestor de Notas\\plantillas';
   const bien = (alumnos, calificados, avisos = 0) => ({tipo: 'bien', alumnos, calificados, avisos});
@@ -555,6 +556,10 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
           return {entraron: 8, noEntraron: ['Castro Molina, Lucía'], borradas: ['Nowak, Łukasz'], avisos: []};
         }
         case 'cancelar_subida':
+          return null;
+        case 'ayuda_vista':
+          return ayuda === 'nueva' ? [] : ['bienvenida', 'calificar', 'clases', 'estadisticas', 'clickedu', 'ajustes'];
+        case 'marcar_ayuda':
           return null;
         case 'exportar_clase':
           return {
@@ -1153,6 +1158,66 @@ const PRUEBAS = [
     },
   },
   {
+    // H9: la pantalla de Ayuda, y desde ella, la bienvenida otra vez.
+    nombre: 'ayuda',
+    async probar(page, paso) {
+      await ir(page, 'Ayuda', 'ayuda');
+      const main = page.locator('[data-pantalla="ayuda"]');
+      await main.getByText('Cada pantalla').waitFor();
+      await paso('arriba');
+      await page.locator('[data-pantalla="ayuda"]').evaluate((el) => (el.scrollTop = el.scrollHeight));
+      await page.waitForTimeout(100);
+      await paso('abajo');
+      await main.getByRole('button', {name: 'Ver otra vez la bienvenida'}).click();
+      const dialogo = page.getByRole('dialog', {name: 'Te damos la bienvenida al Gestor de Notas'});
+      await dialogo.getByRole('button', {name: 'Ver mis clases'}).waitFor();
+      await page.waitForTimeout(250);
+      await paso('bienvenida');
+      await dialogo.getByRole('button', {name: 'Ver mis clases'}).click();
+      await page.locator('[data-pantalla="clases"]').waitFor({state: 'visible'});
+    },
+  },
+  {
+    // H9: la primera vez, sin plantillas: se empieza por Conexión, con su
+    // aviso, que se va al cerrarlo.
+    nombre: 'primera-vez',
+    ayuda: 'nueva',
+    carpeta: 'vacia',
+    async probar(page, paso) {
+      const dialogo = page.getByRole('dialog', {name: 'Te damos la bienvenida al Gestor de Notas'});
+      await dialogo.getByRole('button', {name: 'Traer mis clases'}).waitFor();
+      await page.waitForTimeout(250);
+      await paso('bienvenida');
+      await dialogo.getByRole('button', {name: 'Traer mis clases'}).click();
+      const main = page.locator('[data-pantalla="clickedu"]');
+      const aviso = main.getByRole('region', {name: 'La primera vez aquí'});
+      await aviso.waitFor();
+      await paso('conexion');
+      await aviso.getByRole('button', {name: 'Entendido, no volver a enseñarlo'}).click();
+      await aviso.waitFor({state: 'detached'});
+    },
+  },
+  {
+    // H9: la primera vez, con plantillas: «Ahora no» deja en Clases, con su
+    // aviso; y Calificar, con el suyo.
+    nombre: 'primera-vez-con-clases',
+    ayuda: 'nueva',
+    async probar(page, paso) {
+      const dialogo = page.getByRole('dialog', {name: 'Te damos la bienvenida al Gestor de Notas'});
+      await dialogo.getByText('Ya tienes 6 clases', {exact: false}).waitFor();
+      await page.waitForTimeout(250);
+      await paso('bienvenida');
+      await dialogo.getByRole('button', {name: 'Ahora no'}).click();
+      await page.locator('[data-pantalla="clases"]').getByRole('region', {name: 'La primera vez aquí'}).waitFor();
+      await paso('clases');
+      await ir(page, 'Calificar', 'calificar');
+      const main = page.locator('[data-pantalla="calificar"]');
+      await main.getByRole('region', {name: 'La primera vez aquí'}).waitFor();
+      await main.getByRole('row').first().waitFor();
+      await paso('calificar');
+    },
+  },
+  {
     nombre: 'muestrario',
     async probar(page, paso) {
       await ir(page, 'Muestrario', 'muestrario');
@@ -1201,6 +1266,7 @@ try {
         v1: prueba.v1 ?? null,
         clickedu: prueba.clickedu ?? false,
         items: prueba.items ?? false,
+        ayuda: prueba.ayuda ?? null,
       });
       page.on('pageerror', (e) => fallos.push(`${prueba.nombre} ${tam}: error en la página: ${e.message}`));
       await page.goto(`http://localhost:${PUERTO}/`);

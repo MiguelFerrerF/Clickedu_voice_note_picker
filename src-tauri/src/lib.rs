@@ -72,6 +72,8 @@ pub fn run() {
             commands::registro::resumen_registro,
             commands::estadisticas::leer_estadisticas,
             commands::estadisticas::leer_curso,
+            commands::ayuda::ayuda_vista,
+            commands::ayuda::marcar_ayuda,
             commands::registro::preparar_informe,
             commands::registro::mostrar_informe,
             commands::registro::borrar_registro,

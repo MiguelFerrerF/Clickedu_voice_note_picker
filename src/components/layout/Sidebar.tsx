@@ -10,7 +10,8 @@
  *
  * - **Aula**: lo de todos los días. Calificar, Clases y Estadísticas.
  * - **Clickedu**: la conexión, traer plantillas y subir notas.
- * - **Aplicación**: Ajustes y, solo en desarrollo, el Muestrario.
+ * - **Aplicación**: Ajustes, la Ayuda (H9) y, solo en desarrollo, el
+ *   Muestrario.
  *
  * Al pie, la versión y «Buscar actualizaciones» (H7): la app ya mira sola
  * al arrancar, esto es para no esperar. Si no hay nada que enseñar en el
@@ -113,6 +114,7 @@ export function Sidebar({pantalla, setPantalla, alEncontrar}: SidebarProps) {
 
         <SidebarSection id="aplicacion" titulo={t('nav.aplicacion')}>
           {entrada('ajustes', ICONOS.ajustes, t('nav.ajustes'))}
+          {entrada('ayuda', ICONOS.ayuda, t('nav.ayuda'))}
           {import.meta.env.DEV && entrada('muestrario', ICONOS.muestrario, t('nav.muestrario'))}
         </SidebarSection>
       </div>

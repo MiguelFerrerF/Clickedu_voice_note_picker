@@ -4,8 +4,8 @@
  * lo demás saturaba la pantalla.
  *
  * Van las de la tabla y las del dictado, para tenerlas en un sitio. Es un
- * panel neutro, sin color: no es un evento, es una consulta. La ayuda de
- * cada pantalla, con sus tours, es de H9.
+ * panel neutro, sin color: no es un evento, es una consulta. La Ayuda de la
+ * pantalla (H9) las repite con `ListaTeclas`.
  */
 
 import {Icon, ICONOS} from '@components/ui/Icon';
@@ -39,7 +39,6 @@ const GRUPOS = [
 export const ID_TECLADO = 'teclado-calificar';
 
 export function Teclado({cerrar}: {cerrar: () => void}) {
-  const rotulos = teclas();
   return (
     <section
       id={ID_TECLADO}
@@ -55,6 +54,38 @@ export function Teclado({cerrar}: {cerrar: () => void}) {
         borderRadius: 8,
         background: 'var(--bg-card)',
       }}>
+      <ListaTeclas />
+      <button
+        type="button"
+        onClick={cerrar}
+        aria-label={t('teclado.cerrar')}
+        title={t('teclado.cerrar')}
+        style={{
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          display: 'inline-flex',
+          padding: 4,
+          border: 'none',
+          borderRadius: 6,
+          background: 'none',
+          color: 'var(--text-tertiary)',
+          cursor: 'pointer',
+        }}>
+        <Icon d={ICONOS.cerrar} size={14} />
+      </button>
+    </section>
+  );
+}
+
+/**
+ * Las teclas, en grupos, con la nota de abajo: lo de dentro del panel. La
+ * Ayuda (H9) las enseña también, sin el panel.
+ */
+export function ListaTeclas() {
+  const rotulos = teclas();
+  return (
+    <>
       {GRUPOS.map((g) => (
         <div key={g.titulo} style={{minWidth: 0}}>
           <h2
@@ -81,25 +112,6 @@ export function Teclado({cerrar}: {cerrar: () => void}) {
         </div>
       ))}
       <p style={{flexBasis: '100%', margin: 0, fontSize: 12, color: 'var(--text-secondary)'}}>{t('teclado.nota')}</p>
-      <button
-        type="button"
-        onClick={cerrar}
-        aria-label={t('teclado.cerrar')}
-        title={t('teclado.cerrar')}
-        style={{
-          position: 'absolute',
-          top: 8,
-          right: 8,
-          display: 'inline-flex',
-          padding: 4,
-          border: 'none',
-          borderRadius: 6,
-          background: 'none',
-          color: 'var(--text-tertiary)',
-          cursor: 'pointer',
-        }}>
-        <Icon d={ICONOS.cerrar} size={14} />
-      </button>
-    </section>
+    </>
   );
 }

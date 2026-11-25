@@ -17,17 +17,23 @@
  * - Al arrancar (H7) se traen los datos de la v1.3.4 si está instalada, y se
  *   pregunta si hay una versión nueva. Sin conexión no se dice nada: es lo
  *   normal en un portátil. Primero un diálogo y luego el otro.
+ * - La ayuda (H9): lo ya visto, para la bienvenida y el aviso de cada
+ *   pantalla, que pone `Cabecera` con `PantallaContext`. La bienvenida sale
+ *   la primera vez, tras el diálogo de la v1 y antes del de la actualización.
  */
 
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {invoke} from '@tauri-apps/api/core';
 
 import {DialogoActualizacion} from '@components/dialogs/DialogoActualizacion';
+import {DialogoBienvenida} from '@components/dialogs/DialogoBienvenida';
 import {DialogoVersionAnterior, type PasoV1, type ResultadoV1} from '@components/dialogs/DialogoVersionAnterior';
 import {Sidebar} from '@components/layout/Sidebar';
+import {AyudaContext, PantallaContext, type Ayuda as EstadoAyuda} from '@modules/ayuda';
 import {buscarActualizacion, saltarVersion, versionSaltada, type VersionNueva} from '@modules/actualizacion';
 import {Ajustes} from '@screens/Ajustes';
+import {Ayuda} from '@screens/Ayuda';
 import {Calificar} from '@screens/Calificar';
 import {Clases} from '@screens/Clases';
 import {Clickedu} from '@screens/Clickedu';
@@ -56,12 +62,38 @@ export default function App() {
   const irAAjustes = () => setPantalla('ajustes');
 
   const [v1, setV1] = useState<ResultadoV1 | null>(null);
+  // Hasta saber si hay algo de la v1, la bienvenida espera: si no, saldría
+  // y el diálogo de la v1 se le pondría encima.
+  const [v1Mirada, setV1Mirada] = useState(false);
   useEffect(() => {
-    invoke<PasoV1 | null>('traer_de_la_v1').then(
-      (paso) => setV1(paso ? {paso} : null),
-      (e) => setV1({error: String(e)}),
+    invoke<PasoV1 | null>('traer_de_la_v1')
+      .then(
+        (paso) => setV1(paso ? {paso} : null),
+        (e) => setV1({error: String(e)}),
+      )
+      .finally(() => setV1Mirada(true));
+  }, []);
+
+  // La ayuda (H9). Si no se puede leer lo visto (unos ajustes dañados), no
+  // se enseña nada: mejor eso que la bienvenida cada vez que se abre.
+  const [vista, setVista] = useState<ReadonlySet<string> | null>(null);
+  useEffect(() => {
+    invoke<string[]>('ayuda_vista').then(
+      (claves) => setVista(new Set(claves)),
+      () => {},
     );
   }, []);
+  const marcar = useCallback((clave: string) => {
+    setVista((v) => (v && !v.has(clave) ? new Set(v).add(clave) : v));
+    invoke('marcar_ayuda', {clave}).catch(() => {});
+  }, []);
+  const ayuda = useMemo<EstadoAyuda>(() => ({vista, marcar, abrir: () => setPantalla('ayuda')}), [vista, marcar]);
+  const [otraVez, setOtraVez] = useState(false);
+  const bienvenida = otraVez || (v1Mirada && !v1 && vista !== null && !vista.has('bienvenida'));
+  const cerrarBienvenida = () => {
+    setOtraVez(false);
+    marcar('bienvenida');
+  };
 
   const [nueva, setNueva] = useState<VersionNueva | null>(null);
   useEffect(() => {
@@ -116,26 +148,43 @@ export default function App() {
         );
       case 'ajustes':
         return <Ajustes visible={pantalla === 'ajustes'} />;
+      case 'ayuda':
+        return <Ayuda ir={setPantalla} verBienvenida={() => setOtraVez(true)} />;
       case 'muestrario':
         return <Muestrario />;
     }
   }
 
   return (
-    <div style={{display: 'flex', height: '100vh', overflow: 'hidden'}}>
-      <Sidebar pantalla={pantalla} setPantalla={setPantalla} alEncontrar={setNueva} />
-      <main style={{flex: 1, minWidth: 0, overflow: 'hidden'}}>
-        {[...visitadas].map((id) => (
-          <div
-            key={id}
-            data-pantalla={id}
-            style={{display: id === pantalla ? 'block' : 'none', height: '100%', overflowY: 'auto'}}>
-            {renderizar(id)}
-          </div>
-        ))}
-      </main>
-      <DialogoVersionAnterior resultado={v1} cerrar={() => setV1(null)} />
-      <DialogoActualizacion nueva={v1 ? null : nueva} cerrar={cerrarActualizacion} saltar={saltarActualizacion} />
-    </div>
+    <AyudaContext.Provider value={ayuda}>
+      <div style={{display: 'flex', height: '100vh', overflow: 'hidden'}}>
+        <Sidebar pantalla={pantalla} setPantalla={setPantalla} alEncontrar={setNueva} />
+        <main style={{flex: 1, minWidth: 0, overflow: 'hidden'}}>
+          {[...visitadas].map((id) => (
+            <div
+              key={id}
+              data-pantalla={id}
+              style={{display: id === pantalla ? 'block' : 'none', height: '100%', overflowY: 'auto'}}>
+              <PantallaContext.Provider value={id}>{renderizar(id)}</PantallaContext.Provider>
+            </div>
+          ))}
+        </main>
+        <DialogoVersionAnterior resultado={v1} cerrar={() => setV1(null)} />
+        {bienvenida && (
+          <DialogoBienvenida
+            cerrar={cerrarBienvenida}
+            ir={(p) => {
+              cerrarBienvenida();
+              setPantalla(p);
+            }}
+          />
+        )}
+        <DialogoActualizacion
+          nueva={v1 || bienvenida ? null : nueva}
+          cerrar={cerrarActualizacion}
+          saltar={saltarActualizacion}
+        />
+      </div>
+    </AyudaContext.Provider>
   );
 }

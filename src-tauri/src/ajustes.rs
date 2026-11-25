@@ -2,6 +2,9 @@
 //! qué micrófono se dicta. Y dónde van las notas exportadas (H2), que no se
 //! elige.
 //!
+//! Y, desde H9, lo que ya se ha visto de la ayuda: la bienvenida y el aviso
+//! de cada pantalla.
+//!
 //! Viven en `ajustes.json`, en la carpeta de la app (D4:
 //! `%APPDATA%\es.gestornotas.app\`). **Nunca credenciales** aquí (D3): las de
 //! Clickedu van al Administrador de credenciales de Windows.
@@ -25,6 +28,10 @@ pub struct Ajustes {
     /// `None`: el micrófono de Windows.
     #[serde(default)]
     pub microfono: Option<MicrofonoElegido>,
+    /// Lo que ya se ha visto de la ayuda (H9): `bienvenida` y una clave por
+    /// pantalla. Sin el campo (unos ajustes de antes), nada visto.
+    #[serde(default)]
+    pub ayuda_vista: Vec<String>,
 }
 
 /// El micrófono elegido en Ajustes: su id de `cpal`, que es con lo que se
@@ -119,10 +126,19 @@ mod tests {
         let a = Ajustes {
             carpeta_plantillas: Some(PathBuf::from(r"D:\Clase\plantillas")),
             microfono: Some(MicrofonoElegido { id: "wasapi:{0.0.1}".into(), nombre: "Auriculares".into() }),
+            ayuda_vista: vec!["bienvenida".into(), "calificar".into()],
         };
         guardar(&ruta, &a).unwrap();
         assert_eq!(leer(&ruta).unwrap(), a);
         assert!(!ruta.with_extension("json.tmp").exists());
+    }
+
+    #[test]
+    fn unos_ajustes_de_antes_de_la_ayuda_no_la_han_visto() {
+        let dir = tempfile::tempdir().unwrap();
+        let ruta = dir.path().join("ajustes.json");
+        std::fs::write(&ruta, r#"{"carpetaPlantillas": null, "microfono": null}"#).unwrap();
+        assert!(leer(&ruta).unwrap().ayuda_vista.is_empty());
     }
 
     #[test]
