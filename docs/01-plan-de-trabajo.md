@@ -1694,8 +1694,9 @@ Cómo:
       la cuenta; se salta con la sesión cogida; se para con la cuenta
       rechazada. La prueba de diseño, con el aviso en Inicio y Conexión y
       la fila de Ajustes.
-- [ ] Probarlo de verdad: dejar la app abierta, poner una nota en
-      Clickedu desde la web y verla aparecer sin traer.
+- [x] Probarlo de verdad: dejar la app abierta, poner una nota en
+      Clickedu desde la web y verla aparecer sin traer. **Probado por el
+      usuario el 2026-11-26: va bien.**
 
 Cómo quedó (2026-11-26, rama `h11-refresco`):
 
@@ -1705,7 +1706,7 @@ Cómo quedó (2026-11-26, rama `h11-refresco`):
   `estudiar` (preparar, la raíz, las huellas y planear, sin aplicar).
   Traer y refrescar los llaman; los comandos solo deciden qué hacer luego.
 - **`clickedu::refrescar`**: `refrescar` (con `try_lock`; lo bajado, a
-  `clickeduefresco`, que se borra al acabar, para no pisar `bajadas` de
+  `clickedu\refresco`, que se borra al acabar, para no pisar `bajadas` de
   un traer que espera) y `por_traer` (nueva, cambia, ya no está). **Antes
   de la primera vez que se trae, no cuenta nada**: no hay con qué
   comparar, y Conexión ya invita a traer.
@@ -1730,7 +1731,8 @@ Cómo quedó (2026-11-26, rama `h11-refresco`):
 - 176 tests de Rust (6 nuevos en `refrescar`); en la prueba de diseño,
   `inicio-por-traer`, `clickedu-refresco`, `clickedu-refresco-parado` y
   `ajustes-refresco`.
-- **Falta probarlo de verdad** (el último punto).
+- **Cerrado el 2026-11-26**: probado por el usuario con Clickedu de
+  verdad (la nota puesta desde la web llega sin traer).
 
 ---
 
