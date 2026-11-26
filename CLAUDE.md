@@ -12,9 +12,8 @@ el tag `v1.3.4`. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
 > **Dónde se quedó (2026-11-26): HUI (las pantallas), cerrado** y en
-> `main`: el Inicio y Conexión, Ajustes y Clases redistribuidas; aún sin
-> versión (la última publicada, la `v2.3.0`). Siguiente, por decidir:
-> la `v2.4.0` o H10. Cada
+> `main`: el Inicio y Conexión, Ajustes y Clases redistribuidas; con
+> ello, **la `v2.4.0`, publicada**. Siguiente, por decidir: H10. Cada
 > cambio, en una rama propia que sale de `main` (un commit por hito y
 > otro al cerrarlo); las versiones, de `main`. Ramas, versiones y
 > cómo está la carpeta de este ordenador para probar traer, en `docs/01`
