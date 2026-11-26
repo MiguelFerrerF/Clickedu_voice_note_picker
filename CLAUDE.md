@@ -11,9 +11,10 @@ La vieja (**v1**, Python + customtkinter), sustituida en H7, solo queda en
 el tag `v1.3.4`. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-25): H9, cerrado** y en `main`; con él,
-> **la `v2.3.0`, publicada** (la ayuda). Siguiente,
-> por decidir: H10 o volver a mirar las pantallas (HUI). Cada
+> **Dónde se quedó (2026-11-26): HUI (las pantallas), cerrado** y en
+> `main`: el Inicio y Conexión, Ajustes y Clases redistribuidas; aún sin
+> versión (la última publicada, la `v2.3.0`). Siguiente, por decidir:
+> la `v2.4.0` o H10. Cada
 > cambio, en una rama propia que sale de `main` (un commit por hito y
 > otro al cerrarlo); las versiones, de `main`. Ramas, versiones y
 > cómo está la carpeta de este ordenador para probar traer, en `docs/01`
@@ -29,9 +30,7 @@ el tag `v1.3.4`. Plan, decisiones e hitos en
 > mirar Clickedu (ítems, rúbricas…) va aparte, en H10, solo leyendo y tras
 > H6; qué enseña, se decide más adelante (`docs/01`, la frontera,
 > 2026-11-21). Dentro de Clickedu, **nunca `/` ni
-> `user.php`: cierran la sesión**. **En espera** (`docs/01`, HUI): con lo que traigan H4–H8, volver a mirar
-> la distribución de cada pantalla, que ya ocupa la ventana entera.
-> El audio **no se guarda** (D8);
+> `user.php`: cierran la sesión**. El audio **no se guarda** (D8);
 > lo dictado se mide en local con `cargo run --example medir_registro` (solo
 > cuenta, sin nombres). El campo «Probar el dictado» se queda, solo en
 > desarrollo. Para ver plantillas reales sin sacar datos de alumnos:
@@ -42,6 +41,7 @@ el tag `v1.3.4`. Plan, decisiones e hitos en
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
+| **HUI (pantallas)** | `Inicio`, la primera de la barra y donde abre la app: seguir donde lo dejaste (`ultima` en `ajustes.json`, `ultima_clase`/`recordar_clase`; Calificar la recuerda), lo pendiente con Clickedu, cómo van las clases en la evaluación de hoy, el dictado (`resumen_dictado`); Conexión y Ajustes en dos columnas (`DOS_COLUMNAS`); Clases más compacta | sí: el usuario, en la app (2026-11-26); tests de Rust (170) y la prueba de diseño |
 | **H9** | La ayuda, la ligera (sin focos): pantalla `Ayuda` en la barra (recorrido, cada pantalla, dictado, teclas con `ListaTeclas`, lo privado, si algo no va); `DialogoBienvenida` la primera vez (sin plantillas, a Conexión; con ellas, a Clases); `AvisoPrimeraVez` en cada pantalla, desde `Cabecera` con `PantallaContext`; lo visto, en `ajustes.json` (`ayudaVista`, `ayuda_vista`, `marcar_ayuda`) | sí: el usuario lo ha visto (2026-11-25); tests de Rust (170) y la prueba de diseño |
 | **H8** | Estadísticas, con la clase y el ítem de Calificar (`TituloClase`): `leer_estadisticas`; `estadisticas.rs` (media, mediana de verdad, aprobados, una columna por punto; en un ítem, también lo que ya está en Clickedu; al pulsar, quiénes son) y `registro::estadisticas` (por voz, a la primera, segundos por nota, tiempo ahorrado: 15 s/nota a mano, 3 min por importar); `exportado` y `subido` en el registro; `Columnas`, `Proporcion` y `Barras` de library-app; pestañas Evaluación · Ítem · Alumno (`leer_curso`, `estadisticas::curso`): nota de la evaluación calculada (sin ponderación no cuenta) junto a la «Nota final» de Clickedu, guardada al traer; el alumno, con la raya de la media | sí: el usuario, en la app (2026-11-25); tests de Rust (169) y la prueba de diseño |
 | **H7** | `v2.0.0` y `v2.0.1` publicadas: `tauri-plugin-updater` con firma, `release.yml`, `npm run release`, el paso desde la v1.3.4 (`Instalador_GestorNotas.exe`, copia y desinstala la v1) | sí: el actualizador de la v1.3.4 y el de Tauri (2.0.0 → 2.0.1), de verdad; lo de D (AVX2), por el usuario (2026-11-24) |

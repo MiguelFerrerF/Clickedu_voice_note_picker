@@ -586,8 +586,9 @@ vez**, con la prueba de diseño y sus capturas miradas; un commit por cambio.
 Ninguna rompe D5/D6 ni añade tokens. **Cerrado por el usuario el
 2026-11-19**, con todo probado a mano (A–D y el 18).
 
-- [ ] **La distribución de las pantallas**, retomada tras H9
-      (2026-11-25), en la rama `hui-pantallas`. Lo que el usuario eligió,
+- [x] **La distribución de las pantallas**, retomada tras H9
+      (2026-11-25), en la rama `hui-pantallas`; probada por el usuario en
+      la app el 2026-11-26. Lo que el usuario eligió,
       tras ver las capturas a 1280 y 1920:
   - **Conexión y Ajustes, en dos columnas** desde un ancho grande: sus
     tarjetas eran tiras de todo el ancho, con el texto a un lado y el
@@ -596,8 +597,8 @@ Ninguna rompe D5/D6 ni añade tokens. **Cerrado por el usuario el
     clase desplegada (las filas plegadas no la rellenan), y menos hueco
     entre el nombre y «Alumnos» en pantallas anchas.
   - Calificar y Estadísticas, como están.
-- [ ] **La pantalla de inicio** (pedida el 2026-11-24; qué enseña, el
-      2026-11-25). **Inicio**, la primera de la barra, encima de Aula, y la
+- [x] **La pantalla de inicio** (pedida el 2026-11-24; qué enseña, el
+      2026-11-25; probada por el usuario el 2026-11-26). **Inicio**, la primera de la barra, encima de Aula, y la
       app abre en ella (Clases deja de hacer de resumen). Cuatro bloques:
   - **Seguir donde lo dejaste**: la última clase (y su ítem) abierta en
     Calificar, con su avance, y un botón que lleva allí. Se recuerda en
@@ -1574,7 +1575,7 @@ Decidido con el usuario el 2026-11-25 (las dos, la opción recomendada):
    (focos sobre `data-tour`, pasos que esperan la acción, lista de primeros
    pasos), sin código ni la referencia `onboarding.jsx`. Aquí, sin focos:
    una pantalla de Ayuda, una bienvenida y un aviso corto por pantalla. Se
-   rehace poco cuando cambian las pantallas (HUI en espera, H10).
+   rehace poco cuando cambian las pantallas (HUI, H10).
 2. **La primera vez, según lo que haya**: sin plantillas ni cuenta de
    Clickedu, se empieza por Conexión (traer); con plantillas (traídas, o
    de la v1), por Clases, que es la pantalla de inicio y de donde se elige
