@@ -59,6 +59,8 @@ const TAMANOS = [
  * bienvenida y los avisos no tapen las demás pruebas; con `nueva`, nada.
  * `ultima` (HUI): la última clase abierta en Calificar es Matemáticas 3.º A,
  * en «Examen tema 3»; sin ella, ninguna, y Calificar abre la primera.
+ * Con `items: 'muchos'`, Biología trae cuatro ítems más por subir en la 2.ª
+ * evaluación: nueve en total, más de los cinco que caben en el Inicio.
  */
 function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, items, ayuda, ultima}) {
   let n = 1;
@@ -115,6 +117,13 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
       ev('336', '3ª evaluación', false, []),
     ],
   };
+  if (items === 'muchos')
+    ITEMS['biologia_1_ab_bach.xlsx'][1].items.push(
+      item('42720', 'Examen tema 4', 40, 0, 17),
+      item('42721', 'Informe de prácticas 2', 20, 0, 17),
+      item('42722', 'Salida de campo', 20, 0, 9),
+      item('42723', 'Cuaderno', 20, 0, 3),
+    );
   if (items)
     for (const c of CLASES) if (ITEMS[c.fichero]) c.items = {traidos: 1795392000, evaluaciones: ITEMS[c.fichero]};
   const NOMBRES = [
@@ -682,6 +691,21 @@ const PRUEBAS = [
       await main.getByRole('button', {name: /Pràctica de laboratori 2/}).click();
       await calificar.getByRole('button', {name: 'Pràctica de laboratori 2'}).waitFor();
       await paso('al-item-por-subir');
+    },
+  },
+  {
+    // HUI: más de cinco ítems por subir: cinco filas y «Y 4 más» (son nueve), que lleva a Clases.
+    nombre: 'inicio-muchos-por-subir',
+    items: 'muchos',
+    ultima: true,
+    async probar(page, paso) {
+      const main = page.locator('[data-pantalla="inicio"]');
+      const mas = main.getByRole('button', {name: 'Y 4 más: míralos en Clases'});
+      await mas.waitFor();
+      await paso('lleno');
+      await mas.click();
+      await page.locator('[data-pantalla="clases"]').waitFor({state: 'visible'});
+      await paso('clases');
     },
   },
   {
@@ -1310,12 +1334,22 @@ await vite.listen();
 fs.rmSync(CAPTURAS, {recursive: true, force: true});
 fs.mkdirSync(CAPTURAS, {recursive: true});
 
+// Si Node se cae fuera de una prueba (Edge, Vite, una captura), que diga
+// dónde iba y la traza entera: el fallo intermitente no se ha podido repetir.
+let dondeVa = 'arrancando';
+for (const ev of ['uncaughtException', 'unhandledRejection'])
+  process.on(ev, (e) => {
+    console.error(`\n${ev} en «${dondeVa}»:\n${e?.stack ?? e}`);
+    process.exit(2);
+  });
+
 const fallos = [];
 const navegador = await chromium.launch({channel: 'msedge'});
 try {
   for (const prueba of PRUEBAS) {
     for (const [w, h] of TAMANOS) {
       const tam = `${w}x${h}`;
+      dondeVa = `${prueba.nombre} ${tam}`;
       const page = await navegador.newPage({viewport: {width: w, height: h}});
       await page.addInitScript(simular, {
         carpeta: prueba.carpeta ?? 'llena',
@@ -1341,12 +1375,15 @@ try {
         await prueba.probar(page, paso);
       } catch (e) {
         fallos.push(`${prueba.nombre} ${tam}: la prueba no pudo seguir: ${e.message.split('\n')[0]}`);
-        await page.screenshot({path: path.join(CAPTURAS, `${prueba.nombre}-${tam}-fallo.png`)});
+        await page
+          .screenshot({path: path.join(CAPTURAS, `${prueba.nombre}-${tam}-fallo.png`)})
+          .catch((e2) => fallos.push(`${prueba.nombre} ${tam}: ni la captura del fallo: ${e2.message.split('\n')[0]}`));
       }
-      await page.close();
+      await page.close().catch(() => {});
     }
   }
 } finally {
+  dondeVa = 'cerrando';
   await navegador.close();
   await vite.close();
 }
