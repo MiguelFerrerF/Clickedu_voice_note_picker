@@ -4,7 +4,8 @@
 //!
 //! Y, desde H9, lo que ya se ha visto de la ayuda: la bienvenida y el aviso
 //! de cada pantalla. Desde el inicio (HUI, 2026-11-25), la última clase
-//! abierta en Calificar, para seguir donde se dejó.
+//! abierta en Calificar, para seguir donde se dejó. Desde H11, si se
+//! refresca solo lo de Clickedu y cada cuánto.
 //!
 //! Viven en `ajustes.json`, en la carpeta de la app (D4:
 //! `%APPDATA%\es.gestornotas.app\`). **Nunca credenciales** aquí (D3): las de
@@ -37,6 +38,28 @@ pub struct Ajustes {
     /// campo, ninguna.
     #[serde(default)]
     pub ultima: Option<Ultima>,
+    /// Refrescar lo de Clickedu solo (H11). Sin el campo, encendido y cada
+    /// 30 minutos ([`Refresco::default`]).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub refresco: Option<Refresco>,
+}
+
+/// Cada cuánto se refresca lo de Clickedu, si se refresca (H11).
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub struct Refresco {
+    pub encendido: bool,
+    pub minutos: u32,
+}
+
+impl Refresco {
+    /// Los minutos que se pueden elegir en Ajustes.
+    pub const MINUTOS: [u32; 3] = [15, 30, 60];
+}
+
+impl Default for Refresco {
+    fn default() -> Self {
+        Refresco { encendido: true, minutos: 30 }
+    }
 }
 
 /// La última clase abierta en Calificar: su fichero y, si se calificaba en
@@ -152,6 +175,7 @@ mod tests {
                 fichero: "biologia.xlsx".into(),
                 item: Some(ItemUltimo { evaluacion: "2".into(), item: "42700".into() }),
             }),
+            refresco: Some(Refresco { encendido: false, minutos: 60 }),
         };
         guardar(&ruta, &a).unwrap();
         assert_eq!(leer(&ruta).unwrap(), a);
@@ -166,6 +190,8 @@ mod tests {
         let a = leer(&ruta).unwrap();
         assert!(a.ayuda_vista.is_empty());
         assert_eq!(a.ultima, None);
+        // Ni el refresco (H11): encendido y cada 30 minutos.
+        assert_eq!(a.refresco.unwrap_or_default(), Refresco { encendido: true, minutos: 30 });
     }
 
     #[test]

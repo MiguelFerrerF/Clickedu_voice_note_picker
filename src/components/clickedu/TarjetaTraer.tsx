@@ -14,12 +14,15 @@
  * - Lo leído «degradado» y lo que ha cambiado en las páginas va plegado,
  *   con el punto ámbar: es el aviso temprano de que Clickedu cambia.
  * - Las pendientes de otros cursos, aparte y al final.
+ * - Sin traer nada a la vista, lo del refresco solo (H11): lo que ha
+ *   cambiado en Clickedu y espera a traerse, sus avisos y cuándo fue.
  */
 
 import {Channel, invoke} from '@tauri-apps/api/core';
 import {useEffect, useRef, useState} from 'react';
 
 import {Plegados, Punto} from '@components/clases/Avisos';
+import {AvisoPorTraer, LineaRefresco} from '@components/clickedu/Refresco';
 import {mensaje} from '@components/clickedu/TarjetaCuenta';
 import {Button} from '@components/ui/Button';
 import {Card} from '@components/ui/Card';
@@ -38,6 +41,7 @@ import type {
   Respuesta,
   Traer,
 } from '@modules/clickedu/tipos';
+import type {EstadoRefresco} from '@modules/clickedu/refresco';
 import {t} from '@modules/i18n';
 
 const APAGAR_MS = 6000;
@@ -45,8 +49,11 @@ const COLUMNAS = 'minmax(200px, 1fr) 72px minmax(180px, 0.9fr)';
 const SIN_DECIDIR = 'sin_decidir';
 const NINGUNA = 'ninguna';
 
-/** `hayCuenta`: sin cuenta guardada no se puede traer (`undefined`: aún no se sabe). */
-export function TarjetaTraer({hayCuenta}: {hayCuenta?: boolean}) {
+/**
+ * `hayCuenta`: sin cuenta guardada no se puede traer (`undefined`: aún no se
+ * sabe). `refresco`: cómo va el refresco solo (H11).
+ */
+export function TarjetaTraer({hayCuenta, refresco}: {hayCuenta?: boolean; refresco?: EstadoRefresco}) {
   const [trayendo, setTrayendo] = useState(false);
   const [avance, setAvance] = useState<AvanceTraer>();
   const [traido, setTraido] = useState<Traer>();
@@ -184,6 +191,19 @@ export function TarjetaTraer({hayCuenta}: {hayCuenta?: boolean}) {
           {mensajeTraer(fallo)}
         </p>
       )}
+
+      {hayCuenta && refresco && !trayendo && !traido && (
+        <>
+          <AvisoPorTraer porTraer={refresco.porTraer} />
+          {refresco.avisos.length > 0 && (
+            <Plegados
+              rotulo={contar(refresco.avisos.length, 'traer.avisos_uno', 'traer.avisos_n')}
+              textos={refresco.avisos.map((cambio) => t('traer.aviso_cambio', {cambio}))}
+            />
+          )}
+          <LineaRefresco estado={refresco} />
+        </>
+      )}
     </Card>
   );
 }
@@ -197,6 +217,8 @@ function mensajeTraer(fallo: FalloTraer | string): string {
       return t('traer.fallo_materias', {motivo: fallo.roto.motivo});
     case 'sin_entrar':
       return t('traer.fallo_sin_entrar');
+    case 'parado':
+      return t('traer.fallo_parado');
     case 'otro':
       return fallo.detalle;
   }

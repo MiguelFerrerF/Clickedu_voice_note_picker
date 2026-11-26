@@ -46,6 +46,7 @@ import {Dropdown} from '@components/ui/Dropdown';
 import {Progreso} from '@components/ui/Progreso';
 import {buscarItem, EVENTO_NOTAS, type ItemElegido} from '@modules/clases/tipos';
 import {useClases} from '@modules/clases/useClases';
+import {EVENTO_REFRESCADO} from '@modules/clickedu/refresco';
 import {
   APROBADO,
   type Curso,
@@ -107,12 +108,13 @@ export function Estadisticas({visible, clase, setClase, items, elegirItem, irAAj
   const item = elegido?.item.id ?? null;
   const juego = actual ? `${actual.fichero}|${item ?? ''}` : undefined;
 
-  // Una nota cambiada (a mano, dictada o subida) cambia las cuentas.
+  // Una nota cambiada (a mano, dictada o subida) cambia las cuentas; y lo
+  // de Clickedu refrescado solo (H11), lo que ya está allí.
   const [notas, setNotas] = useState(0);
   useEffect(() => {
-    const quitar = listen(EVENTO_NOTAS, () => setNotas((n) => n + 1));
+    const quitar = [EVENTO_NOTAS, EVENTO_REFRESCADO].map((e) => listen(e, () => setNotas((n) => n + 1)));
     return () => {
-      quitar.then((f) => f());
+      quitar.forEach((q) => q.then((f) => f()));
     };
   }, []);
 

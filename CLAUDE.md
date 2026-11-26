@@ -11,9 +11,10 @@ La vieja (**v1**, Python + customtkinter), sustituida en H7, solo queda en
 el tag `v1.3.4`. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-26): HUI (las pantallas), cerrado** y en
-> `main`: el Inicio y Conexión, Ajustes y Clases redistribuidas; con
-> ello, **la `v2.4.0`, publicada**. Siguiente, por decidir: H10. Cada
+> **Dónde se quedó (2026-11-26): H11 (refrescar lo de Clickedu solo),
+> hecho en la rama `h11-refresco`**, a falta de que el usuario lo pruebe
+> de verdad (dejar la app abierta, poner una nota en Clickedu desde la web
+> y verla llegar sin traer). La `v2.4.0`, publicada. Luego, H10. Cada
 > cambio, en una rama propia que sale de `main` (un commit por hito y
 > otro al cerrarlo); las versiones, de `main`. Ramas, versiones y
 > cómo está la carpeta de este ordenador para probar traer, en `docs/01`
@@ -40,6 +41,7 @@ el tag `v1.3.4`. Plan, decisiones e hitos en
 
 | Hito | Qué dejó | Probado |
 |---|---|---|
+| **H11 (en curso)** | Refrescar lo de Clickedu solo: `clickedu::refrescar` (con `try_lock`, a `clickeduefresco`; `por_traer`) sobre lo común de traer (`traer::bajar_y_guardar_items`, `estudiar`, `bajar` con `parar`); `commands::refresco` (la ventana pide cada minuto, Rust decide si toca; parado si la cuenta no vale; traer y subir cuentan y lo paran con `coger_sesion`); `useRefrescoClickedu` en `App`; el aviso «por traer» en Inicio y Conexión; «Clickedu, al día» en Ajustes (`refresco` en `ajustes.json`) | tests de Rust (176) y la prueba de diseño; **falta el usuario, de verdad** |
 | **HUI (pantallas)** | `Inicio`, la primera de la barra y donde abre la app: seguir donde lo dejaste (`ultima` en `ajustes.json`, `ultima_clase`/`recordar_clase`; Calificar la recuerda), lo pendiente con Clickedu, cómo van las clases en la evaluación de hoy, el dictado (`resumen_dictado`); Conexión y Ajustes en dos columnas (`DOS_COLUMNAS`); Clases más compacta | sí: el usuario, en la app (2026-11-26); tests de Rust (170) y la prueba de diseño |
 | **H9** | La ayuda, la ligera (sin focos): pantalla `Ayuda` en la barra (recorrido, cada pantalla, dictado, teclas con `ListaTeclas`, lo privado, si algo no va); `DialogoBienvenida` la primera vez (sin plantillas, a Conexión; con ellas, a Clases); `AvisoPrimeraVez` en cada pantalla, desde `Cabecera` con `PantallaContext`; lo visto, en `ajustes.json` (`ayudaVista`, `ayuda_vista`, `marcar_ayuda`) | sí: el usuario lo ha visto (2026-11-25); tests de Rust (170) y la prueba de diseño |
 | **H8** | Estadísticas, con la clase y el ítem de Calificar (`TituloClase`): `leer_estadisticas`; `estadisticas.rs` (media, mediana de verdad, aprobados, una columna por punto; en un ítem, también lo que ya está en Clickedu; al pulsar, quiénes son) y `registro::estadisticas` (por voz, a la primera, segundos por nota, tiempo ahorrado: 15 s/nota a mano, 3 min por importar); `exportado` y `subido` en el registro; `Columnas`, `Proporcion` y `Barras` de library-app; pestañas Evaluación · Ítem · Alumno (`leer_curso`, `estadisticas::curso`): nota de la evaluación calculada (sin ponderación no cuenta) junto a la «Nota final» de Clickedu, guardada al traer; el alumno, con la raya de la media | sí: el usuario, en la app (2026-11-25); tests de Rust (169) y la prueba de diseño |

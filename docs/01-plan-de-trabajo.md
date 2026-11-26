@@ -1667,35 +1667,70 @@ de Clickedu no se quede viejo sin darse cuenta. Hoy solo se lee al
 
 Cómo:
 
-- [ ] `refrescar_clickedu` (Rust, `async`): lo mismo que el principio
+- [x] `refrescar_clickedu` (Rust, `async`): lo mismo que el principio
       de `traer_y_planear` (entrar con la guardada si no hay sesión,
       `traer::bajar`, las huellas y `items::guardar`) y `planear` contra
       la carpeta de ahora, sin aplicar. Devuelve cuándo, las materias con
       cambios y los avisos tempranos (degradado, huellas). **Comparte el
       código con traer**, no lo copia.
-- [ ] **No estorba al profesor**: coge la sesión con `try_lock` (si
+- [x] **No estorba al profesor**: coge la sesión con `try_lock` (si
       hay un traer o una subida, se salta esta vez) y traer o subir a mano
       lo cancelan entre materia y materia. Lo leído se guarda **dentro**
       del cerrojo, para que una subida que llegue después no quede pisada
       por notas leídas antes.
-- [ ] **Los fallos, sin ruido**: sin red o Clickedu caído, nada en
+- [x] **Los fallos, sin ruido**: sin red o Clickedu caído, nada en
       pantalla salvo «el último falló» en Ajustes y Conexión, y se vuelve
       a probar en el siguiente. Si Clickedu no acepta la cuenta, **se
       para** hasta volver a entrar en Conexión (no se insiste cada media
       hora). Al registro, como los demás (uno igual, una vez al día).
-- [ ] La ventana, al día: un evento (`clickedu-refrescado`) y Calificar,
+- [x] La ventana, al día: un evento (`clickedu-refrescado`) y Calificar,
       Clases, Inicio y Estadísticas vuelven a leer **sin perder** lo que
       se está haciendo (la nota a medias, el dictado, el scroll).
-- [ ] Quién lo lanza: un hook en `App` (`useRefrescoClickedu`) con el
+- [x] Quién lo lanza: un hook en `App` (`useRefrescoClickedu`) con el
       reloj y `visibilitychange`; `refresco` en `ajustes.json`
       (encendido, minutos; sin el campo, encendido y 30).
-- [ ] Tests contra el Clickedu falso: refresca los ítems sin tocar
+- [x] Tests contra el Clickedu falso: refresca los ítems sin tocar
       plantillas, sesión ni `traidas.json`; ve una plantilla cambiada y
       la cuenta; se salta con la sesión cogida; se para con la cuenta
       rechazada. La prueba de diseño, con el aviso en Inicio y Conexión y
       la fila de Ajustes.
 - [ ] Probarlo de verdad: dejar la app abierta, poner una nota en
       Clickedu desde la web y verla aparecer sin traer.
+
+Cómo quedó (2026-11-26, rama `h11-refresco`):
+
+- **Lo común con traer, en `clickedu::traer`**: `bajar` (ahora con
+  `parar`, que da `FalloTraer::Parado`), `bajar_y_guardar_items` (entra si
+  hace falta y guarda `items.json` sin soltar la sesión), `items_de` y
+  `estudiar` (preparar, la raíz, las huellas y planear, sin aplicar).
+  Traer y refrescar los llaman; los comandos solo deciden qué hacer luego.
+- **`clickedu::refrescar`**: `refrescar` (con `try_lock`; lo bajado, a
+  `clickeduefresco`, que se borra al acabar, para no pisar `bajadas` de
+  un traer que espera) y `por_traer` (nueva, cambia, ya no está). **Antes
+  de la primera vez que se trae, no cuenta nada**: no hay con qué
+  comparar, y Conexión ya invita a traer.
+- **`commands::refresco`**: la ventana pide `refrescar_clickedu` cada
+  minuto mientras se ve (y al volver a ella), y **Rust decide si toca**
+  (encendido, parado, los minutos desde el último intento). El estado
+  (último, fallo, parado, lo que hay por traer) vive en memoria: al abrir
+  la app se refresca otra vez. Traer y subir lo cuentan (`contar`) y, al
+  esperar la sesión (`coger_sesion`, `Esperando`), lo paran. Entrar a mano
+  en Conexión quita el «parado». Subir guarda también lo leído dentro del
+  cerrojo.
+- **Dos eventos**: `clickedu-refrescado` (los datos: `useClases`,
+  Calificar y Estadísticas vuelven a leer; lo escrito a medias vive en cada
+  campo y se queda) y `refresco-estado` (Inicio, Conexión y Ajustes).
+- **En Ajustes, un solo desplegable** («Cada 15 minutos», «Cada 30
+  minutos», «Cada hora», «No: solo al traer») en vez de interruptor y
+  minutos: library-app no tiene interruptor y no se inventa un componente.
+  Apagado, se recuerdan los minutos.
+- **Colores**: lo que hay por traer, plegado con el punto ámbar (como los
+  avisos de traer); el fallo de red, en gris; la cuenta rechazada, en rojo
+  (pide hacer algo, D6).
+- 176 tests de Rust (6 nuevos en `refrescar`); en la prueba de diseño,
+  `inicio-por-traer`, `clickedu-refresco`, `clickedu-refresco-parado` y
+  `ajustes-refresco`.
+- **Falta probarlo de verdad** (el último punto).
 
 ---
 

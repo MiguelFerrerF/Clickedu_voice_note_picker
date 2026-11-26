@@ -47,6 +47,8 @@ pub fn run() {
         .manage(commands::clickedu::Sesion::default())
         .manage(commands::clickedu::Traidas::default())
         .manage(commands::subir::Subidas::default())
+        .manage(commands::refresco::QuierenLaSesion::default())
+        .manage(commands::refresco::Refrescos::default())
         .manage(std::sync::Arc::new(commands::voz::Voz::default()))
         .invoke_handler(tauri::generate_handler![
             commands::clases::listar_clases,
@@ -93,6 +95,9 @@ pub fn run() {
             commands::clickedu::confirmar_traer,
             commands::clickedu::replanear_traer,
             commands::clickedu::cancelar_traer,
+            commands::refresco::refrescar_clickedu,
+            commands::refresco::estado_refresco,
+            commands::refresco::poner_refresco,
             commands::subir::preparar_subida,
             commands::subir::confirmar_subida,
             commands::subir::cancelar_subida,

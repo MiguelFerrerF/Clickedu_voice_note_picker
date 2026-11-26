@@ -6,6 +6,9 @@
  * **El micrófono** por el que se dicta (HUI): el de Windows, o el que se
  * elija, por ejemplo unos auriculares.
  *
+ * **Clickedu, al día** (H11): si lo de Clickedu se refresca solo y cada
+ * cuánto. La cuenta sigue en Conexión.
+ *
  * Y **mejorar el dictado** (D8): lo guardado en el registro, el informe para
  * mandarlo y borrarlo.
  *
@@ -16,6 +19,7 @@ import {invoke} from '@tauri-apps/api/core';
 import {useState} from 'react';
 
 import {Ruta} from '@components/clases/SinPlantillas';
+import {TarjetaRefresco} from '@components/clickedu/TarjetaRefresco';
 import {TarjetaMicrofono} from '@components/dictado/TarjetaMicrofono';
 import {Cabecera, DOS_COLUMNAS} from '@components/layout/Cabecera';
 import {TarjetaRegistro} from '@components/registro/TarjetaRegistro';
@@ -45,7 +49,7 @@ export function Ajustes({visible}: {visible: boolean}) {
       <Cabecera titulo={t('ajustes.titulo')} />
       {/* El hueco entre tarjetas lo pone la pantalla, no cada tarjeta. */}
       <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>
-        {/* Las dos pequeñas, lado a lado cuando caben (HUI); el registro,
+        {/* Las pequeñas, de dos en dos cuando caben (HUI); el registro,
           con sus seis cifras, a todo el ancho. */}
         <div style={DOS_COLUMNAS}>
           <Card title={t('ajustes.plantillas')} subtitle={t('ajustes.plantillas_sub')}>
@@ -91,6 +95,7 @@ export function Ajustes({visible}: {visible: boolean}) {
             )}
           </Card>
           <TarjetaMicrofono visible={visible} />
+          <TarjetaRefresco />
         </div>
         <TarjetaRegistro visible={visible} />
         <p style={{margin: 0, fontSize: 12.5, color: 'var(--text-tertiary)'}}>{t('ajustes.llegan')}</p>

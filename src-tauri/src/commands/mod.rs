@@ -5,7 +5,8 @@
 //! exportarlas (H2), los del dictado (H3: el push-to-talk y entender lo
 //! dictado), los del registro (D8), los de las actualizaciones y el paso
 //! desde la v1.3.4 (H7), los de la cuenta de Clickedu (H4), el de las
-//! Estadísticas (H8) y los de la ayuda (H9).
+//! Estadísticas (H8), los de la ayuda (H9) y los de refrescar lo de
+//! Clickedu solo (H11).
 //!
 //! Regla que no se relaja (library-app): **ningún comando síncrono hace
 //! trabajo**. Todos son `async` y lo que toca disco pasa por
@@ -20,6 +21,7 @@ pub mod estadisticas;
 pub mod inicio;
 pub mod migracion;
 pub mod notas;
+pub mod refresco;
 pub mod registro;
 pub mod subir;
 pub mod voz;

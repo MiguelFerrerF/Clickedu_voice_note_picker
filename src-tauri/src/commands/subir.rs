@@ -22,8 +22,8 @@ use crate::clickedu::items::{self, direccion_importar};
 use crate::clickedu::subir::{self, Antes, Destino, FalloSubir, Paso};
 use crate::clickedu::traer::{aplicar, FalloTraer};
 use crate::commands::clases::leer_plantilla;
-use crate::commands::clickedu::{bloqueante, carpeta_clickedu, entrar_con_la_guardada, Sesion};
-use crate::commands::{carpeta_notas, registro, ruta_sesion};
+use crate::commands::clickedu::{bloqueante, carpeta_clickedu, coger_sesion, entrar_con_la_guardada};
+use crate::commands::{carpeta_notas, refresco, registro, ruta_sesion};
 use crate::exportar;
 use crate::plantillas::Nota;
 use crate::registro::{ahora, Que};
@@ -195,15 +195,16 @@ async fn preparar(
 
     let carpeta_ce = carpeta_clickedu(app)?;
     let antes = {
-        let sesion = app.state::<Sesion>();
-        let mut cogida = sesion.0.lock().await;
+        let mut cogida = coger_sesion(app).await;
         let cliente = con_sesion(&mut cogida, &carpeta_ce).await?;
-        subir::leer_antes(cliente, &donde.destino).await?
+        let antes = subir::leer_antes(cliente, &donde.destino).await?;
+        // Lo recién leído, a `items.json`, sin soltar la sesión: Calificar
+        // enseña lo de ahora y un refresco (H11) no lo pisa con lo de antes.
+        let (ruta_items, d, notas) = (carpeta_ce.join(items::FICHERO), donde.destino.clone(), antes.notas.clone());
+        bloqueante(move || items::poner_notas(&ruta_items, &d.materia, &d.item, notas)).await?;
+        antes
     };
-
-    // Lo recién leído, a `items.json`: Calificar enseña lo de ahora.
-    let (ruta_items, d, notas) = (carpeta_ce.join(items::FICHERO), donde.destino.clone(), antes.notas.clone());
-    bloqueante(move || items::poner_notas(&ruta_items, &d.materia, &d.item, notas)).await?;
+    refresco::contar(app, None);
     let _ = app.emit(crate::commands::notas::EVENTO, ());
 
     // El Excel, el mismo que «Exportar» más lo que ya hay en Clickedu de
@@ -285,18 +286,18 @@ async fn confirmar(app: &AppHandle, avance: &Channel<Paso>) -> Result<Subido, Fa
         .ok_or_else(|| "no hay nada preparado para subir: vuelve a empezar".to_string())?;
     let carpeta_ce = carpeta_clickedu(app)?;
     let subida = {
-        let sesion = app.state::<Sesion>();
-        let mut cogida = sesion.0.lock().await;
+        let mut cogida = coger_sesion(app).await;
         let cliente = con_sesion(&mut cogida, &carpeta_ce).await?;
         let (nombre, contenido) = p.excel;
-        subir::subir(cliente, &p.destino, &p.antes, (&nombre, contenido), |paso| {
+        let subida = subir::subir(cliente, &p.destino, &p.antes, (&nombre, contenido), |paso| {
             let _ = avance.send(paso);
         })
-        .await?
+        .await?;
+        let (ruta_items, d, notas) = (carpeta_ce.join(items::FICHERO), p.destino.clone(), subida.despues.clone());
+        bloqueante(move || items::poner_notas(&ruta_items, &d.materia, &d.item, notas)).await?;
+        subida
     };
-
-    let (ruta_items, d, notas) = (carpeta_ce.join(items::FICHERO), p.destino.clone(), subida.despues.clone());
-    bloqueante(move || items::poner_notas(&ruta_items, &d.materia, &d.item, notas)).await?;
+    refresco::contar(app, None);
     let _ = app.emit(crate::commands::notas::EVENTO, ());
 
     let c = subir::comparar(&p.esperadas, &subida.despues);

@@ -17,6 +17,8 @@
 //! - [`traer`] — traer las plantillas (H5): el nombre de cada fichero.
 //! - [`items`] — los ítems de cada materia, leídos al traer y guardados
 //!   para calificar por ítem (H6).
+//! - [`refrescar`] — refrescar solo los ítems y contar lo que hay por
+//!   traer, sin traerlo (H11).
 //! - [`subir`] — subir las notas a un ítem: leer antes, subir, importar y
 //!   comprobar (H6).
 //!
@@ -35,6 +37,7 @@ pub mod cuenta;
 pub mod fichas;
 pub mod huella;
 pub mod items;
+pub mod refrescar;
 pub mod subir;
 pub mod tapar;
 pub mod traer;

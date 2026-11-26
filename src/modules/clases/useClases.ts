@@ -8,11 +8,16 @@
  *
  * Con `contarNotas`, también cada vez que se guarda una nota
  * (`notas-cambiadas`), para que la columna «Con nota» de Clases vaya al día.
+ *
+ * Y siempre que se refresca lo de Clickedu solo (H11, `clickedu-refrescado`):
+ * cambian los ítems y lo que ya está en Clickedu.
  */
 
 import {invoke} from '@tauri-apps/api/core';
 import {listen} from '@tauri-apps/api/event';
 import {useEffect, useState} from 'react';
+
+import {EVENTO_REFRESCADO} from '@modules/clickedu/refresco';
 
 import {EVENTO_NOTAS, EVENTO_PLANTILLAS, type ListaClases} from './tipos';
 
@@ -46,7 +51,10 @@ export function useClases({contarNotas = false} = {}): EstadoClases {
   }, [avisos, notas]);
 
   useEffect(() => {
-    const quitar = [listen(EVENTO_PLANTILLAS, () => setAvisos((v) => v + 1))];
+    const quitar = [
+      listen(EVENTO_PLANTILLAS, () => setAvisos((v) => v + 1)),
+      listen(EVENTO_REFRESCADO, () => setNotas((v) => v + 1)),
+    ];
     if (contarNotas) quitar.push(listen(EVENTO_NOTAS, () => setNotas((v) => v + 1)));
     return () => {
       quitar.forEach((q) => q.then((f) => f()));

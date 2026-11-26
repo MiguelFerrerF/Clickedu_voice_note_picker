@@ -20,15 +20,19 @@
 //! nombre del fichero no dice qué materia es, así que la regla es la única
 //! manera.
 
+use std::collections::{BTreeMap, HashMap};
 use std::path::Path;
 
 use serde::Serialize;
 
-use super::cliente::{self, Cliente, Fallo};
+use super::cliente::{self, Cliente, Fallo, BASE};
 use super::fichas::{self, Estado, Evaluacion, Leido, Materia, Roto};
-use super::items::{self, EvaluacionItems};
+use super::huella::{self, Huella};
+use super::items::{self, EvaluacionItems, ItemsMateria};
+use super::tapar::Tapar;
 use crate::plantillas::{self, plegar, ErrorPlantilla};
-use planear::{Contenido, EnLaRaiz, FalloMateria, Traida};
+use crate::sesion;
+use planear::{Contenido, EnLaRaiz, FalloMateria, Plan, Recordadas, Traida};
 
 pub mod aplicar;
 pub mod planear;
@@ -101,6 +105,9 @@ pub enum FalloTraer {
     },
     /// No se ha entrado en Clickedu en esta sesión de la app.
     SinEntrar,
+    /// Parado entre materia y materia para dejar paso a traer o subir a mano
+    /// (el refresco solo, H11). Aún no se ha escrito nada.
+    Parado,
     /// Lo demás: el disco, sobre todo.
     Otro { detalle: String },
 }
@@ -112,6 +119,7 @@ impl std::fmt::Display for FalloTraer {
             FalloTraer::Conexion { fallo } => fallo.fmt(f),
             FalloTraer::Materias { roto, .. } => roto.fmt(f),
             FalloTraer::SinEntrar => f.write_str("no se ha entrado en Clickedu"),
+            FalloTraer::Parado => f.write_str("parado para dejar paso a traer o subir"),
             FalloTraer::Otro { detalle } => f.write_str(detalle),
         }
     }
@@ -131,8 +139,14 @@ impl From<Fallo> for FalloTraer {
 
 /// Baja la plantilla de cada materia, una tras otra, con la sesión de
 /// `cliente`, y sus ítems si la plantilla ha llegado. `progreso(hechas,
-/// total)` tras cada materia.
-pub async fn bajar(cliente: &Cliente, mut progreso: impl FnMut(usize, usize)) -> Result<Bajado, FalloTraer> {
+/// total)` tras cada materia. Si `parar()`, antes de cada materia, se para
+/// con [`FalloTraer::Parado`]: lo bajado a medias no vale (faltarían
+/// materias).
+pub async fn bajar(
+    cliente: &Cliente,
+    mut progreso: impl FnMut(usize, usize),
+    parar: impl Fn() -> bool,
+) -> Result<Bajado, FalloTraer> {
     let pagina_materias = cliente.abrir(cliente::ASIGNATURAS).await?.texto;
     let materias = match fichas::materias(&pagina_materias) {
         Ok(m) => m,
@@ -141,6 +155,9 @@ pub async fn bajar(cliente: &Cliente, mut progreso: impl FnMut(usize, usize)) ->
     let total = materias.dato.len();
     let mut bajadas = Vec::with_capacity(total);
     for (i, materia) in materias.dato.iter().enumerate() {
+        if parar() {
+            return Err(FalloTraer::Parado);
+        }
         let pagina_items = cliente.abrir(&direccion_items(&materia.id)).await?.texto;
         let resultado = match fichas::evaluaciones(&pagina_items) {
             Err(roto) => Err(FalloBajada::Evaluaciones { roto }),
@@ -213,6 +230,134 @@ pub fn leer_raiz(carpeta: &Path) -> Result<Vec<EnLaRaiz>, String> {
     }
     res.sort_by(|a, b| a.fichero.cmp(&b.fichero));
     Ok(res)
+}
+
+// ─────────────────── Lo común de traer y refrescar (H11) ───────────────────
+
+/// Los ítems de lo bajado, para [`items::guardar`]: son una copia de
+/// Clickedu y no tocan nada del profesor, así que no esperan a confirmar
+/// nada. Y los que no se entienden, para contarlos con los cambios (el aviso
+/// temprano).
+pub fn items_de(bajadas: &[Bajada], traidos: u64) -> (BTreeMap<String, ItemsMateria>, Vec<String>) {
+    let mut nuevos = BTreeMap::new();
+    let mut rotos = Vec::new();
+    for b in bajadas {
+        match b.resultado.as_ref().map(|p| &p.items) {
+            Ok(Ok(evaluaciones)) => {
+                nuevos.insert(b.materia.id.clone(), ItemsMateria { traidos, evaluaciones: evaluaciones.clone() });
+            }
+            Ok(Err(roto)) => rotos.push(format!("{} {}: {roto}", b.materia.nombre, b.materia.grupo)),
+            Err(_) => {}
+        }
+    }
+    (nuevos, rotos)
+}
+
+/// Con la sesión cogida, baja de Clickedu y guarda los ítems en
+/// `ruta_items` **sin soltarla**: una subida que llegue después no queda
+/// pisada por notas leídas antes. Sin sesión, `entrar()`. Lo que comparten
+/// traer y refrescar.
+pub async fn bajar_y_guardar_items<F, Fut>(
+    cogida: &mut Option<Cliente>,
+    entrar: F,
+    ruta_items: &Path,
+    progreso: impl FnMut(usize, usize),
+    parar: impl Fn() -> bool,
+    traidos: u64,
+) -> Result<(Bajado, Vec<String>), FalloTraer>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<Cliente, FalloTraer>>,
+{
+    // Recién abierta la app no hay sesión: se entra.
+    if cogida.is_none() {
+        *cogida = Some(entrar().await?);
+    }
+    let Some(cliente) = cogida.as_ref() else { return Err(FalloTraer::SinEntrar) };
+    let bajado = bajar(cliente, progreso, parar).await?;
+    let (nuevos, rotos) = items_de(&bajado.bajadas, traidos);
+    let ruta = ruta_items.to_path_buf();
+    tauri::async_runtime::spawn_blocking(move || items::guardar(&ruta, nuevos))
+        .await
+        .map_err(|e| format!("el trabajo en segundo plano se ha caído: {e}"))??;
+    Ok((bajado, rotos))
+}
+
+/// Dónde está cada cosa para [`estudiar`].
+pub struct Donde<'a> {
+    /// `%APPDATA%\es.gestornotas.app\clickedu`: las huellas y `traidas.json`.
+    pub clickedu: &'a Path,
+    /// A dónde va lo bajado, leído: `bajadas` al traer, `refresco` al
+    /// refrescar (que no pisa un traer que espera respuestas).
+    pub bajadas: &'a Path,
+    pub plantillas: &'a Path,
+    pub sesion: &'a Path,
+}
+
+/// Lo bajado, leído y comparado con la carpeta.
+pub struct Estudiado {
+    pub traidas: Vec<Traida>,
+    pub plan: Plan,
+    pub recordadas: Recordadas,
+    pub estado_materias: Estado,
+    /// Lo que ha cambiado en la forma de las páginas desde la última buena,
+    /// sin nombres, y los ítems que no se entienden: el aviso temprano.
+    pub cambios: Vec<String>,
+}
+
+/// Lee lo bajado (a `donde.bajadas`), compara las huellas y planea contra
+/// la carpeta y la sesión de ahora, **sin hacer nada**. Lo que hacen
+/// traer (que luego lo hace, o espera) y refrescar (que solo lo cuenta).
+pub fn estudiar(bajado: Bajado, items_rotos: Vec<String>, donde: &Donde) -> Result<Estudiado, String> {
+    let Bajado { materias, pagina_materias, bajadas } = bajado;
+    let estado_materias = materias.estado.clone();
+    // Para la huella de las evaluaciones, la página de Ítems de la primera
+    // materia: siempre la misma, para no comparar materias distintas entre
+    // sí.
+    let pagina_items = bajadas.first().map(|b| {
+        let buena = match &b.resultado {
+            Ok(p) => p.estado_evaluaciones == Estado::Bien,
+            Err(FalloBajada::Evaluaciones { .. }) => false,
+            Err(FalloBajada::NoEsExcel { .. }) => true,
+        };
+        (direccion_items(&b.materia.id), b.pagina_items.clone(), buena)
+    });
+
+    let traidas = preparar(bajadas, donde.bajadas)?;
+    let raiz = leer_raiz(donde.plantillas)?;
+
+    // La huella, con los nombres de las plantillas tapados.
+    let tapar = Tapar::new(nombres_de(&traidas, &raiz));
+    let url_materias = format!("{BASE}{}", cliente::ASIGNATURAS);
+    let buena = estado_materias == Estado::Bien;
+    let mut cambios =
+        comparar(donde.clickedu, "materias", &huella::huella(&pagina_materias, &url_materias, &tapar), buena);
+    if let Some((direccion, html, buena)) = pagina_items {
+        let h = huella::huella(&html, &format!("{BASE}{direccion}"), &tapar);
+        cambios.extend(comparar(donde.clickedu, "evaluaciones", &h, buena));
+    }
+    cambios.extend(items_rotos);
+
+    let recordadas = aplicar::leer_recordadas(&donde.clickedu.join("traidas.json"))?;
+    let s = sesion::leer(donde.sesion)?;
+    let plan = planear::planear(&traidas, &raiz, &s, &recordadas, &HashMap::new());
+    Ok(Estudiado { traidas, plan, recordadas, estado_materias, cambios })
+}
+
+/// Los nombres de los alumnos de lo traído y de lo que hay en la carpeta:
+/// lo que la huella ha de tapar.
+fn nombres_de(traidas: &[Traida], raiz: &[EnLaRaiz]) -> Vec<String> {
+    let de_traidas = traidas.iter().filter_map(|t| match &t.contenido {
+        Contenido::Plantilla { plantilla, .. } => Some(plantilla),
+        _ => None,
+    });
+    let de_raiz = raiz.iter().filter_map(|r| r.lectura.as_ref().ok());
+    de_traidas.chain(de_raiz).flat_map(|p| p.alumnos.iter().map(|a| a.nombre.clone())).collect()
+}
+
+/// Compara la huella con la última buena; si no se puede, sin cambios.
+fn comparar(carpeta: &Path, ficha: &str, ahora: &Huella, buena: bool) -> Vec<String> {
+    huella::comparar_y_guardar(carpeta, ficha, ahora, buena).unwrap_or_default()
 }
 
 // ───────────────────────── Nombres ─────────────────────────
@@ -447,7 +592,7 @@ mod tests {
         let cliente = Cliente::new(&f.base).unwrap();
         tauri::async_runtime::block_on(cliente.entrar(USUARIO, CONTRASENA, ("a.txt", ARCHIVO_BUENO))).unwrap();
         let mut avance = Vec::new();
-        let bajado = tauri::async_runtime::block_on(bajar(&cliente, |h, t| avance.push((h, t))));
+        let bajado = tauri::async_runtime::block_on(bajar(&cliente, |h, t| avance.push((h, t)), || false));
         (bajado, avance, f.pedidas())
     }
 
@@ -556,7 +701,7 @@ mod tests {
         // Un puerto que nadie escucha.
         let puerto = std::net::TcpListener::bind("127.0.0.1:0").unwrap().local_addr().unwrap().port();
         let cliente = Cliente::new(&format!("http://127.0.0.1:{puerto}")).unwrap();
-        let bajado = tauri::async_runtime::block_on(bajar(&cliente, |_, _| {}));
+        let bajado = tauri::async_runtime::block_on(bajar(&cliente, |_, _| {}, || false));
         assert!(matches!(bajado, Err(FalloTraer::Conexion { .. })), "{:?}", bajado.err());
     }
 

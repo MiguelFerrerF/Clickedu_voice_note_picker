@@ -34,6 +34,7 @@
  */
 
 import {invoke} from '@tauri-apps/api/core';
+import {listen} from '@tauri-apps/api/event';
 import {useEffect, useRef, useState} from 'react';
 
 import {Avisos} from '@components/clases/Avisos';
@@ -49,6 +50,7 @@ import {alumnosEnPalabras} from '@modules/clases/avisos';
 import {buscarItem, type ClaseAbierta, type Exportado, type ItemElegido} from '@modules/clases/tipos';
 import {deshacible, type Apuntado, type Dictado, type Pendiente, type Respuesta} from '@modules/dictado/tipos';
 import {useClases} from '@modules/clases/useClases';
+import {EVENTO_REFRESCADO} from '@modules/clickedu/refresco';
 import {useDictado} from '@modules/dictado/useDictado';
 import {t} from '@modules/i18n';
 import {useIdioma} from '@modules/i18n/useIdioma';
@@ -103,9 +105,16 @@ export function Calificar({visible, clase, setClase, items, elegirItem, irAAjust
   }, [visible, juegoActual]);
 
   // La clase abierta, leída de nuevo si cambia la clase o el ítem, la
-  // carpeta avisa o una nota no se ha podido guardar.
+  // carpeta avisa, una nota no se ha podido guardar o lo de Clickedu se ha
+  // refrescado solo (H11). Lo escrito a medias vive en cada campo y se queda.
   const [abierta, setAbierta] = useState<{juego: string; clase?: ClaseAbierta; error?: string}>();
   const [releer, setReleer] = useState(0);
+  useEffect(() => {
+    const quitar = listen(EVENTO_REFRESCADO, () => setReleer((n) => n + 1));
+    return () => {
+      quitar.then((f) => f());
+    };
+  }, []);
   useEffect(() => {
     if (!actual || !juegoActual) return;
     let vivo = true;

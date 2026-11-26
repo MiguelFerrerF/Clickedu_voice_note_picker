@@ -61,9 +61,31 @@ const TAMANOS = [
  * en «Examen tema 3»; sin ella, ninguna, y Calificar abre la primera.
  * Con `items: 'muchos'`, Biología trae cuatro ítems más por subir en la 2.ª
  * evaluación: nueve en total, más de los cinco que caben en el Inicio.
+ * `refresco` (H11): cómo va el refresco solo: `cambios`, `fallo` o
+ * `parado`; sin él, al día.
  */
-function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, items, ayuda, ultima}) {
+function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, items, ayuda, ultima, refresco}) {
   let n = 1;
+  // H11: el refresco solo. Con la cuenta, al día hace un rato; `cambios`,
+  // con tres plantillas por traer y un aviso; `fallo`, sin red; `parado`,
+  // la cuenta que Clickedu no acepta.
+  let estadoRefresco = {
+    encendido: true,
+    minutos: 30,
+    ultimo: clickedu ? Math.floor(Date.now() / 1000) - 12 * 60 : null,
+    fallo: refresco === 'fallo' ? 'Clickedu no contesta: error sending request' : null,
+    parado: refresco === 'parado',
+    refrescando: false,
+    porTraer:
+      refresco === 'cambios'
+        ? [
+            {fichero: 'Biología y Geología - 3º ESO A.xlsx', que: 'cambia'},
+            {fichero: "Ciències Aplicades a l'Activitat Professional - 4º ESO B.xlsx", que: 'nueva'},
+            {fichero: 'Matemáticas - 2º Bach.xlsx', que: 'ya_no_esta'},
+          ]
+        : [],
+    avisos: refresco === 'cambios' ? ['evaluaciones: el desplegable «trm» ya no está'] : [],
+  };
   const ruta = 'C:\\Users\\profesora\\Documents\\Gestor de Notas\\plantillas';
   const bien = (alumnos, calificados, avisos = 0) => ({tipo: 'bien', alumnos, calificados, avisos});
   const largo = "Ciències Aplicades a l'Activitat Professional - 4t ESO B i C";
@@ -568,6 +590,13 @@ function simular({carpeta, modelo, auriculares, actualizacion, v1, clickedu, ite
         }
         case 'cancelar_subida':
           return null;
+        case 'estado_refresco':
+          return estadoRefresco;
+        case 'refrescar_clickedu':
+          return null;
+        case 'poner_refresco':
+          estadoRefresco = {...estadoRefresco, encendido: args.encendido, minutos: args.minutos};
+          return estadoRefresco;
         case 'ayuda_vista':
           return ayuda === 'nueva'
             ? []
@@ -706,6 +735,24 @@ const PRUEBAS = [
       await mas.click();
       await page.locator('[data-pantalla="clases"]').waitFor({state: 'visible'});
       await paso('clases');
+    },
+  },
+  {
+    // H11: el refresco solo ha visto cambios en Clickedu: el aviso plegado
+    // en lo pendiente, y abierto, con qué plantillas.
+    nombre: 'inicio-por-traer',
+    items: true,
+    ultima: true,
+    clickedu: true,
+    refresco: 'cambios',
+    async probar(page, paso) {
+      const main = page.locator('[data-pantalla="inicio"]');
+      const aviso = main.getByRole('button', {name: 'Hay 3 cambios en Clickedu por traer'});
+      await aviso.waitFor();
+      await paso('plegado');
+      await aviso.click();
+      await main.getByText('ya no está en Clickedu', {exact: false}).waitFor();
+      await paso('abierto');
     },
   },
   {
@@ -1136,6 +1183,51 @@ const PRUEBAS = [
     },
   },
   {
+    // H11: en Conexión, lo que hay por traer, el aviso de la página que ha
+    // cambiado y cuándo se puso al día.
+    nombre: 'clickedu-refresco',
+    clickedu: true,
+    refresco: 'cambios',
+    async probar(page, paso) {
+      await ir(page, 'Conexión', 'clickedu');
+      const main = page.locator('[data-pantalla="clickedu"]');
+      await main.getByText('Al día con Clickedu', {exact: false}).waitFor();
+      await main.getByRole('button', {name: 'Hay 3 cambios en Clickedu por traer'}).click();
+      await main.getByText('han cambiado sus alumnos', {exact: false}).waitFor();
+      await paso('por-traer');
+    },
+  },
+  {
+    // H11: Clickedu no acepta la cuenta: el refresco, parado, en rojo.
+    nombre: 'clickedu-refresco-parado',
+    clickedu: true,
+    refresco: 'parado',
+    async probar(page, paso) {
+      await ir(page, 'Conexión', 'clickedu');
+      const main = page.locator('[data-pantalla="clickedu"]');
+      await main.getByText('Clickedu no acepta tu cuenta', {exact: false}).waitFor();
+      await paso('parado');
+    },
+  },
+  {
+    // H11: en Ajustes, el último falló (en gris); cada cuánto, y apagarlo.
+    nombre: 'ajustes-refresco',
+    clickedu: true,
+    refresco: 'fallo',
+    async probar(page, paso) {
+      await ir(page, 'Ajustes', 'ajustes');
+      const main = page.locator('[data-pantalla="ajustes"]');
+      await main.getByText('No se ha podido poner al día', {exact: false}).waitFor();
+      await paso('fallo');
+      await main.getByRole('button', {name: 'Cada 30 minutos'}).click();
+      await page.waitForTimeout(150);
+      await paso('cada-cuanto');
+      await page.getByRole('button', {name: 'No: solo al traer'}).click();
+      await main.getByText('se lee solo al traer', {exact: false}).waitFor();
+      await paso('apagado');
+    },
+  },
+  {
     // H4: con la cuenta guardada. Cambiar el archivo y que no lo acepte,
     // cambiar la contraseña y olvidar la cuenta.
     nombre: 'clickedu-guardada',
@@ -1361,6 +1453,7 @@ try {
         items: prueba.items ?? false,
         ayuda: prueba.ayuda ?? null,
         ultima: prueba.ultima ?? false,
+        refresco: prueba.refresco ?? null,
       });
       page.on('pageerror', (e) => fallos.push(`${prueba.nombre} ${tam}: error en la página: ${e.message}`));
       await page.goto(`http://localhost:${PUERTO}/`);

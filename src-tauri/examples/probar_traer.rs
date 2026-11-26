@@ -69,9 +69,13 @@ fn main() {
 
     // Bajar.
     let inicio = Instant::now();
-    let Bajado { materias, bajadas: lo_bajado, .. } = bloquear(traer::bajar(&cliente, |hechas, total| {
-        println!("  bajadas {hechas} de {total} ({:.1} s)", inicio.elapsed().as_secs_f32());
-    }))
+    let Bajado { materias, bajadas: lo_bajado, .. } = bloquear(traer::bajar(
+        &cliente,
+        |hechas, total| {
+            println!("  bajadas {hechas} de {total} ({:.1} s)", inicio.elapsed().as_secs_f32());
+        },
+        || false,
+    ))
     .unwrap_or_else(|e| panic!("no se ha podido traer: {e}"));
     println!("{} materias, leídas {}.", materias.dato.len(), estado(&materias.estado));
 

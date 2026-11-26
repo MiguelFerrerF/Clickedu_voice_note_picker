@@ -145,6 +145,8 @@ export type FalloTraer =
   | {tipo: 'conexion'; fallo: FalloClickedu}
   | {tipo: 'materias'; roto: Roto}
   | {tipo: 'sin_entrar'}
+  /** Solo el refresco (H11): ha dejado paso a traer o subir. */
+  | {tipo: 'parado'}
   | {tipo: 'otro'; detalle: string};
 
 // ───────────────────────── Subir las notas (H6) ─────────────────────────

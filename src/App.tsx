@@ -17,6 +17,8 @@
  * - Al arrancar (H7) se traen los datos de la v1.3.4 si está instalada, y se
  *   pregunta si hay una versión nueva. Sin conexión no se dice nada: es lo
  *   normal en un portátil. Primero un diálogo y luego el otro.
+ * - Lo de Clickedu se refresca solo (H11, `useRefrescoClickedu`) mientras
+ *   la ventana se ve.
  * - La ayuda (H9): lo ya visto, para la bienvenida y el aviso de cada
  *   pantalla, que pone `Cabecera` con `PantallaContext`. La bienvenida sale
  *   la primera vez, tras el diálogo de la v1 y antes del de la actualización.
@@ -32,6 +34,7 @@ import {DialogoVersionAnterior, type PasoV1, type ResultadoV1} from '@components
 import {Sidebar} from '@components/layout/Sidebar';
 import {AyudaContext, PantallaContext, type Ayuda as EstadoAyuda} from '@modules/ayuda';
 import {buscarActualizacion, saltarVersion, versionSaltada, type VersionNueva} from '@modules/actualizacion';
+import {useRefrescoClickedu} from '@modules/clickedu/refresco';
 import {Ajustes} from '@screens/Ajustes';
 import {Ayuda} from '@screens/Ayuda';
 import {Calificar} from '@screens/Calificar';
@@ -46,6 +49,7 @@ import {PANTALLA_INICIAL, type PantallaId} from '@/types/pantalla';
 export default function App() {
   const [pantalla, setPantalla] = useState<PantallaId>(PANTALLA_INICIAL);
   const [visitadas, setVisitadas] = useState<ReadonlySet<PantallaId>>(() => new Set([PANTALLA_INICIAL]));
+  useRefrescoClickedu();
 
   // La clase que se está calificando: la eligen Calificar y Clases.
   const [clase, setClase] = useState<string | null>(null);

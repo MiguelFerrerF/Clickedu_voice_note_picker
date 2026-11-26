@@ -6,7 +6,8 @@
  * - **Seguir donde lo dejaste**: la última clase (y su ítem) abierta en
  *   Calificar, que recuerda `ajustes.json` (`ultima_clase`), con su avance.
  * - **Lo pendiente con Clickedu**: los ítems con notas por subir, y cuándo
- *   se trajeron las plantillas. Sin color: tener notas por subir es lo
+ *   se trajeron las plantillas; y, del refresco solo (H11), lo que ha
+ *   cambiado en Clickedu y espera a traerse. Sin color: tener notas por subir es lo
  *   normal mientras se califica, no un error (D6).
  * - **Cómo van las clases**: una tarjeta por clase en la evaluación de hoy,
  *   con la barra de Clases.
@@ -22,6 +23,7 @@ import {useEffect, useMemo, useState} from 'react';
 
 import {BarraAvance} from '@components/clases/BarraAvance';
 import {Cifra} from '@components/Cifra';
+import {AvisoPorTraer} from '@components/clickedu/Refresco';
 import {Cabecera, DOS_COLUMNAS} from '@components/layout/Cabecera';
 import {Button} from '@components/ui/Button';
 import {Card} from '@components/ui/Card';
@@ -29,6 +31,7 @@ import {Icon, ICONOS} from '@components/ui/Icon';
 import {claveDe, evaluacionesDe} from '@modules/clases/evaluaciones';
 import {buscarItem, type Clase, type ItemClickedu, type ItemElegido} from '@modules/clases/tipos';
 import {useClases} from '@modules/clases/useClases';
+import {useEstadoRefresco, type PorTraer} from '@modules/clickedu/refresco';
 import {NUM, tiempo} from '@modules/estadisticas/formato';
 import type {Dictados} from '@modules/estadisticas/tipos';
 import {t} from '@modules/i18n';
@@ -62,6 +65,7 @@ const MAX_POR_SUBIR = 5;
 export function Inicio({visible, ir, abrir}: InicioProps) {
   useIdioma();
   const {lista, error} = useClases({contarNotas: true});
+  const [refresco] = useEstadoRefresco();
   const clases = useMemo(() => {
     const todas = lista?.clases ?? [];
     return [...todas.filter((c) => !c.pendiente), ...todas.filter((c) => c.pendiente)];
@@ -89,7 +93,7 @@ export function Inicio({visible, ir, abrir}: InicioProps) {
       <div style={{display: 'flex', flexDirection: 'column', gap: 16}}>
         <div style={DOS_COLUMNAS}>
           <Seguir clases={clases} ultima={ultima} lista={!!lista} ir={ir} abrir={abrir} />
-          <Pendiente clases={clases} ir={ir} abrir={abrir} />
+          <Pendiente clases={clases} porTraer={refresco?.porTraer ?? []} ir={ir} abrir={abrir} />
         </div>
 
         {clases.length > 0 && (
@@ -204,7 +208,17 @@ interface PorSubir {
   item: ItemClickedu;
 }
 
-function Pendiente({clases, ir, abrir}: {clases: Clase[]; ir: (p: PantallaId) => void; abrir: InicioProps['abrir']}) {
+function Pendiente({
+  clases,
+  porTraer,
+  ir,
+  abrir,
+}: {
+  clases: Clase[];
+  porTraer: PorTraer[];
+  ir: (p: PantallaId) => void;
+  abrir: InicioProps['abrir'];
+}) {
   const conItems = clases.filter((c) => c.items);
   const porSubir: PorSubir[] = conItems.flatMap((c) =>
     (c.items?.evaluaciones ?? []).flatMap((e) =>
@@ -215,6 +229,7 @@ function Pendiente({clases, ir, abrir}: {clases: Clase[]; ir: (p: PantallaId) =>
 
   return (
     <Card title={t('inicio.pendiente')}>
+      <AvisoPorTraer porTraer={porTraer} />
       {conItems.length === 0 ? (
         <p style={TEXTO}>{t('inicio.sin_traer')}</p>
       ) : porSubir.length === 0 ? (

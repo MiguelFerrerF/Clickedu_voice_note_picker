@@ -15,24 +15,23 @@
 //!   con la cuenta guardada. [`replanear_traer`] enseña lo que haría con
 //!   las respuestas de hasta ahora, sin hacerlo.
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
 use serde::Serialize;
 use tauri::{ipc::Channel, AppHandle, Emitter, Manager};
 use tauri_plugin_dialog::DialogExt;
 
-use crate::clickedu::cliente::{self, Cliente, Fallo, BASE};
+use crate::clickedu::cliente::{Cliente, Fallo, BASE};
 use crate::clickedu::cuenta::{self, LlaveroWindows, Vista};
 use crate::clickedu::fichas::Estado;
 use crate::clickedu::guardar_pagina;
-use crate::clickedu::huella::{self, Huella};
-use crate::clickedu::items::{self, ItemsMateria};
-use crate::clickedu::tapar::Tapar;
+use crate::clickedu::items;
+use crate::clickedu::refrescar;
 use crate::clickedu::traer::aplicar::{self, Hecho, Rutas};
-use crate::clickedu::traer::planear::{self, Contenido, EnLaRaiz, Plan, Respuesta, Traida};
-use crate::clickedu::traer::{self, Bajado, FalloBajada, FalloTraer};
-use crate::commands::{carpeta, en_segundo_plano, registro, ruta_sesion};
+use crate::clickedu::traer::planear::{self, Plan, Respuesta, Traida};
+use crate::clickedu::traer::{self, Bajado, Donde, Estudiado, FalloTraer};
+use crate::commands::{carpeta, en_segundo_plano, refresco, registro, ruta_sesion};
 use crate::registro::{ahora, fecha};
 use crate::{sesion, vigilante};
 
@@ -128,7 +127,8 @@ async fn entrar(
         cuenta::guardar(&carpeta, &LlaveroWindows, &usuario, &contrasena, archivo, ahora()).map(|g| g.vista())
     })
     .await?;
-    *app.state::<Sesion>().0.lock().await = Some(cliente);
+    *coger_sesion(app).await = Some(cliente);
+    refresco::entrado(app);
     Ok(vista)
 }
 
@@ -173,7 +173,8 @@ pub(crate) async fn entrar_con_la_guardada(carpeta: &Path) -> Result<Cliente, Fa
 /// copia del archivo) y cierra la sesión.
 #[tauri::command]
 pub async fn olvidar_cuenta_clickedu(app: AppHandle) -> Result<(), String> {
-    *app.state::<Sesion>().0.lock().await = None;
+    *coger_sesion(&app).await = None;
+    refresco::olvidado(&app);
     en_segundo_plano(app.clone(), "olvidar_cuenta_clickedu", move || {
         cuenta::olvidar(&carpeta_clickedu(&app)?, &LlaveroWindows)
     })
@@ -221,100 +222,73 @@ pub async fn traer_plantillas(app: AppHandle, avance: Channel<AvanceTraer>) -> R
 
 async fn traer_y_planear(app: &AppHandle, avance: &Channel<AvanceTraer>) -> Result<Traer, FalloTraer> {
     let carpeta_ce = carpeta_clickedu(app)?;
-    let bajado = {
-        let sesion = app.state::<Sesion>();
-        let mut cogida = sesion.0.lock().await;
-        // Recién abierta la app no hay sesión: se entra con la guardada.
-        if cogida.is_none() {
-            *cogida = Some(entrar_con_la_guardada(&carpeta_ce).await?);
-        }
-        let Some(cliente) = cogida.as_ref() else { return Err(FalloTraer::SinEntrar) };
-        traer::bajar(cliente, |hechas, total| {
+    let (bajado, items_rotos) = {
+        let mut cogida = coger_sesion(app).await;
+        let progreso = |hechas, total| {
             let _ = avance.send(AvanceTraer { hechas, total });
-        })
-        .await
-    };
-    let bajado = match bajado {
-        Ok(b) => b,
-        Err(e) => {
-            // La página que no se entiende, en local, para mirarla.
-            let pagina = match &e {
-                FalloTraer::Materias { pagina, .. } => Some(("materias".to_string(), pagina.clone())),
-                FalloTraer::Conexion { fallo: Fallo::NoEntiendo { paso, html } } => Some((paso.clone(), html.clone())),
-                _ => None,
-            };
-            if let Some((paso, html)) = pagina {
-                let c = carpeta_ce.clone();
-                let _ = bloqueante(move || guardar_pagina(&c, &paso, &html, ahora())).await;
-            }
-            return Err(e);
-        }
+        };
+        bajar_y_guardar_items(&mut cogida, &carpeta_ce, progreso, || false).await?
     };
 
     let app = app.clone();
     bloqueante(move || {
-        let Bajado { materias, pagina_materias, bajadas } = bajado;
-        let estado_materias = materias.estado.clone();
-        // Para la huella de las evaluaciones, la página de Ítems de la
-        // primera materia: siempre la misma, para no comparar materias
-        // distintas entre sí.
-        let items = bajadas.first().map(|b| {
-            let buena = match &b.resultado {
-                Ok(p) => p.estado_evaluaciones == Estado::Bien,
-                Err(FalloBajada::Evaluaciones { .. }) => false,
-                Err(FalloBajada::NoEsExcel { .. }) => true,
-            };
-            (traer::direccion_items(&b.materia.id), b.pagina_items.clone(), buena)
-        });
-
-        // Los ítems (H6), guardados ya: son una copia de Clickedu y no
-        // tocan nada del profesor, así que no esperan a confirmar. Los que
-        // no se entienden se cuentan con los cambios, el aviso temprano.
-        let traidos = ahora();
-        let mut nuevos = BTreeMap::new();
-        let mut items_rotos = Vec::new();
-        for b in &bajadas {
-            match b.resultado.as_ref().map(|p| &p.items) {
-                Ok(Ok(evaluaciones)) => {
-                    let m = ItemsMateria { traidos, evaluaciones: evaluaciones.clone() };
-                    nuevos.insert(b.materia.id.clone(), m);
-                }
-                Ok(Err(roto)) => items_rotos.push(format!("{} {}: {roto}", b.materia.nombre, b.materia.grupo)),
-                Err(_) => {}
-            }
-        }
-        items::guardar(&carpeta_ce.join(items::FICHERO), nuevos)?;
-
-        let traidas = traer::preparar(bajadas, &carpeta_ce.join("bajadas"))?;
         let plantillas = PathBuf::from(carpeta(&app)?.ruta);
-        let raiz = traer::leer_raiz(&plantillas)?;
-
-        // La huella, con los nombres de las plantillas tapados.
-        let tapar = Tapar::new(nombres_de(&traidas, &raiz));
-        let url_materias = format!("{BASE}{}", cliente::ASIGNATURAS);
-        let buena = estado_materias == Estado::Bien;
-        let mut cambios =
-            comparar(&carpeta_ce, "materias", &huella::huella(&pagina_materias, &url_materias, &tapar), buena);
-        if let Some((direccion, html, buena)) = items {
-            let h = huella::huella(&html, &format!("{BASE}{direccion}"), &tapar);
-            cambios.extend(comparar(&carpeta_ce, "evaluaciones", &h, buena));
-        }
-        cambios.extend(items_rotos);
-
-        let recordadas = aplicar::leer_recordadas(&carpeta_ce.join("traidas.json"))?;
-        let s = sesion::leer(&ruta_sesion(&app)?)?;
-        let plan = planear::planear(&traidas, &raiz, &s, &recordadas, &HashMap::new());
+        let sesion = ruta_sesion(&app)?;
+        let bajadas = carpeta_ce.join("bajadas");
+        let donde = Donde { clickedu: &carpeta_ce, bajadas: &bajadas, plantillas: &plantillas, sesion: &sesion };
+        let Estudiado { traidas, plan, recordadas, estado_materias, cambios } =
+            traer::estudiar(bajado, items_rotos, &donde)?;
         let primera_vez = !recordadas.confirmada;
         let hecho = if primera_vez || !plan.dudas.is_empty() {
+            refresco::contar(&app, Some(refrescar::por_traer(&plan, &recordadas, &traidas)));
             *app.state::<Traidas>().0.lock().map_err(|e| e.to_string())? = Some(traidas);
             None
         } else {
-            Some(hacer(&app, &plan, &plantillas, &carpeta_ce)?)
+            let hecho = hacer(&app, &plan, &plantillas, &carpeta_ce)?;
+            refresco::contar(&app, Some(Vec::new()));
+            Some(hecho)
         };
         Ok(Traer { plan, hecho, primera_vez, estado_materias: Some(estado_materias), cambios })
     })
     .await
     .map_err(FalloTraer::from)
+}
+
+/// La sesión con Clickedu, cogida para traer o subir a mano. Mientras se
+/// espera, el refresco solo (H11) lo ve y se para entre materia y materia.
+pub(crate) async fn coger_sesion(app: &AppHandle) -> impl std::ops::DerefMut<Target = Option<Cliente>> + '_ {
+    let _esperando = refresco::Esperando::nuevo(app);
+    app.state::<Sesion>().inner().0.lock().await
+}
+
+/// [`traer::bajar_y_guardar_items`] con la sesión ya cogida, entrando con
+/// la cuenta guardada si hace falta. La página que no se entiende, a local.
+pub(crate) async fn bajar_y_guardar_items(
+    cogida: &mut Option<Cliente>,
+    carpeta_ce: &Path,
+    progreso: impl FnMut(usize, usize),
+    parar: impl Fn() -> bool,
+) -> Result<(Bajado, Vec<String>), FalloTraer> {
+    let ruta = carpeta_ce.join(items::FICHERO);
+    let entrar = || entrar_con_la_guardada(carpeta_ce);
+    let hecho = traer::bajar_y_guardar_items(cogida, entrar, &ruta, progreso, parar, ahora()).await;
+    if let Err(e) = &hecho {
+        guardar_pagina_de(carpeta_ce, e).await;
+    }
+    hecho
+}
+
+/// La página que no se entiende, en local, para mirarla.
+pub(crate) async fn guardar_pagina_de(carpeta_ce: &Path, e: &FalloTraer) {
+    let pagina = match e {
+        FalloTraer::Materias { pagina, .. } => Some(("materias".to_string(), pagina.clone())),
+        FalloTraer::Conexion { fallo: Fallo::NoEntiendo { paso, html } } => Some((paso.clone(), html.clone())),
+        _ => None,
+    };
+    if let Some((paso, html)) = pagina {
+        let c = carpeta_ce.to_path_buf();
+        let _ = bloqueante(move || guardar_pagina(&c, &paso, &html, ahora())).await;
+    }
 }
 
 /// Lo que espera, con las respuestas (fichero viejo → a qué nueva pasan sus
@@ -337,6 +311,7 @@ pub async fn confirmar_traer(respuestas: HashMap<String, Respuesta>, app: AppHan
         let s = sesion::leer(&ruta_sesion(&app)?)?;
         let plan = planear::planear(&traidas, &raiz, &s, &recordadas, &respuestas);
         let hecho = hacer(&app, &plan, &plantillas, &carpeta_ce)?;
+        refresco::contar(&app, Some(Vec::new()));
         let primera_vez = !recordadas.confirmada;
         Ok(Traer { plan, hecho: Some(hecho), primera_vez, estado_materias: None, cambios: vec![] })
     })
@@ -382,20 +357,4 @@ fn hacer(app: &AppHandle, plan: &Plan, plantillas: &Path, carpeta_ce: &Path) -> 
     let _ = app.emit(vigilante::EVENTO, ());
     let _ = app.emit(crate::commands::notas::EVENTO, ());
     Ok(hecho)
-}
-
-/// Los nombres de los alumnos de lo traído y de lo que hay en la carpeta:
-/// lo que la huella ha de tapar.
-fn nombres_de(traidas: &[Traida], raiz: &[EnLaRaiz]) -> Vec<String> {
-    let de_traidas = traidas.iter().filter_map(|t| match &t.contenido {
-        Contenido::Plantilla { plantilla, .. } => Some(plantilla),
-        _ => None,
-    });
-    let de_raiz = raiz.iter().filter_map(|r| r.lectura.as_ref().ok());
-    de_traidas.chain(de_raiz).flat_map(|p| p.alumnos.iter().map(|a| a.nombre.clone())).collect()
-}
-
-/// Compara la huella con la última buena; si no se puede, sin cambios.
-fn comparar(carpeta: &Path, ficha: &str, ahora: &Huella, buena: bool) -> Vec<String> {
-    huella::comparar_y_guardar(carpeta, ficha, ahora, buena).unwrap_or_default()
 }
