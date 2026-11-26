@@ -1642,6 +1642,61 @@ adivinarlo.
 - [ ] Qué enseña el apartado: **pendiente de que el usuario lo diga**,
       además de ítems y rúbricas.
 
+### H11 · Refrescar lo de Clickedu solo
+
+Pedido por el usuario el 2026-11-26: con la cuenta guardada, que lo leído
+de Clickedu no se quede viejo sin darse cuenta. Hoy solo se lee al
+**traer**, a mano. Decidido con el usuario ese día:
+
+- **Qué se refresca solo**: los ítems y las notas que ya hay en Clickedu
+  (`items.json`: el gris, el tachado, «N en Clickedu»). Es una copia de
+  Clickedu y no toca nada del profesor, como ya hace traer (H6).
+- **Las plantillas, solo se avisa**: el refresco las baja y las compara
+  (`planear`, sin `aplicar`). Si alguna ha cambiado (alumno o materia
+  nueva, una que ya no está), **no la cambia**: sale «Hay cambios en
+  Clickedu por traer» en Inicio (lo pendiente) y en Conexión, con qué
+  materias, y se trae a mano como siempre. No toca la carpeta, ni
+  `sesion.json`, ni `traidas.json`, ni un traer que espere respuestas.
+- **Cuándo**: al abrir la app y cada 30 minutos mientras esté abierta.
+  Con la ventana minimizada no se refresca; al volver, si ya toca, se
+  refresca. Traer y subir a mano cuentan como refresco (reinician la
+  cuenta). No es un vigilante: con la app cerrada, nada.
+- **En Ajustes**: un interruptor («Mantener al día lo de Clickedu»,
+  encendido de serie) y cada cuánto (15, 30 o 60 minutos), y cuándo fue
+  el último y si falló. Sin cuenta guardada, ni se intenta.
+
+Cómo:
+
+- [ ] `refrescar_clickedu` (Rust, `async`): lo mismo que el principio
+      de `traer_y_planear` (entrar con la guardada si no hay sesión,
+      `traer::bajar`, las huellas y `items::guardar`) y `planear` contra
+      la carpeta de ahora, sin aplicar. Devuelve cuándo, las materias con
+      cambios y los avisos tempranos (degradado, huellas). **Comparte el
+      código con traer**, no lo copia.
+- [ ] **No estorba al profesor**: coge la sesión con `try_lock` (si
+      hay un traer o una subida, se salta esta vez) y traer o subir a mano
+      lo cancelan entre materia y materia. Lo leído se guarda **dentro**
+      del cerrojo, para que una subida que llegue después no quede pisada
+      por notas leídas antes.
+- [ ] **Los fallos, sin ruido**: sin red o Clickedu caído, nada en
+      pantalla salvo «el último falló» en Ajustes y Conexión, y se vuelve
+      a probar en el siguiente. Si Clickedu no acepta la cuenta, **se
+      para** hasta volver a entrar en Conexión (no se insiste cada media
+      hora). Al registro, como los demás (uno igual, una vez al día).
+- [ ] La ventana, al día: un evento (`clickedu-refrescado`) y Calificar,
+      Clases, Inicio y Estadísticas vuelven a leer **sin perder** lo que
+      se está haciendo (la nota a medias, el dictado, el scroll).
+- [ ] Quién lo lanza: un hook en `App` (`useRefrescoClickedu`) con el
+      reloj y `visibilitychange`; `refresco` en `ajustes.json`
+      (encendido, minutos; sin el campo, encendido y 30).
+- [ ] Tests contra el Clickedu falso: refresca los ítems sin tocar
+      plantillas, sesión ni `traidas.json`; ve una plantilla cambiada y
+      la cuenta; se salta con la sesión cogida; se para con la cuenta
+      rechazada. La prueba de diseño, con el aviso en Inicio y Conexión y
+      la fila de Ajustes.
+- [ ] Probarlo de verdad: dejar la app abierta, poner una nota en
+      Clickedu desde la web y verla aparecer sin traer.
+
 ---
 
 ## Cómo se trabaja y cómo está este ordenador
