@@ -11,9 +11,9 @@ La vieja (**v1**, Python + customtkinter), sustituida en H7, solo queda en
 el tag `v1.3.4`. Plan, decisiones e hitos en
 [`docs/01-plan-de-trabajo.md`](docs/01-plan-de-trabajo.md).
 
-> **Dónde se quedó (2026-11-26): H11 (refrescar lo de Clickedu solo),
-> cerrado**: probado por el usuario con Clickedu de verdad y en `main`,
-> sin versión todavía (la `v2.4.0` es la última publicada). Luego, H10. Cada
+> **Dónde se quedó (2026-11-27): H11 (refrescar lo de Clickedu solo),
+> cerrado** y en `main`, probado por el usuario con Clickedu de verdad;
+> con ello, **la `v2.5.0`, publicada**. Siguiente: H10. Cada
 > cambio, en una rama propia que sale de `main` (un commit por hito y
 > otro al cerrarlo); las versiones, de `main`. Ramas, versiones y
 > cómo está la carpeta de este ordenador para probar traer, en `docs/01`

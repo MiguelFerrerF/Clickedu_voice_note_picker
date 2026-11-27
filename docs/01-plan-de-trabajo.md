@@ -1750,8 +1750,9 @@ cerrar H8 (2026-11-25).
   (2026-11-24) la paró `cargo audit` por `cookie`, arreglado antes de
   haber release; `v2.1.1` (2026-11-25); `v2.2.0` (2026-11-25, con
   H8: las Estadísticas); `v2.3.0` (2026-11-25, con H9: la ayuda);
-  **`v2.4.0` publicada** (2026-11-26, con HUI: el Inicio y las
-  pantallas redistribuidas). En la app
+  `v2.4.0` (2026-11-26, con HUI: el Inicio y las pantallas
+  redistribuidas); **`v2.5.0` publicada** (2026-11-27, con H11: lo de
+  Clickedu, al día solo). En la app
   instalada, todo probado por el usuario (2026-11-25): traer y subir con
   Clickedu, y sin «Probar el dictado».
 - **La carpeta de este ordenador está como antes de traer**, para volver
